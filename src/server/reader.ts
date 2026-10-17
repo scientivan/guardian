@@ -95,7 +95,7 @@ export async function readDocument(scrubbedText: string): Promise<ReadResult> {
         { role: "system", content: SYSTEM },
         { role: "user", content: `<document>\n${scrubbedText}\n</document>` },
       ],
-      { json: true, timeoutMs: 120_000, accept: (t) => parse(t)?.success === true },
+      { json: true, timeoutMs: 120_000, waitForCooldownMs: 70_000, accept: (t) => parse(t)?.success === true },
     );
     const parsed = parse(r.text);
     if (!parsed?.success) return { ok: false, reason: "reader output failed schema", model: r.used };

@@ -28,7 +28,7 @@ export interface SecondCheck {
   skipped?: string;
 }
 
-export async function secondCheck(db: DB, a: Analysis, questioned: string[] = [], opts: { fetchImpl?: typeof fetch; retryWaitMs?: number } = {}): Promise<SecondCheck> {
+export async function secondCheck(db: DB, a: Analysis, questioned: string[] = [], opts: { fetchImpl?: typeof fetch; waitForCooldownMs?: number } = {}): Promise<SecondCheck> {
   const doc = db.prepare("SELECT case_id, scrubbed_text, meta FROM documents WHERE id = ?").get(a.documentId) as { case_id: string; scrubbed_text: string | null; meta: string };
   const firstProvider = String(JSON.parse(doc.meta).reader ?? "").split(":")[0] as Provider;
   const ids = selectItems(a, questioned);
@@ -37,7 +37,7 @@ export async function secondCheck(db: DB, a: Analysis, questioned: string[] = []
   let reading: z.infer<typeof Reading>;
   let model: string;
   // Free tiers cool down for about a minute after a 429; the independent
-  // providers may all be cooling down right after the first read. Wait once.
+  // providers may all be cooling down right after the first read, so wait once.
   const call = () => chat(
       [
         {
@@ -47,16 +47,10 @@ export async function secondCheck(db: DB, a: Analysis, questioned: string[] = []
         },
         { role: "user", content: `Codes: ${ids.join(", ")}\n<document>\n${doc.scrubbed_text}\n</document>` },
       ],
-      { json: true, excludeProviders: firstProvider ? [firstProvider] : [], fetchImpl: opts.fetchImpl, accept: (t) => Reading.safeParse(safeJson(t)).success },
+      { json: true, excludeProviders: firstProvider ? [firstProvider] : [], fetchImpl: opts.fetchImpl, waitForCooldownMs: opts.waitForCooldownMs ?? 70_000, accept: (t) => Reading.safeParse(safeJson(t)).success },
     );
   try {
-    let r;
-    try {
-      r = await call();
-    } catch {
-      await new Promise((res) => setTimeout(res, opts.retryWaitMs ?? 65_000));
-      r = await call();
-    }
+    const r = await call();
     reading = Reading.parse(safeJson(r.text));
     model = `${r.used.provider}:${r.used.model}`;
   } catch (e) {

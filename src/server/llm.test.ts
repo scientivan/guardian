@@ -35,6 +35,14 @@ describe("llm router", () => {
     expect(r.used.provider).toBe("groq");
   });
 
+  it("waits for the soonest cooldown once when asked", async () => {
+    let n = 0;
+    const fetchImpl = (async () => (n++ === 0 ? new Response("{}", { status: 429, headers: { "retry-after": "1" } }) : ok("late"))) as unknown as typeof fetch;
+    process.env.LLM_CHAIN = "gemini:a";
+    const r = await chat([{ role: "user", content: "x" }], { fetchImpl, waitForCooldownMs: 5_000 });
+    expect(r.text).toBe("late");
+  });
+
   it("throws with reasons when every model is unavailable", async () => {
     const fetchImpl = (async () => limited()) as typeof fetch;
     await expect(chat([{ role: "user", content: "x" }], { fetchImpl })).rejects.toBeInstanceOf(AllModelsUnavailable);

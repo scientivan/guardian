@@ -61,6 +61,9 @@ export type ChatOptions = {
   fetchImpl?: typeof fetch;
   // Reject a reply (e.g. truncated or off-schema JSON): try the next model, do not cache it.
   accept?: (text: string) => boolean;
+  // If every model is cooling down, wait for the soonest one (up to this long) and try once more.
+  // Use for background work like document reading; keep 0 for interactive chat.
+  waitForCooldownMs?: number;
   now?: () => number;
 };
 
@@ -88,7 +91,17 @@ function cachePath(messages: ChatMessage[], opts: ChatOptions): string | null {
 export async function chat(messages: ChatMessage[], opts: ChatOptions = {}): Promise<ChatResult> {
   const cp = cachePath(messages, opts);
   if (cp && existsSync(cp)) return { ...(JSON.parse(readFileSync(cp, "utf8")) as ChatResult), skipped: [] };
-  const r = await chatUncached(messages, opts);
+  let r: ChatResult;
+  try {
+    r = await chatUncached(messages, opts);
+  } catch (e) {
+    const now = (opts.now ?? Date.now)();
+    const soonest = Math.min(...[...cooldownUntil.values()].filter((t) => t > now));
+    const wait = soonest - now;
+    if (!(e instanceof AllModelsUnavailable) || !opts.waitForCooldownMs || !Number.isFinite(wait) || wait > opts.waitForCooldownMs) throw e;
+    await new Promise((res) => setTimeout(res, wait + 500));
+    r = await chatUncached(messages, opts);
+  }
   if (cp) {
     mkdirSync(dirname(cp), { recursive: true });
     writeFileSync(cp, JSON.stringify({ text: r.text, used: r.used }));
