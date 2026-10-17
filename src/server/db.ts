@@ -106,8 +106,11 @@ CREATE TABLE IF NOT EXISTS refunds (
   case_id TEXT NOT NULL REFERENCES cases(id),
   member_id TEXT NOT NULL REFERENCES members(id),
   amount INTEGER NOT NULL,
-  status TEXT NOT NULL DEFAULT 'requested',
-  due_at TEXT NOT NULL
+  status TEXT NOT NULL DEFAULT 'requested' CHECK (status IN ('requested','processing','received')),
+  due_at TEXT NOT NULL,
+  document_id TEXT REFERENCES documents(id),
+  reminded_at TEXT,
+  updated_at TEXT
 );
 CREATE TABLE IF NOT EXISTS pii_tokens (
   case_id TEXT NOT NULL,

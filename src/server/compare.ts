@@ -46,7 +46,7 @@ const BASIC_ITEMS = /\b(pillow ?case|bed ?sheet|alcohol swab|cotton ball|tissue|
 
 const CATEGORIES: Category[] = ["room", "drug", "procedure", "lab", "consumable", "other"];
 
-export function lineTotal(i: Item): number {
+export function lineTotal(i: Pick<Item, "qty" | "unitPrice">): number {
   return Math.round(i.qty * i.unitPrice);
 }
 
