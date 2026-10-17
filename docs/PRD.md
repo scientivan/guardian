@@ -1,6 +1,6 @@
 # PRD: Deposit and Bill Guardian
 
-Version 1.1, 17 October 2026. Owner: Dien. Status: scope and stack approved by Dien on 17 Oct 2026.
+Version 1.1, 17 October 2026. Owner: Dien. Status: scope, stack and v1.1 design decisions (payee enrollment, state machine, withdraw/expiry, FX quotes, cited explanations, extra tests) approved by Dien on 17 Oct 2026.
 
 Competition: 2026 Shenzhen International FinTech Competition (FinTechathon), International Track (AI), **Topic C: Cross-border & Student Finance**. Theme: *AI as a Financial Participant*.
 
