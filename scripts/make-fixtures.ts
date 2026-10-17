@@ -35,6 +35,11 @@ async function render(name: string, build: (w: Writer) => void) {
   const doc = await PDFDocument.create();
   doc.setTitle(`${name} (demo)`);
   doc.setProducer("guardian fixtures (synthetic)");
+  doc.setCreator("guardian fixtures (synthetic)");
+  // Fixed dates so the same fixture always has the same bytes and SHA-256.
+  const fixed = new Date("2026-10-16T00:00:00Z");
+  doc.setCreationDate(fixed);
+  doc.setModificationDate(fixed);
   const w = new Writer(doc, await doc.embedFont(StandardFonts.Helvetica), await doc.embedFont(StandardFonts.HelveticaBold));
   w.line(HOSPITAL_HEADER[0], { size: 14, bold: true });
   w.line(HOSPITAL_HEADER[1], { size: 10 });
