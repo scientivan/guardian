@@ -59,6 +59,8 @@ See §4.
 - The planner references payees only by `payeeId` from the registry; it cannot write an account number. It cannot approve or execute.
 - Explanation lines must cite item ids and carry a type: `arithmetic_fact`, `stated_in_document`, `unknown_ask_hospital`. Lines without citations are dropped before display.
 
+Implementation: `src/server/explain.ts` (bill explanation) and `src/server/agent.ts` (chat). Code checks every explanation line: citations must exist, numbers must appear in the facts, and a clinical cause is dropped unless the document states it. Any cause the model skips gets a fixed template line. In chat, the model only classifies the message into a fixed intent; code resolves which bill, amount or request it means, asks a clarifying question when the message does not identify it (relative words like "kemarin" are not accepted), and can only prepare a payment, never execute one. Account numbers in chat are checked by the gateway before any model runs.
+
 ### 3.4 Comparator (code, `src/server/compare.ts`)
 
 - Totals per category: room, drug, procedure, lab, consumable, other.

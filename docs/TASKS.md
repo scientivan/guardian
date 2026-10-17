@@ -30,15 +30,15 @@ Owners: **Dien** (backend, agent, API, services) and **Aurel** (UI/FE). FE ↔ B
 | 1.8 | Payment state machine (`pending` → `executing` → `paid` / `expired` / `cancelled` / `failed`) | done (`payments.ts`, demo clock `clock.ts`) |
 | 1.9 | FX demo table + quotes | done (`fx.ts`) |
 | 1.10 | Stripe test mode: one charge per approved share | done (`stripe.ts`; live run 4 PaymentIntents succeeded) |
-| 1.11 | Document upload, text-layer PDF read, Tesseract OCR for photos, totals check | todo |
-| 1.12 | Quarantined reader (Claude, zod schema) | todo |
-| 1.13 | Planner (fixed action set, cited explanation lines, clarification) | todo |
-| 1.14 | Selective second-model check | todo |
-| 1.15 | Refund status + simulated clock + reminders | todo |
-| 1.16 | Recap per member | todo |
-| 1.17 | API routes per `docs/API.md` | todo |
+| 1.11 | Document upload, text-layer PDF read, Tesseract OCR for photos, totals check | done (`extract.ts`, `documents.ts`; upload route with 1.17) |
+| 1.12 | Quarantined reader (free-tier router, zod schema) | done (`reader.ts`) |
+| 1.13 | Planner (fixed action set, cited explanation lines, clarification) | done (`explain.ts`, `agent.ts`) |
+| 1.14 | Selective second-model check | done (`secondcheck.ts`) |
+| 1.15 | Refund status + simulated clock + reminders | done (`refunds.ts`, `clock.ts`) |
+| 1.16 | Recap per member | done (`recap.ts`) |
+| 1.17 | API routes per `docs/API.md` | todo (deferred by Dien until FE integration) |
 | 1.18 | FISCO BCOS node (Docker) + anchor contract + anchoring calls | doing (client `anchor.ts` done; wire into document upload and audit view with 1.17) |
-| 1.19 | Demo fixtures: estimate PDF, 40-item interim bill, final bill, injected PDF, answer keys | todo |
+| 1.19 | Demo fixtures: estimate PDF, 40-item interim bill, final bill, injected PDF, answer keys | done (`fixtures/pdf/`, `src/server/fixtures/`) |
 
 ## 2. Frontend build (Aurel, 17–19 Oct)
 
@@ -59,10 +59,10 @@ Owners: **Dien** (backend, agent, API, services) and **Aurel** (UI/FE). FE ↔ B
 
 | # | Task | Status |
 |---|---|---|
-| 3.1 | Run D1–D6 end-to-end, save logs | todo |
-| 3.2 | Run A1–A9, save logs | todo |
-| 3.3 | Dialogue turn counts and correction tests | todo |
-| 3.4 | Baseline comparison vs generic LLM | todo |
+| 3.1 | Run D1–D6 end-to-end, save logs | done (`npm run evidence`, live, 7/7) |
+| 3.2 | Run A1–A9, save logs | done (`npm run evidence`, live, 9/9) |
+| 3.3 | Dialogue turn counts and correction tests | doing (`npm run eval:chat` 10/10; turn counts need the UI flow) |
+| 3.4 | Baseline comparison vs generic LLM | done (`npm run baseline`, 3 trials) |
 | 3.5 | README tested from a clean clone | todo |
 
 ## 4. Submission (19–20 Oct)
@@ -82,3 +82,5 @@ Owners: **Dien** (backend, agent, API, services) and **Aurel** (UI/FE). FE ↔ B
 - 17 Oct: docs expanded to v1.1. New requirements not yet in code: signed payee enrollment, approval withdraw and expiry, FX quotes, per-share charges, cited explanation lines (tasks 1.6–1.9, 1.13).
 - 17 Oct: LLM router (`src/server/llm.ts`) over Gemini, Groq, OpenRouter free tiers with cooldown fallback; live probe answered on `gemini-3.8-flash`. Stripe test key verified (`livemode=false`). FISCO BCOS v3.17.1 4-node chain running; `Anchor` deployed at `0x7571ee502b7A719066dF31CB0D8C59E6081d13A5`; smoke anchor tx `0x8420b9a1…6e2` status 1. `npm test`: 17 passing.
 - 17 Oct: tasks 1.6–1.10 done. `npm run d4:live` ran D4 against live services: 4 helper shares (IDR, MYR, AED, IDR) charged as separate Stripe test PaymentIntents (`pi_3URapKIZ…`, `pi_3URapLIZ…` ×2, `pi_3URapMIZ…`), request `paid`, audit chain intact, head anchored on FISCO BCOS (tx `0xc8de5e9b…ae12`). `npm test`: 28 passing.
+- 18 Oct: tasks 1.11–1.16 and 1.19 done; 1.17 (API routes) deferred until FE integration. `npm run evidence` against live LLM router, Stripe test and FISCO BCOS: 16/16 (D1–D6, D4b, A1–A9), audit head anchored. `npm test`: 44 passing.
+- 18 Oct baseline (same model `groq:openai/gpt-oss-120b` both sides, 3 trials, metrics by code from the answer key): causes found guardian 5/5 in every trial vs generic chat 4/5, 3/5, 2/5; basic items raised 4/4 vs 2–3/4; duplicate CBC raised 3/3 vs 1/3; invented clinical cause ("infection") 0 vs 3/3 trials; numbers not traceable to the bill or computed facts 0 vs 4–8 per trial (spot-checked: drug total stated as CNY 2,534 and 2,224, true 1,702; lab 1,190, true 1,150). Generic chat was 1,000–1,400 words vs 160–210. One earlier run on the same model produced a degenerate repeated-character reply; it was discarded and the comparison rerun with fixed settings.
