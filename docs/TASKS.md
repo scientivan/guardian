@@ -12,9 +12,9 @@ Owners: **Dien** (backend, agent, API, services) and **Aurel** (UI/FE). FE ↔ B
 | 0.2 | Approve stack (`ARCHITECTURE.md` §2) | Dien | done |
 | 0.3 | Split work between members | Dien | done |
 | 0.4 | Team registration via `fintechathon@ican-x.com` | Dien | todo |
-| 0.5 | Fill real keys in `.env` (Anthropic, second provider, Stripe test) | Dien | todo |
+| 0.5 | Fill real keys in `.env` (Gemini, Groq, OpenRouter, Stripe test) | Dien | done |
 | 0.6 | Add Aurel as GitHub collaborator | Dien | todo |
-| 0.7 | Choose second-model provider and model | Dien | todo |
+| 0.7 | Choose second-model provider and model | Dien | done (router, different provider) |
 
 ## 1. Backend build (Dien, 17–18 Oct)
 
@@ -37,7 +37,7 @@ Owners: **Dien** (backend, agent, API, services) and **Aurel** (UI/FE). FE ↔ B
 | 1.15 | Refund status + simulated clock + reminders | todo |
 | 1.16 | Recap per member | todo |
 | 1.17 | API routes per `docs/API.md` | todo |
-| 1.18 | FISCO BCOS node (Docker) + anchor contract + anchoring calls | todo |
+| 1.18 | FISCO BCOS node (Docker) + anchor contract + anchoring calls | doing (chain + contract + smoke tx done; app calls todo) |
 | 1.19 | Demo fixtures: estimate PDF, 40-item interim bill, final bill, injected PDF, answer keys | todo |
 
 ## 2. Frontend build (Aurel, 17–19 Oct)
@@ -80,3 +80,4 @@ Owners: **Dien** (backend, agent, API, services) and **Aurel** (UI/FE). FE ↔ B
 
 - 17 Oct: repo scaffolded (Next.js 15.5.4, TypeScript, Tailwind). Deterministic core in `src/server/`: `gateway.ts`, `compare.ts`, `pii.ts`, `audit.ts`, `seed.ts`, `db.ts`. `npm test`: 14 passing.
 - 17 Oct: docs expanded to v1.1. New requirements not yet in code: signed payee enrollment, approval withdraw and expiry, FX quotes, per-share charges, cited explanation lines (tasks 1.6–1.9, 1.13).
+- 17 Oct: LLM router (`src/server/llm.ts`) over Gemini, Groq, OpenRouter free tiers with cooldown fallback; live probe answered on `gemini-3.8-flash`. Stripe test key verified (`livemode=false`). FISCO BCOS v3.17.1 4-node chain running; `Anchor` deployed at `0x7571ee502b7A719066dF31CB0D8C59E6081d13A5`; smoke anchor tx `0x8420b9a1…6e2` status 1. `npm test`: 17 passing.

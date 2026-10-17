@@ -18,12 +18,12 @@ Version 1.1, 17 October 2026. Stack approved by Dien on 17 Oct 2026. This docume
 | App | Next.js 15 + TypeScript, one repo (`src/app` UI by Aurel, `src/server` + `src/app/api` by Dien) | One language for UI and API |
 | DB | SQLite via `better-sqlite3` | No server; easy reset for judges |
 | Validation | `zod` | Fixed schemas for LLM output and API input |
-| Primary LLM | Claude (`ANTHROPIC_MODEL`, default `claude-sonnet-5-5`) | Quarantined reader and planner |
-| Second LLM | Different provider (`OPENAI_MODEL`) | Selective double-check |
+| LLM | Free tiers of Gemini, Groq and OpenRouter behind one router (`src/server/llm.ts`): first model not rate-limited wins; 429/5xx/timeout puts a model on cooldown | Quarantined reader and planner; no paid key needed |
+| Second LLM | Same router with the first answer's provider excluded | Selective double-check from a different provider |
 | OCR | Text-layer PDF read directly; photos through local Tesseract | Raw images with PII never reach an LLM |
 | Payments | Stripe test mode (`sk_test_` only) | Verifiable test transaction IDs |
 | FX | Demo rate table, labelled demo | Deterministic results |
-| Anchoring | FISCO BCOS local node (Docker) | Document hashes and audit log head; no token, allowed in China |
+| Anchoring | FISCO BCOS v3.17.1, 4-node local chain in Docker, web3 RPC; contract `contracts/Anchor.sol` (see `docs/FISCO-SETUP.md`) | Document hashes and audit log head; no token, allowed in China |
 | Tests | `vitest` | Scripted tasks and attack tests |
 
 Environment variables are listed in `.env.example`. Real `.env` is never committed.
