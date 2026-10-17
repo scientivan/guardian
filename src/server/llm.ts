@@ -1,3 +1,7 @@
+import { createHash } from "node:crypto";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+
 // LLM router over free-tier providers. All three expose an OpenAI-compatible
 // chat endpoint, so one fetch path serves them. A model that answers 429/5xx
 // or times out is put on cooldown and the next model in the chain is tried,
@@ -55,6 +59,8 @@ export type ChatOptions = {
   excludeProviders?: Provider[];
   timeoutMs?: number;
   fetchImpl?: typeof fetch;
+  // Reject a reply (e.g. truncated or off-schema JSON): try the next model, do not cache it.
+  accept?: (text: string) => boolean;
   now?: () => number;
 };
 
@@ -70,7 +76,27 @@ function cooldownMs(res: Response): number {
   return res.status === 429 ? 60_000 : 30_000;
 }
 
+// Optional response cache (LLM_CACHE_DIR). Keyed on the messages only, so a demo
+// rerun or recording gets the same answer even if the free model in front changes.
+function cachePath(messages: ChatMessage[], opts: ChatOptions): string | null {
+  const dir = process.env.LLM_CACHE_DIR;
+  if (!dir || opts.fetchImpl) return null;
+  const key = createHash("sha256").update(JSON.stringify([messages, !!opts.json, opts.excludeProviders ?? []])).digest("hex");
+  return join(dir, `${key}.json`);
+}
+
 export async function chat(messages: ChatMessage[], opts: ChatOptions = {}): Promise<ChatResult> {
+  const cp = cachePath(messages, opts);
+  if (cp && existsSync(cp)) return { ...(JSON.parse(readFileSync(cp, "utf8")) as ChatResult), skipped: [] };
+  const r = await chatUncached(messages, opts);
+  if (cp) {
+    mkdirSync(dirname(cp), { recursive: true });
+    writeFileSync(cp, JSON.stringify({ text: r.text, used: r.used }));
+  }
+  return r;
+}
+
+async function chatUncached(messages: ChatMessage[], opts: ChatOptions): Promise<ChatResult> {
   const doFetch = opts.fetchImpl ?? fetch;
   const now = opts.now ?? Date.now;
   const skipped: ChatResult["skipped"] = [];
@@ -116,6 +142,10 @@ export async function chat(messages: ChatMessage[], opts: ChatOptions = {}): Pro
       const text = body.choices?.[0]?.message?.content;
       if (!text) {
         skipped.push({ ref, reason: "empty reply" });
+        continue;
+      }
+      if (opts.accept && !opts.accept(text)) {
+        skipped.push({ ref, reason: "reply rejected by validator" });
         continue;
       }
       return { text, used: ref, skipped };

@@ -7,6 +7,7 @@ import { fetchSignedPayeeList, portalPublicKey } from "./portal";
 export const DEMO = {
   hospital: { id: "H1", name: "Shenzhen International Hospital (demo)", channel: "https://hospital.example/billing" },
   case: { id: "C1", currency: "CNY" },
+  patientName: "Budi Santoso",
   payee: { id: "P1", account: "6222 0000 1111 2222", name: "Shenzhen International Hospital (demo)" },
   members: [
     { id: "M_OWNER", name: "Rina (owner)", role: "owner", limit: 0, currency: "IDR" },
@@ -27,6 +28,8 @@ export function seed(db: DB, now = new Date()): void {
     d.hospital.id, d.hospital.name, d.hospital.channel, portalPublicKey(d.hospital.id),
   );
   db.prepare("INSERT OR IGNORE INTO cases (id, patient_token, hospital_id, currency) VALUES (?, ?, ?, ?)").run(d.case.id, "[PASIEN_1]", d.hospital.id, d.case.currency);
+  // Patient name is known case data, so the scrubber can replace it before any LLM call.
+  db.prepare("INSERT OR IGNORE INTO pii_tokens (case_id, token, value, kind) VALUES (?, '[PASIEN_1]', ?, 'NAME')").run(d.case.id, d.patientName);
   const m = db.prepare("INSERT OR IGNORE INTO members (id, case_id, display_name, role, share_limit, currency) VALUES (?, ?, ?, ?, ?, ?)");
   for (const x of d.members) m.run(x.id, d.case.id, x.name, x.role, x.limit, x.currency);
   // The registry is filled only from the hospital's signed list, never inserted directly.

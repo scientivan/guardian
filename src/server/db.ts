@@ -38,11 +38,16 @@ CREATE TABLE IF NOT EXISTS documents (
   type TEXT NOT NULL CHECK (type IN ('estimate','interim','final')),
   sha256 TEXT NOT NULL,
   anchored_tx TEXT,
+  status TEXT NOT NULL DEFAULT 'parsed' CHECK (status IN ('parsed','needs_reupload')),
+  reason TEXT,
+  -- Typed reader fields (stay days, estimate range, stated reasons...), provenance hospital_doc.
+  meta TEXT NOT NULL DEFAULT '{}',
   created_at TEXT NOT NULL
 );
 CREATE TABLE IF NOT EXISTS bill_items (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   document_id TEXT NOT NULL REFERENCES documents(id),
+  code TEXT NOT NULL,
   category TEXT NOT NULL,
   description TEXT NOT NULL,
   qty REAL NOT NULL,

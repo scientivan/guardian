@@ -55,3 +55,6 @@ yarn-error.log*
 .vercel
 .vscode/
 .idea/
+
+# LLM response cache (demo reproducibility)
+.cache/
