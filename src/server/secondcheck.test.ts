@@ -50,7 +50,7 @@ describe("selective second-model check", () => {
 
   it("reports honestly when no independent model is available", async () => {
     const down = (async () => new Response("{}", { status: 503 })) as unknown as typeof fetch;
-    const r = await secondCheck(db, a, [], { fetchImpl: down });
+    const r = await secondCheck(db, a, [], { fetchImpl: down, retryWaitMs: 0 });
     expect(r.checked).toEqual([]);
     expect(r.skipped).toMatch(/unavailable/);
   });

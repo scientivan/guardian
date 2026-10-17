@@ -28,7 +28,7 @@ export interface SecondCheck {
   skipped?: string;
 }
 
-export async function secondCheck(db: DB, a: Analysis, questioned: string[] = [], opts: { fetchImpl?: typeof fetch } = {}): Promise<SecondCheck> {
+export async function secondCheck(db: DB, a: Analysis, questioned: string[] = [], opts: { fetchImpl?: typeof fetch; retryWaitMs?: number } = {}): Promise<SecondCheck> {
   const doc = db.prepare("SELECT case_id, scrubbed_text, meta FROM documents WHERE id = ?").get(a.documentId) as { case_id: string; scrubbed_text: string | null; meta: string };
   const firstProvider = String(JSON.parse(doc.meta).reader ?? "").split(":")[0] as Provider;
   const ids = selectItems(a, questioned);
@@ -36,8 +36,9 @@ export async function secondCheck(db: DB, a: Analysis, questioned: string[] = []
 
   let reading: z.infer<typeof Reading>;
   let model: string;
-  try {
-    const r = await chat(
+  // Free tiers cool down for about a minute after a 429; the independent
+  // providers may all be cooling down right after the first read. Wait once.
+  const call = () => chat(
       [
         {
           role: "system",
@@ -48,11 +49,19 @@ export async function secondCheck(db: DB, a: Analysis, questioned: string[] = []
       ],
       { json: true, excludeProviders: firstProvider ? [firstProvider] : [], fetchImpl: opts.fetchImpl, accept: (t) => Reading.safeParse(safeJson(t)).success },
     );
+  try {
+    let r;
+    try {
+      r = await call();
+    } catch {
+      await new Promise((res) => setTimeout(res, opts.retryWaitMs ?? 65_000));
+      r = await call();
+    }
     reading = Reading.parse(safeJson(r.text));
     model = `${r.used.provider}:${r.used.model}`;
   } catch (e) {
     // No independent model available: say so instead of pretending the check ran.
-    return { checked: [], disagreements: [], model: null, skipped: `second model unavailable: ${(e as Error).message.slice(0, 100)}` };
+    return { checked: [], disagreements: [], model: null, skipped: `second model unavailable: ${(e as Error).message.slice(0, 400)}` };
   }
 
   const disagreements: Question[] = [];
