@@ -1,0 +1,91 @@
+[
+  {
+    "trial": 1,
+    "baseline": {
+      "statesCorrectTotal": true,
+      "causesFound": "4/5",
+      "duplicateCbcRaised": true,
+      "basicItemsRaised": "3/4",
+      "inventedClinicalCauses": [
+        "/infection/i"
+      ],
+      "numbersNotTraceable": [
+        "2224",
+        "750",
+        "1128",
+        "1340",
+        "0",
+        "724",
+        "400",
+        "390"
+      ],
+      "words": 1417
+    },
+    "guardian": {
+      "statesCorrectTotal": false,
+      "causesFound": "5/5",
+      "duplicateCbcRaised": true,
+      "basicItemsRaised": "4/4",
+      "inventedClinicalCauses": [],
+      "numbersNotTraceable": [],
+      "words": 179
+    }
+  },
+  {
+    "trial": 2,
+    "baseline": {
+      "statesCorrectTotal": true,
+      "causesFound": "3/5",
+      "duplicateCbcRaised": false,
+      "basicItemsRaised": "2/4",
+      "inventedClinicalCauses": [
+        "/infection/i"
+      ],
+      "numbersNotTraceable": [
+        "2394",
+        "1310",
+        "726",
+        "0",
+        "894"
+      ],
+      "words": 1023
+    },
+    "guardian": {
+      "statesCorrectTotal": false,
+      "causesFound": "5/5",
+      "duplicateCbcRaised": true,
+      "basicItemsRaised": "4/4",
+      "inventedClinicalCauses": [],
+      "numbersNotTraceable": [],
+      "words": 158
+    }
+  },
+  {
+    "trial": 3,
+    "baseline": {
+      "statesCorrectTotal": true,
+      "causesFound": "2/5",
+      "duplicateCbcRaised": false,
+      "basicItemsRaised": "3/4",
+      "inventedClinicalCauses": [
+        "/infection/i"
+      ],
+      "numbersNotTraceable": [
+        "2534",
+        "1190",
+        "1260",
+        "375"
+      ],
+      "words": 1366
+    },
+    "guardian": {
+      "statesCorrectTotal": false,
+      "causesFound": "5/5",
+      "duplicateCbcRaised": true,
+      "basicItemsRaised": "4/4",
+      "inventedClinicalCauses": [],
+      "numbersNotTraceable": [],
+      "words": 207
+    }
+  }
+]
