@@ -42,6 +42,8 @@ CREATE TABLE IF NOT EXISTS documents (
   reason TEXT,
   -- Typed reader fields (stay days, estimate range, stated reasons...), provenance hospital_doc.
   meta TEXT NOT NULL DEFAULT '{}',
+  -- PII-scrubbed text, kept so a second model can re-read it independently.
+  scrubbed_text TEXT,
   created_at TEXT NOT NULL
 );
 CREATE TABLE IF NOT EXISTS bill_items (

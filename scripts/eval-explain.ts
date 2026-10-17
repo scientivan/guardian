@@ -7,6 +7,7 @@ import { ingestDocument } from "../src/server/documents";
 import { analyse, type Analysis } from "../src/server/analysis";
 import { explain } from "../src/server/explain";
 import { D2_KEY } from "../src/server/fixtures/answer-keys";
+import { secondCheck } from "../src/server/secondcheck";
 
 async function main() {
   const db = openDb(":memory:");
@@ -16,6 +17,8 @@ async function main() {
     if (r.status !== "parsed") throw new Error(`${f}: ${r.reason}`);
     if (t === "interim") {
       const a = analyse(db, "C1", r.documentId) as Analysis;
+      const sc = await secondCheck(db, a);
+      console.log(`second model ${sc.model ?? sc.skipped}: checked ${sc.checked.length} items, disagreements ${JSON.stringify(sc.disagreements.map((d) => d.text))}`);
       for (const lang of ["en", "id"] as const) {
         const e = await explain(a, lang);
         const text = e.lines.map((l) => l.text).join(" ");

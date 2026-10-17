@@ -44,10 +44,11 @@ export async function ingestDocument(
   const id = `D_${randomUUID().slice(0, 8)}`;
   const hash = sha256(Buffer.from(args.data));
   const warnings: string[] = [];
+  let scrubbedText: string | null = null;
   const finish = (status: IngestResult["status"], reason: string | undefined, meta: object, items: ReaderOutput["items"] = []) => {
     db.transaction(() => {
-      db.prepare("INSERT INTO documents (id, case_id, type, sha256, status, reason, meta, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)").run(
-        id, args.caseId, args.type, hash, status, reason ?? null, JSON.stringify(meta), now.toISOString(),
+      db.prepare("INSERT INTO documents (id, case_id, type, sha256, status, reason, meta, scrubbed_text, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)").run(
+        id, args.caseId, args.type, hash, status, reason ?? null, JSON.stringify(meta), scrubbedText, now.toISOString(),
       );
       const ins = db.prepare("INSERT INTO bill_items (document_id, code, category, description, qty, unit_price) VALUES (?, ?, ?, ?, ?, ?)");
       items.forEach((i, n) => ins.run(id, i.code || `L${String(n + 1).padStart(2, "0")}`, i.category, i.description, i.qty, i.unitPrice));
@@ -64,6 +65,7 @@ export async function ingestDocument(
 
   const s = scrub(ex.text, knownNames(db, args.caseId));
   storeTokens(db, args.caseId, s);
+  scrubbedText = s.text;
 
   const read = await readDocument(s.text);
   if (!read.ok) return { documentId: id, sha256: hash, status: "needs_reupload", reason: read.reason, anchoredTx: null, warnings, auditSeq: finish("needs_reupload", read.reason, { extraction: ex.method }) };
