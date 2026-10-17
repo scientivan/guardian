@@ -2,7 +2,9 @@
 
 Snapshots of runs against live services, kept in the repo for judges. All data is synthetic demo data; payments are Stripe **test mode**; anchors are on a **local** FISCO BCOS chain. Regenerate with the commands below (output goes to `logs/`, which is not committed).
 
-## `run-2026-10-17T17-27Z/` (`npm run evidence`)
+## `run-2026-10-18-clean-clone/` (`npm run evidence`)
+
+Run from a fresh `git clone` of this repository on 18 Oct 2026 (01:17 WIB), following README §4, with only `.env` copied in.
 
 - `summary.md`: D1–D6, D4b and A1–A9 with expected vs actual result and evidence (Stripe test PaymentIntent IDs, FISCO BCOS tx hashes, models used). Result 16/16.
 - `audit-tasks.jsonl`, `audit-attacks.jsonl`: the hash-chained audit log of each run. Each row has `prev_hash` and `hash = sha256(prev_hash, ts, case_id, actor, action, input_sources, decision, result)`; the chain can be re-verified with `verifyChain` (`src/server/audit.ts`).

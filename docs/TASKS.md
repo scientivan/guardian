@@ -63,7 +63,7 @@ Owners: **Dien** (backend, agent, API, services) and **Aurel** (UI/FE). FE ↔ B
 | 3.2 | Run A1–A9, save logs | done (`npm run evidence`, live, 9/9) |
 | 3.3 | Dialogue turn counts and correction tests | doing (`npm run eval:chat` 10/10; turn counts need the UI flow) |
 | 3.4 | Baseline comparison vs generic LLM | done (`npm run baseline`, 3 trials) |
-| 3.5 | README tested from a clean clone | todo |
+| 3.5 | README tested from a clean clone | done (fresh clone: `npm ci`, 45 tests, deterministic fixtures, `evidence` 16/16) |
 
 ## 4. Submission (19–20 Oct)
 
@@ -84,3 +84,4 @@ Owners: **Dien** (backend, agent, API, services) and **Aurel** (UI/FE). FE ↔ B
 - 17 Oct: tasks 1.6–1.10 done. `npm run d4:live` ran D4 against live services: 4 helper shares (IDR, MYR, AED, IDR) charged as separate Stripe test PaymentIntents (`pi_3URapKIZ…`, `pi_3URapLIZ…` ×2, `pi_3URapMIZ…`), request `paid`, audit chain intact, head anchored on FISCO BCOS (tx `0xc8de5e9b…ae12`). `npm test`: 28 passing.
 - 18 Oct: tasks 1.11–1.16 and 1.19 done; 1.17 (API routes) deferred until FE integration. `npm run evidence` against live LLM router, Stripe test and FISCO BCOS: 16/16 (D1–D6, D4b, A1–A9), audit head anchored. `npm test`: 44 passing.
 - 18 Oct baseline (same model `groq:openai/gpt-oss-120b` both sides, 3 trials, metrics by code from the answer key): causes found guardian 5/5 in every trial vs generic chat 4/5, 3/5, 2/5; basic items raised 4/4 vs 2–3/4; duplicate CBC raised 3/3 vs 1/3; invented clinical cause ("infection") 0 vs 3/3 trials; numbers not traceable to the bill or computed facts 0 vs 4–8 per trial (spot-checked: drug total stated as CNY 2,534 and 2,224, true 1,702; lab 1,190, true 1,150). Generic chat was 1,000–1,400 words vs 160–210. One earlier run on the same model produced a degenerate repeated-character reply; it was discarded and the comparison rerun with fixed settings.
+- 18 Oct: README rewritten per competition template. Clean-clone test found and fixed three issues: fixture PDFs were not byte-stable (fixed metadata dates); second-model check gave up while independent providers were cooling down; back-to-back runs exhausted free quotas so A2/A8 documents were never read (router now waits once for the soonest cooldown in background reads). Fresh-clone `evidence` 16/16; snapshot in `evidence/run-2026-10-18-clean-clone/`.

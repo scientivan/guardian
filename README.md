@@ -84,7 +84,7 @@ The router uses whichever LLM keys are present and skips a model that is rate-li
 git clone https://github.com/scientivan/guardian.git
 cd guardian
 npm ci
-npm test            # 44 tests: gateway, payments, FX, enrollment, PII, comparator, guards, refunds
+npm test            # 45 tests: gateway, payments, FX, enrollment, PII, comparator, guards, refunds
 npm run fixtures    # regenerates the demo PDFs in fixtures/pdf/
 ```
 
@@ -133,8 +133,8 @@ The UI and API routes (`docs/API.md`) are being built; the scripts above exercis
 
 | Command | Covers | Last result |
 |---|---|---|
-| `npm test` | Unit and scenario tests with fakes | 44 passing |
-| `npm run evidence` | D1–D6, D4b, A1–A9 live | 16/16 (`evidence/run-2026-10-17T17-27Z/summary.md`) |
+| `npm test` | Unit and scenario tests with fakes | 45 passing |
+| `npm run evidence` | D1–D6, D4b, A1–A9 live | 16/16 from a fresh clone (`evidence/run-2026-10-18-clean-clone/summary.md`) |
 | `npm run eval:reader` | 40-item bill reading vs answer key | 40/40 items, total and causes match |
 | `npm run eval:chat` | Clarification, colloquial input, chat attacks | 10/10 |
 | `npm run baseline` | Generic LLM vs guardian | `evidence/baseline-2026-10-18/` |
@@ -143,7 +143,7 @@ Scripted tasks (D) and attacks (A) are defined in `docs/TEST-PLAN.md`. Answer ke
 
 Known limitations:
 
-- Free-tier LLMs are rate-limited (e.g. Groq 8,000 tokens per minute per model; OpenRouter free models 50 requests per day). Long prompts can hit 429 or 503; the router falls back and the cache avoids repeat calls.
+- Free-tier LLMs are rate-limited (e.g. Groq 8,000 tokens per minute per model; OpenRouter free models 50 requests per day). Long prompts can hit 429 or 503; the router falls back, document reading waits once for a cooldown, and the cache avoids repeat calls. Two full uncached `evidence` runs a few minutes apart can still exhaust the free quotas; wait about a minute between runs.
 - Photo OCR is a secondary path; the demo uses text-layer PDFs.
 - FX rates and the 1% fee are a demo table, not market rates. Stripe test mode does not simulate cross-border settlement.
 - The hospital portal is a mock: its signing key is in the code (`src/server/portal.ts`), so anyone reading the repo could sign a payee list. In real use only the hospital holds that key.
