@@ -26,7 +26,7 @@ export type Charger = (c: ChargeInput) => Promise<ChargeOutcome>;
 
 export function createPaymentRequest(
   db: DB,
-  args: { caseId: string; actor: string; payeeId: string; amount: number; purpose: string; expiresInMinutes: number },
+  args: { caseId: string; actor: string; payeeId: string; amount: number; purpose: string; expiresInMinutes: number; documentId?: string },
   now = new Date(),
 ): GateResult & { id?: string } {
   const m = db.prepare("SELECT role, case_id FROM members WHERE id = ?").get(args.actor) as { role: string; case_id: string } | undefined;
@@ -37,8 +37,8 @@ export function createPaymentRequest(
   if (!Number.isInteger(args.amount) || args.amount <= 0) return { ok: false, check: 4, reason: "invalid amount" };
   const ttl = Math.min(Math.max(Math.trunc(args.expiresInMinutes), 5), 7 * 24 * 60);
   const id = `R_${randomUUID().slice(0, 8)}`;
-  db.prepare("INSERT INTO payment_requests (id, case_id, payee_id, amount, purpose, status, created_at, expires_at) VALUES (?, ?, ?, ?, ?, 'pending', ?, ?)").run(
-    id, args.caseId, args.payeeId, args.amount, args.purpose, now.toISOString(), new Date(now.getTime() + ttl * 60_000).toISOString(),
+  db.prepare("INSERT INTO payment_requests (id, case_id, payee_id, document_id, amount, purpose, status, created_at, expires_at) VALUES (?, ?, ?, ?, ?, ?, 'pending', ?, ?)").run(
+    id, args.caseId, args.payeeId, args.documentId ?? null, args.amount, args.purpose, now.toISOString(), new Date(now.getTime() + ttl * 60_000).toISOString(),
   );
   appendAudit(db, { caseId: args.caseId, actor: args.actor, action: "request.create", inputSources: ["user"], decision: "allow", result: { id, payeeId: args.payeeId, amount: args.amount, purpose: args.purpose, ttlMinutes: ttl } }, now);
   return { ok: true, reason: "created", id };

@@ -12,6 +12,7 @@
     "fixtures": "tsx scripts/make-fixtures.ts",
     "eval:reader": "LLM_CACHE_DIR=.cache/llm tsx --env-file=.env scripts/eval-reader.ts",
     "eval:explain": "LLM_CACHE_DIR=.cache/llm tsx --env-file=.env scripts/eval-explain.ts",
+    "eval:chat": "LLM_CACHE_DIR=.cache/llm tsx --env-file=.env scripts/eval-chat.ts",
     "d4:live": "tsx --env-file=.env scripts/run-d4-live.ts",
     "fisco:deploy": "tsx --env-file=.env scripts/deploy-anchor.ts"
   },

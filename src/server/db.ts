@@ -58,6 +58,7 @@ CREATE TABLE IF NOT EXISTS payment_requests (
   id TEXT PRIMARY KEY,
   case_id TEXT NOT NULL REFERENCES cases(id),
   payee_id TEXT NOT NULL,
+  document_id TEXT REFERENCES documents(id),
   amount INTEGER NOT NULL,
   purpose TEXT NOT NULL,
   status TEXT NOT NULL DEFAULT 'pending'
