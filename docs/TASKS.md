@@ -25,11 +25,11 @@ Owners: **Dien** (backend, agent, API, services) and **Aurel** (UI/FE). FE ↔ B
 | 1.3 | Comparator (causes, flags, refund split) | done |
 | 1.4 | PII scrubber + role restore | done |
 | 1.5 | Hash-chained audit log + verify | done |
-| 1.6 | Schema additions: `expires_at`, approval withdraw, FX quote, per-share `charge_ref`, member currency, hospital public key | todo |
-| 1.7 | Signed payee enrollment from hospital portal mock (Ed25519) | todo |
-| 1.8 | Payment state machine (`pending` → `executing` → `paid` / `expired` / `cancelled` / `failed`) | todo |
-| 1.9 | FX demo table + quotes | todo |
-| 1.10 | Stripe test mode: one charge per approved share | todo |
+| 1.6 | Schema additions: `expires_at`, approval withdraw, FX quote, per-share `charge_ref`, member currency, hospital public key | done |
+| 1.7 | Signed payee enrollment from hospital portal mock (Ed25519) | done (`portal.ts`, `enrollment.ts`) |
+| 1.8 | Payment state machine (`pending` → `executing` → `paid` / `expired` / `cancelled` / `failed`) | done (`payments.ts`, demo clock `clock.ts`) |
+| 1.9 | FX demo table + quotes | done (`fx.ts`) |
+| 1.10 | Stripe test mode: one charge per approved share | done (`stripe.ts`; live run 4 PaymentIntents succeeded) |
 | 1.11 | Document upload, text-layer PDF read, Tesseract OCR for photos, totals check | todo |
 | 1.12 | Quarantined reader (Claude, zod schema) | todo |
 | 1.13 | Planner (fixed action set, cited explanation lines, clarification) | todo |
@@ -37,7 +37,7 @@ Owners: **Dien** (backend, agent, API, services) and **Aurel** (UI/FE). FE ↔ B
 | 1.15 | Refund status + simulated clock + reminders | todo |
 | 1.16 | Recap per member | todo |
 | 1.17 | API routes per `docs/API.md` | todo |
-| 1.18 | FISCO BCOS node (Docker) + anchor contract + anchoring calls | doing (chain + contract + smoke tx done; app calls todo) |
+| 1.18 | FISCO BCOS node (Docker) + anchor contract + anchoring calls | doing (client `anchor.ts` done; wire into document upload and audit view with 1.17) |
 | 1.19 | Demo fixtures: estimate PDF, 40-item interim bill, final bill, injected PDF, answer keys | todo |
 
 ## 2. Frontend build (Aurel, 17–19 Oct)
@@ -81,3 +81,4 @@ Owners: **Dien** (backend, agent, API, services) and **Aurel** (UI/FE). FE ↔ B
 - 17 Oct: repo scaffolded (Next.js 15.5.4, TypeScript, Tailwind). Deterministic core in `src/server/`: `gateway.ts`, `compare.ts`, `pii.ts`, `audit.ts`, `seed.ts`, `db.ts`. `npm test`: 14 passing.
 - 17 Oct: docs expanded to v1.1. New requirements not yet in code: signed payee enrollment, approval withdraw and expiry, FX quotes, per-share charges, cited explanation lines (tasks 1.6–1.9, 1.13).
 - 17 Oct: LLM router (`src/server/llm.ts`) over Gemini, Groq, OpenRouter free tiers with cooldown fallback; live probe answered on `gemini-3.8-flash`. Stripe test key verified (`livemode=false`). FISCO BCOS v3.17.1 4-node chain running; `Anchor` deployed at `0x7571ee502b7A719066dF31CB0D8C59E6081d13A5`; smoke anchor tx `0x8420b9a1…6e2` status 1. `npm test`: 17 passing.
+- 17 Oct: tasks 1.6–1.10 done. `npm run d4:live` ran D4 against live services: 4 helper shares (IDR, MYR, AED, IDR) charged as separate Stripe test PaymentIntents (`pi_3URapKIZ…`, `pi_3URapLIZ…` ×2, `pi_3URapMIZ…`), request `paid`, audit chain intact, head anchored on FISCO BCOS (tx `0xc8de5e9b…ae12`). `npm test`: 28 passing.

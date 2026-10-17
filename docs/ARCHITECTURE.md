@@ -122,14 +122,15 @@ Money is stored as integer minor units (fen for CNY).
 
 | Table | Key fields |
 |---|---|
-| `hospitals` | `id`, `name`, `official_channel` (+ planned `public_key`) |
+| `hospitals` | `id`, `name`, `official_channel`, `public_key` (Ed25519, pinned) |
 | `cases` | `id`, `patient_token`, `hospital_id`, `currency`, `status` |
-| `members` | `id`, `case_id`, `display_name`, `role`, `share_limit` (+ planned `currency`) |
+| `members` | `id`, `case_id`, `display_name`, `role`, `share_limit`, `currency` |
 | `payees` | `id`, `hospital_id`, `account`, `name_normalized`, `source`, `verified_at` |
 | `documents` | `id`, `case_id`, `type`, `sha256`, `anchored_tx`, `created_at` |
 | `bill_items` | `document_id`, `category`, `description`, `qty`, `unit_price`, `flags` |
-| `payment_requests` | `id`, `case_id`, `payee_id`, `amount`, `purpose`, `status`, `created_at` (+ planned `expires_at`) |
-| `approvals` | `request_id`, `member_id`, `amount`, `ts` (unique per member per request) (+ planned `fx_quote`, `charge_ref`, `withdrawn_at`) |
+| `payment_requests` | `id`, `case_id`, `payee_id`, `amount`, `purpose`, `status`, `created_at`, `expires_at` |
+| `fx_quotes` | `id`, `request_id`, `member_id`, `amount`, `pay_currency`, `pay_amount`, `rate_e4`, `fee`, `expires_at` |
+| `approvals` | `request_id`, `member_id`, `amount`, `status`, `quote_id`, `charge_ref`, `withdrawn_at`, `ts` (unique per member per request) |
 | `anomalies` | `case_id`, `kind`, `detail`, `resolved`, `ts` |
 | `refunds` | `case_id`, `member_id`, `amount`, `status`, `due_at` |
 | `pii_tokens` | `case_id`, `token`, `value`, `kind` |

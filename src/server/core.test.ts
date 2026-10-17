@@ -1,12 +1,23 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { openDb, type DB } from "./db";
 import { DEMO, createRequest, seed } from "./seed";
-import { authorizeExecution, recordApproval, resolvePayee } from "./gateway";
+import { authorizeExecution, recordApproval as rawApprove, resolvePayee } from "./gateway";
+import { createQuote } from "./fx";
 import { appendAudit, verifyChain } from "./audit";
 import { compare, splitRefund, type Item } from "./compare";
 import { restore, scrub, storeTokens } from "./pii";
 
 let db: DB;
+// Approve through a fresh FX quote, as the UI does.
+function recordApproval(d: DB, requestId: string, memberId: string, amount: number) {
+  let quoteId = "Q_missing";
+  try {
+    quoteId = createQuote(d, requestId, memberId, amount, new Date()).id;
+  } catch {
+    // unknown member or invalid amount: let the gateway reject it
+  }
+  return rawApprove(d, requestId, memberId, amount, quoteId);
+}
 beforeEach(() => {
   db = openDb(":memory:");
   seed(db);

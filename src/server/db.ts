@@ -5,7 +5,9 @@ const SCHEMA = `
 CREATE TABLE IF NOT EXISTS hospitals (
   id TEXT PRIMARY KEY,
   name TEXT NOT NULL,
-  official_channel TEXT NOT NULL
+  official_channel TEXT NOT NULL,
+  -- Ed25519 public key (base64 SPKI DER) pinned out of band; verifies the portal's signed payee list.
+  public_key TEXT NOT NULL
 );
 CREATE TABLE IF NOT EXISTS cases (
   id TEXT PRIMARY KEY,
@@ -19,7 +21,8 @@ CREATE TABLE IF NOT EXISTS members (
   case_id TEXT NOT NULL REFERENCES cases(id),
   display_name TEXT NOT NULL,
   role TEXT NOT NULL CHECK (role IN ('owner','payer','companion')),
-  share_limit INTEGER NOT NULL DEFAULT 0
+  share_limit INTEGER NOT NULL DEFAULT 0,
+  currency TEXT NOT NULL DEFAULT 'CNY'
 );
 CREATE TABLE IF NOT EXISTS payees (
   id TEXT PRIMARY KEY,
@@ -52,14 +55,33 @@ CREATE TABLE IF NOT EXISTS payment_requests (
   payee_id TEXT NOT NULL,
   amount INTEGER NOT NULL,
   purpose TEXT NOT NULL,
-  status TEXT NOT NULL DEFAULT 'pending',
-  created_at TEXT NOT NULL
+  status TEXT NOT NULL DEFAULT 'pending'
+    CHECK (status IN ('pending','executing','paid','expired','cancelled','failed')),
+  created_at TEXT NOT NULL,
+  expires_at TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS fx_quotes (
+  id TEXT PRIMARY KEY,
+  request_id TEXT NOT NULL REFERENCES payment_requests(id),
+  member_id TEXT NOT NULL REFERENCES members(id),
+  amount INTEGER NOT NULL,
+  currency TEXT NOT NULL,
+  pay_currency TEXT NOT NULL,
+  pay_amount INTEGER NOT NULL,
+  rate_e4 INTEGER NOT NULL,
+  fee INTEGER NOT NULL,
+  expires_at TEXT NOT NULL
 );
 CREATE TABLE IF NOT EXISTS approvals (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   request_id TEXT NOT NULL REFERENCES payment_requests(id),
   member_id TEXT NOT NULL REFERENCES members(id),
   amount INTEGER NOT NULL,
+  status TEXT NOT NULL DEFAULT 'approved'
+    CHECK (status IN ('approved','withdrawn','charged','charge_failed')),
+  quote_id TEXT REFERENCES fx_quotes(id),
+  charge_ref TEXT,
+  withdrawn_at TEXT,
   ts TEXT NOT NULL,
   UNIQUE (request_id, member_id)
 );
@@ -97,6 +119,10 @@ CREATE TABLE IF NOT EXISTS audit_log (
   result TEXT NOT NULL,
   prev_hash TEXT NOT NULL,
   hash TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS settings (
+  key TEXT PRIMARY KEY,
+  value TEXT NOT NULL
 );
 `;
 

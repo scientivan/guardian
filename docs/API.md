@@ -91,7 +91,7 @@ Body `{ "payeeId": "P1", "amount": 5000000, "purpose": "emergency guarantee", "e
   "purpose": "emergency guarantee", "status": "pending", "expiresAt": "…",
   "approvals": [{
     "memberId": "M_JKT", "displayName": "Adi (Jakarta)", "amount": 2000000,
-    "payCurrency": "IDR", "payAmount": 459000000, "fxRate": "2295.00", "fee": 4590000, "quoteExpiresAt": "…",
+    "payCurrency": "IDR", "payAmount": 4590000000, "fxRate": "2295.0000", "fee": 45900000, "quoteExpiresAt": "…",
     "status": "approved", "chargeRef": null, "ts": "…"
   }]
 }]
@@ -102,7 +102,12 @@ Request `status`: `pending`, `executing`, `paid`, `expired`, `cancelled`, `faile
 `POST /api/payment-requests/:requestId/fx-quote` body `{ "amount": 2000000 }` (member from header)
 
 ```json
-{ "demo": true, "amount": 2000000, "currency": "CNY", "payCurrency": "IDR", "payAmount": 459000000, "fxRate": "2295.00", "fee": 4590000, "quoteId": "Q9", "expiresAt": "…" }
+{ "demo": true, "amount": 2000000, "currency": "CNY", "payCurrency": "IDR", "payAmount": 4590000000, "fxRate": "2295.0000", "fee": 45900000, "quoteId": "Q9", "expiresAt": "…" }
+```
+
+The helper is charged `payAmount + fee` in `payCurrency`. Quotes expire after 15 minutes; an approval must use the member's own unexpired quote for the same amount (else error with `check: 4`). Rates and the 1% fee are demo values.
+
+```json
 ```
 
 `POST /api/payment-requests/:requestId/approvals` body `{ "amount": 2000000, "quoteId": "Q9" }`
