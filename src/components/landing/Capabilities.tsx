@@ -31,9 +31,9 @@ function Foot({ className = "text-ink-2", children }: { className?: string; chil
 }
 
 const BILL_LINES = [
-  { chip: "Fact", tone: "fact" as const, text: "The stay is 2 days longer than the estimate assumed", amount: "+CNY 2,400" },
+  { chip: "Fact", tone: "fact" as const, text: "The stay is 2 days longer than the estimate assumed", amount: "+CNY 3,000" },
   { chip: "In the bill", tone: "doc" as const, text: "The hospital notes an extra antibiotic course", source: "item I12" },
-  { chip: "Ask hospital", tone: "ask" as const, text: "Why are pillow cases billed separately?", source: "item I30" },
+  { chip: "Ask hospital", tone: "ask" as const, text: "Why are pillow cases billed separately?", source: "item I35" },
 ];
 
 function BillVisual() {
@@ -48,7 +48,7 @@ function BillVisual() {
         </div>
         <div className="flex flex-wrap items-baseline justify-between gap-x-3">
           <dt>Bill so far, 5 days</dt>
-          <dd className="whitespace-nowrap text-sm font-bold tabular-nums text-lead">CNY 32,700</dd>
+          <dd className="whitespace-nowrap text-sm font-bold tabular-nums text-lead">CNY 36,782</dd>
         </div>
       </dl>
       <div className="relative mt-3 h-3 rounded-full bg-firstlight">
@@ -66,7 +66,7 @@ function BillVisual() {
           </li>
         ))}
       </ul>
-      <Foot>The Planner drafted one question for hospital billing.</Foot>
+      <Foot>The Planner drafted three questions for hospital billing.</Foot>
     </Panel>
   );
 }
@@ -132,7 +132,7 @@ function GuaranteeVisual() {
             <b className="font-semibold text-lead">{h.name}</b>
             <span className="flex items-center gap-2">
               <span className="text-xs tabular-nums text-ink-2">{h.pay}</span>
-              {h.done ? <Chip tone="ok">Approved</Chip> : <Chip tone="muted">Waiting</Chip>}
+              {h.done ? <Chip tone="ok">Pledged</Chip> : <Chip tone="muted">No reply yet</Chip>}
             </span>
           </li>
         ))}
@@ -142,17 +142,29 @@ function GuaranteeVisual() {
   );
 }
 
-function ApproveVisual() {
+// Helpers are never billed a fixed share: each one picks an amount (a pledge). Rina only suggests.
+const PLEDGE_OPTIONS = ["5,000", "10,000", "20,000"];
+
+function PledgeVisual() {
   return (
     <Panel>
       <div className="flex items-center gap-3">
         <Minifig skin="#c68e62" hair="#1f1c1a" shirt="#6e5e52" className="h-11 w-11 shrink-0 rounded-xl bg-mist" />
         <div className="leading-tight">
-          <p className="text-sm font-semibold text-lead">Adi’s share</p>
-          <p className="text-xs text-ink-2">From Jakarta, to the verified hospital</p>
+          <p className="text-sm font-semibold text-lead">Adi, how much can you give?</p>
+          <p className="text-xs text-ink-2">Emergency guarantee, CNY 25,000 still needed</p>
         </div>
       </div>
-      <p className="mt-4 font-serif text-4xl tabular-nums text-lead">CNY 20,000</p>
+      <p className="mt-4 text-xs text-ink-2">Rina suggested CNY 12,500. Give what you can.</p>
+      <div className="mt-2 grid grid-cols-4 gap-2 text-sm font-semibold">
+        {PLEDGE_OPTIONS.map((o) => (
+          <span key={o} className={`rounded-xl py-2 text-center tabular-nums ${o === "20,000" ? "bg-serpent text-white" : "bg-mist text-lead"}`}>
+            {o}
+          </span>
+        ))}
+        <span className="rounded-xl border border-dashed border-wolverine py-2 text-center text-ink-2">Other</span>
+      </div>
+      <p className="mt-4 font-num text-3xl font-extrabold tracking-tight tabular-nums text-serpent-dark">CNY 20,000</p>
       <dl className="mt-3 grid grid-cols-2 gap-x-3 gap-y-2 text-xs text-ink-2">
         <div className="col-span-2">
           <dt>You pay</dt>
@@ -168,18 +180,18 @@ function ApproveVisual() {
         </div>
       </dl>
       <div className="mb-5 mt-4 flex items-center gap-2">
-        <span className="flex-1 rounded-full bg-serpent px-4 py-2.5 text-center text-sm font-semibold text-white">Approve my share</span>
-        <span className="rounded-full border border-line px-4 py-2.5 text-sm font-semibold text-lead">Withdraw</span>
+        <span className="flex-1 rounded-full bg-serpent px-4 py-2.5 text-center text-sm font-semibold text-white">Pledge CNY 20,000</span>
+        <span className="rounded-full border border-line px-4 py-2.5 text-sm font-semibold text-lead">Not now</span>
       </div>
-      <Foot>Quote valid for 9:42. You can withdraw until the payment runs.</Foot>
+      <Foot>Nothing is charged until the full amount is pledged. You can change or withdraw your pledge until then.</Foot>
     </Panel>
   );
 }
 
 const PRIVATE_FIELDS = [
-  { field: "Patient", sent: "Hendra Wijaya", token: "[PASIEN_1]" },
-  { field: "Passport", sent: "C4821937", token: "[ID_1]" },
-  { field: "MRN", sent: "0098412", token: "[MRN_1]" },
+  { field: "Patient", sent: "Budi Santoso", token: "[PASIEN_1]" },
+  { field: "Passport", sent: "C1234567", token: "[ID_1]" },
+  { field: "MRN", sent: "SZ-889201", token: "[MRN_1]" },
 ];
 
 function PrivacyVisual() {
@@ -213,10 +225,11 @@ function PrivacyVisual() {
 }
 
 const REFUNDS = [
-  { name: "Adi", amount: "3,600", status: "Received", tone: "ok" as const },
-  { name: "Sari", amount: "2,700", status: "Processing", tone: "info" as const },
-  { name: "Fajar", amount: "1,800", status: "Requested", tone: "muted" as const },
-  { name: "Masjid fund", amount: "900", status: "Overdue, reminded", tone: "warn" as const },
+  { name: "Rina", amount: "3,375", status: "Received", tone: "ok" as const },
+  { name: "Adi", amount: "2,250", status: "Received", tone: "ok" as const },
+  { name: "Sari", amount: "1,687.50", status: "Processing", tone: "info" as const },
+  { name: "Fajar", amount: "1,125", status: "Requested", tone: "muted" as const },
+  { name: "Masjid fund", amount: "562.50", status: "Overdue, reminded", tone: "warn" as const },
 ];
 
 function RefundVisual() {
@@ -255,9 +268,9 @@ const SLIDES: Slide[] = [
     tone: "chocolate",
   },
   {
-    title: "Approve only your own share",
-    text: "See your amount in your own currency, with the rate and fee, before you say yes.",
-    visual: <ApproveVisual />,
+    title: "Give what you can",
+    text: "Each helper chooses their own amount and sees it in their own currency, with the rate and fee, before saying yes.",
+    visual: <PledgeVisual />,
     tone: "cerulean",
   },
   {

@@ -66,10 +66,10 @@ export function FeatureCarousel({ slides, label }: { slides: Slide[]; label: str
       {/* The step, big, on the left: people read the number first. */}
       <div className="flex flex-col lg:col-span-4">
         <div className="flex items-end gap-3" aria-hidden="true">
-          <span key={active} className="step-in font-serif text-[7.5rem] leading-[0.8] text-serpent sm:text-[10rem]">
+          <span key={active} className="step-in text-[7rem] font-extrabold leading-[0.8] tracking-tighter tabular-nums text-serpent sm:text-[9rem]">
             {active + 1}
           </span>
-          <span className="pb-2 font-serif text-2xl italic text-ink-2">of {n}</span>
+          <span className="pb-2 text-2xl font-bold tabular-nums text-ink-2">of {n}</span>
         </div>
         <div key={`text-${active}`} className="step-in mt-6 min-h-[9.5rem] [animation-delay:60ms]">
           <h3 className="text-balance font-serif text-3xl leading-tight text-lead">{current.title}</h3>

@@ -21,12 +21,17 @@ export function Nav() {
             Security
           </a>
         </nav>
+        <div className="flex items-center gap-4">
+        <Link href="/login" className="hidden text-sm font-semibold text-lead transition-colors hover:text-serpent-dark sm:inline">
+          Log in
+        </Link>
         <Link
           href="/case/C1"
           className="whitespace-nowrap rounded-full bg-serpent px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-serpent-dark sm:px-5"
         >
           Open demo<span className="hidden sm:inline"> case</span>
         </Link>
+        </div>
       </div>
     </header>
   );

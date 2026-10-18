@@ -10,7 +10,7 @@ export function Hero() {
         <h1 className="mt-4 text-balance font-serif text-5xl leading-[1.04] text-lead sm:text-6xl">Pay a hospital abroad without the worry.</h1>
         <p className="mt-6 max-w-md text-lg leading-relaxed text-ink-2">
           Guardian’s AI team reads the hospital bill, explains why it changed from the estimate, and lets your family pay
-          only the hospital’s verified account, each person approving their own share.
+          only the hospital’s verified account, each person choosing what they can give.
         </p>
         <div className="mt-8 flex flex-wrap gap-3">
           <Link

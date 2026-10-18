@@ -74,6 +74,15 @@ export function leftFaceMatrix(x: number, yFace: number, zTop: number, w: number
   return `matrix(${(C * w) / W} ${(S * w) / W} 0 ${(H * h) / Hh} ${ox} ${oy})`;
 }
 
+/**
+ * Same as leftFaceMatrix for the front-right face (the plane x = xFace) of a box spanning y..y+d.
+ * The drawing runs left to right as the viewer sees it, i.e. from y + d towards y.
+ */
+export function rightFaceMatrix(xFace: number, y: number, zTop: number, d: number, h: number, W = 100, Hh = 70): string {
+  const [ox, oy] = P(xFace, y + d, zTop);
+  return `matrix(${(C * d) / W} ${(-S * d) / W} 0 ${(H * h) / Hh} ${ox} ${oy})`;
+}
+
 /** SVG transform for text painted flat on the floor, running along +x. 10 local units = 1 world unit. */
 export function floorMatrix(x: number, y: number): string {
   const [ox, oy] = P(x, y, 0);

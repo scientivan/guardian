@@ -10,7 +10,7 @@ import { Minifig } from "./Minifig";
 
 const TICK_MS = 2600;
 
-type Spot = { dx: number; dy: number };
+export type Spot = { dx: number; dy: number };
 
 // Desk positions in world units. Floor is 16 × 12, split by aisles at x = 8 and y = 6:
 // 1 Intake (left), 2 Analysis (back), 3 Vault (right), 4 Records (front).
@@ -27,7 +27,7 @@ const SECOND_DESK: Spot = { dx: 1.4, dy: 3.6 };
 const WALK_FROM: Pt = [2.95, 5.25];
 const WALK_TO: Pt = [7.5, 3.4];
 
-const seat = (s: Spot): Pt => [s.dx + 1.55, s.dy + 1.65];
+export const seat = (s: Spot): Pt => [s.dx + 1.55, s.dy + 1.65];
 
 function useReducedMotion(): boolean {
   const [reduce, setReduce] = useState(false);
@@ -217,7 +217,7 @@ function ZoneLabel({ x, y, text, color }: { x: number; y: number; text: string; 
   );
 }
 
-function Desk({ spot, standing = false, children }: { spot: Spot; standing?: boolean; children?: ReactNode }) {
+export function Desk({ spot, standing = false, children }: { spot: Spot; standing?: boolean; children?: ReactNode }) {
   const { dx, dy } = spot;
   const top = standing ? 1.15 : 0.85;
   const mx = dx + 0.2;
@@ -239,8 +239,9 @@ function Desk({ spot, standing = false, children }: { spot: Spot; standing?: boo
   );
 }
 
-function Glass() {
-  const [x, y, w, d, h] = [4.1, 7.3, 2.8, 2.8, 2.8];
+export function Glass({ at = [4.1, 7.3] }: { at?: Pt }) {
+  const [x, y] = at;
+  const [w, d, h] = [2.8, 2.8, 2.8];
   return (
     <g>
       <IsoBox x={x} y={y} w={w} d={d} h={h} color="#abc1cf" top="#dae7ee" left="#abc1cf" right="#9fb6c5" fillOpacity={0.3} stroke="#4875a1" />
@@ -253,8 +254,9 @@ function Glass() {
   );
 }
 
-function Vault({ blocked }: { blocked: boolean }) {
-  const [x, y, w, d, h] = [13.2, 0.6, 2.2, 1.6, 2.4];
+export function Vault({ blocked, at = [13.2, 0.6] }: { blocked: boolean; at?: Pt }) {
+  const [x, y] = at;
+  const [w, d, h] = [2.2, 1.6, 2.4];
   return (
     <g>
       <IsoBox x={x} y={y} w={w} d={d} h={h} color="#375d84" top="#5b84ad" left="#3f6891" right="#2f5274" />
@@ -268,8 +270,8 @@ function Vault({ blocked }: { blocked: boolean }) {
   );
 }
 
-function VaultSign({ blocked }: { blocked: boolean }) {
-  const [x, y] = P(14.3, 1.4, 2.75);
+export function VaultSign({ blocked, at = [14.3, 1.4] }: { blocked: boolean; at?: Pt }) {
+  const [x, y] = P(at[0], at[1], 2.75);
   const w = blocked ? 80 : 104;
   return (
     <g transform={`translate(${x.toFixed(1)} ${y.toFixed(1)})`}>
@@ -281,8 +283,9 @@ function VaultSign({ blocked }: { blocked: boolean }) {
   );
 }
 
-function Shelf() {
-  const [x, y, w, d, h] = [13.0, 6.45, 2.6, 0.5, 2.2];
+export function Shelf({ at = [13.0, 6.45] }: { at?: Pt }) {
+  const [x, y] = at;
+  const [w, d, h] = [2.6, 0.5, 2.2];
   const spines = ["#dae7ee", "#abc1cf", "#4875a1", "#f3ece4", "#91999c", "#c9b9ab", "#6e5e52"];
   return (
     <g>
@@ -301,7 +304,7 @@ function Shelf() {
   );
 }
 
-function Plant({ at }: { at: Pt }) {
+export function Plant({ at }: { at: Pt }) {
   const [x, y] = at;
   const [fx, fy] = P(x, y, 0.85);
   return (
@@ -316,7 +319,7 @@ function Plant({ at }: { at: Pt }) {
 
 /* ---------- People ---------- */
 
-function Head({ agent, x, y, z }: { agent: Agent; x: number; y: number; z: number }) {
+export function Head({ agent, x, y, z }: { agent: Agent; x: number; y: number; z: number }) {
   if (agent.hijab) {
     return (
       <>
@@ -334,7 +337,7 @@ function Head({ agent, x, y, z }: { agent: Agent; x: number; y: number; z: numbe
   );
 }
 
-function Seated({ agent, at, delay }: { agent: Agent; at: Pt; delay: number }) {
+export function Seated({ agent, at, delay }: { agent: Agent; at: Pt; delay: number }) {
   const [x, y] = at;
   const sleeve = shade(agent.color, 0.9);
   return (
@@ -351,7 +354,7 @@ function Seated({ agent, at, delay }: { agent: Agent; at: Pt; delay: number }) {
   );
 }
 
-function Standing({ agent, at, legA, legB }: { agent: Agent; at: Pt; legA: Ref<SVGGElement>; legB: Ref<SVGGElement> }) {
+export function Standing({ agent, at, legA, legB }: { agent: Agent; at: Pt; legA: Ref<SVGGElement>; legB: Ref<SVGGElement> }) {
   const [x, y] = at;
   const sleeve = shade(agent.color, 0.9);
   return (
@@ -418,7 +421,7 @@ function Walker({ agent, focused, label, reduce }: { agent: Agent; focused: bool
 
 /* ---------- Labels ---------- */
 
-function FocusRing({ at }: { at: Pt }) {
+export function FocusRing({ at }: { at: Pt }) {
   const [cx, cy] = P(at[0], at[1]);
   return (
     <g>
@@ -431,7 +434,7 @@ function FocusRing({ at }: { at: Pt }) {
  * Name pill above an agent. The agent in focus (or a blocked gate) expands to show what it is doing.
  * `inline` keeps a single line and swaps the name for the activity when focused (used for the walker).
  */
-function Tag({
+export function Tag({
   x,
   y,
   name,
@@ -498,7 +501,7 @@ function Check({ x, y }: { x: number; y: number }) {
   return <path d={`M${x} ${y} l6 6 l12 -14`} stroke="#3f7d5c" strokeWidth={4} fill="none" strokeLinecap="round" strokeLinejoin="round" />;
 }
 
-function Screen({ id, state }: { id: AgentId; state: number }) {
+export function Screen({ id, state }: { id: AgentId; state: number }) {
   let body: ReactNode = null;
   switch (id) {
     case "clerk":
@@ -540,7 +543,7 @@ function Screen({ id, state }: { id: AgentId; state: number }) {
           <rect x={10} y={27} width={72} height={9} rx={2} fill="#4875a1" />
           <rect x={66} y={27} width={16} height={9} rx={2} fill={state === 2 ? "#9a6212" : "#375d84"} />
           <text x={10} y={55} fontSize={12} fontWeight={800} fill="#202121">
-            +¥2,400
+            +¥3,000
           </text>
         </>
       );

@@ -18,11 +18,16 @@
   --color-warn-soft: #f6ecdc;
   --color-danger: #b4443c;
   --color-danger-soft: #f7e4e2;
+  /* Darker status text for small chips on the soft backgrounds (≥ 4.5:1). */
+  --color-ok-ink: #2f6248;
+  --color-warn-ink: #7d4f0e;
+  --color-danger-ink: #993a33;
 }
 
 /* Chinese bill items fall back to the system CJK font (PingFang / Microsoft YaHei). */
 @theme inline {
   --font-serif: var(--font-dm-serif), Georgia, serif;
+  --font-num: var(--font-jakarta), var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
   --font-sans: var(--font-manrope), "PingFang SC", "Microsoft YaHei", "Noto Sans SC", ui-sans-serif, system-ui, sans-serif;
 }
 
@@ -143,9 +148,26 @@ body {
   animation: pop 380ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
+/* Charts: bars grow in from their left edge, one after another. */
+@keyframes grow-x {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+.grow-x {
+  transform-origin: left center;
+  animation: grow-x 800ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
+  }
+  .grow-x {
+    animation: none !important;
   }
   .marquee-track,
   .agent-bob,

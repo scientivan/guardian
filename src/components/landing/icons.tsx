@@ -98,3 +98,85 @@ export function Chain({ className }: IconProps) {
     </svg>
   );
 }
+
+/* ---------- App icons (sidebar and office controls) ---------- */
+
+export function Building({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 20 20" className={className} aria-hidden="true">
+      <path d="M3.5 17V7.5L10 3.5l6.5 4V17M3.5 17h13M8 17v-4h4v4M7 9.5h1.5M11.5 9.5H13" fill="none" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+export function ChatBubble({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 20 20" className={className} aria-hidden="true">
+      <path d="M4 4.5h12a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1H9l-4 3v-3H4a1 1 0 0 1-1-1v-7a1 1 0 0 1 1-1Z" fill="none" stroke="currentColor" strokeWidth={1.6} strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+export function Coins({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 20 20" className={className} aria-hidden="true">
+      <path d="M3.5 6.5c0-1.4 2.5-2.5 5.5-2.5s5.5 1.1 5.5 2.5S12 9 9 9 3.5 7.9 3.5 6.5ZM3.5 6.5v3.5C3.5 11.4 6 12.5 9 12.5M3.5 10v3.5C3.5 14.9 6 16 9 16M14.5 6.5V9M11 13.5c0-1.2 1.8-2 3.5-2s3.5.8 3.5 2-1.8 2-3.5 2-3.5-.8-3.5-2Z" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+export function Upload({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 20 20" className={className} aria-hidden="true">
+      <path d="M10 13V4m-3.5 3.5L10 4l3.5 3.5M4 13.5V16h12v-2.5" fill="none" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+export function Refund({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 20 20" className={className} aria-hidden="true">
+      <path d="M7 6H13a3.5 3.5 0 0 1 0 7H6M7 6l2.5-2.5M7 6l2.5 2.5M6 13l2 2m-2-2 2-2" fill="none" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+export function Plus({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 20 20" className={className} aria-hidden="true">
+      <path d="M10 4.5v11M4.5 10h11" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" />
+    </svg>
+  );
+}
+
+export function Minus({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 20 20" className={className} aria-hidden="true">
+      <path d="M4.5 10h11" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" />
+    </svg>
+  );
+}
+
+export function RotateLeft({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 20 20" className={className} aria-hidden="true">
+      <path d="M5 8a5.5 5.5 0 1 1-.5 4.5M5 8V4.5M5 8h3.5" fill="none" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+export function RotateRight({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 20 20" className={className} aria-hidden="true">
+      <path d="M15 8a5.5 5.5 0 1 0 .5 4.5M15 8V4.5M15 8h-3.5" fill="none" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+export function Door({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 20 20" className={className} aria-hidden="true">
+      <path d="M5 17V3.5h8V17M3.5 17h13M10.5 10.5h.5M13 5.5l2.5-.5v12" fill="none" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}

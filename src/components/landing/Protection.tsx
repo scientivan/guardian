@@ -49,7 +49,7 @@ function LogRow({ time, title, note, tag, ok }: { time: string; title: string; n
 const CHAIN = [
   { n: 41, what: "Payment to •••• 9071 blocked", hash: "9f2c" },
   { n: 42, what: "Hidden instruction in a PDF ignored", hash: "41ab" },
-  { n: 43, what: "Sari’s approval for Fajar blocked", hash: "c07e" },
+  { n: 43, what: "Sari’s pledge for Fajar blocked", hash: "c07e" },
   { n: 44, what: "CNY 45,000 paid to •••• 2222", hash: "e5d1" },
 ];
 
@@ -64,21 +64,21 @@ const POINTS: { title: string; text: string; icon: ReactNode; tone: Tone; exampl
         <ul className="mt-1 divide-y divide-line">
           {/*   keeps a masked account number on one line. */}
           <LogRow time="14:02" title={"Payment to •••• 9071"} note="Not in the hospital’s official registry (check 1)" tag="Blocked" ok={false} />
-          <LogRow time="14:05" title={"CNY 45,000 to •••• 2222"} note="Official account, 3 approvals, Stripe test mode" tag="Paid" ok />
+          <LogRow time="14:05" title={"CNY 45,000 to •••• 2222"} note="Official account, 3 pledges, Stripe test mode" tag="Paid" ok />
         </ul>
       </Example>
     ),
   },
   {
-    title: "Nothing moves without approval",
-    text: "Each helper approves their own share and can withdraw until the payment runs. The AI can only prepare a request, and nobody can approve for someone else.",
+    title: "Only you can pledge your money",
+    text: "Each helper chooses and confirms their own amount, and can withdraw until the payment runs. The AI can only prepare a request, and nobody can pledge for someone else.",
     icon: <People className="h-5 w-5" />,
     tone: LIGHT_ON_DARK("bg-chocolate"),
     example: (
       <Example>
         <ul className="mt-1 divide-y divide-line">
-          <LogRow time="14:03" title="Sari tried to approve for Fajar" note="Helpers approve only their own share (check 3)" tag="Blocked" ok={false} />
-          <LogRow time="14:04" title="Fajar approved CNY 10,000" note="From Fajar’s own account, AED 5,100" tag="Approved" ok />
+          <LogRow time="14:03" title="Sari tried to pledge for Fajar" note="Helpers pledge only for themselves (check 3)" tag="Blocked" ok={false} />
+          <LogRow time="14:04" title="Fajar pledged CNY 10,000" note="From Fajar’s own account, AED 5,100" tag="Pledged" ok />
         </ul>
       </Example>
     ),
@@ -92,10 +92,10 @@ const POINTS: { title: string; text: string; icon: ReactNode; tone: Tone; exampl
       <Example>
         <dl className="mt-2 grid grid-cols-[auto_1fr_auto] items-center gap-x-3 gap-y-2 text-sm">
           <dt className="text-xs text-ink-2">Patient</dt>
-          <dd className="font-semibold">Hendra Wijaya</dd>
+          <dd className="font-semibold">Budi Santoso</dd>
           <dd className="rounded-full bg-firstlight px-2.5 py-0.5 text-[11px] font-bold text-serpent-dark">[PASIEN_1]</dd>
           <dt className="text-xs text-ink-2">Passport</dt>
-          <dd className="font-semibold">C4821937</dd>
+          <dd className="font-semibold">C1234567</dd>
           <dd className="rounded-full bg-firstlight px-2.5 py-0.5 text-[11px] font-bold text-serpent-dark">[ID_1]</dd>
         </dl>
         <ul className="mt-2 border-t border-line">

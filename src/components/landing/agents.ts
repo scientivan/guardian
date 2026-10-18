@@ -63,10 +63,10 @@ export const AGENTS: Agent[] = [
     onColor: "#ffffff",
     skin: "#f1c9a5",
     hair: "#4a3426",
-    activity: ["estimate vs bill", "stay +2 days: ¥2,400", "pillow case: ask"],
+    activity: ["estimate vs bill", "stay +2 days: ¥3,000", "pillow case: ask"],
     detail: [
       "Comparing the estimate with bill D2",
-      "The stay is 2 days longer: +CNY 2,400",
+      "The stay is 2 days longer: +CNY 3,000",
       "Pillow cases billed separately: ask the hospital",
     ],
   },

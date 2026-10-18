@@ -6,7 +6,7 @@ import { Check, Doc } from "./icons";
 import { Minifig, type Look } from "./Minifig";
 
 // The case travels through the four steps on a loop: the tag on the rail moves to the
-// current step, its column lights up, its figures hop, and approvals tick in.
+// current step, its column lights up, its figures hop, and pledges tick in.
 // The loop only runs while the section is on screen and pauses while the pointer is over it.
 
 const TICK_MS = 2800;
@@ -43,16 +43,16 @@ const STEPS: { title: string; text: string; phase: Phase; who: Person[]; status:
     status: "3 changes explained",
   },
   {
-    title: "Each helper approves their share",
-    text: "In their own currency, with the exchange rate and fee shown up front. Nobody approves for someone else.",
+    title: "Each helper chooses what to give",
+    text: "In their own currency, with the exchange rate and fee shown up front. Nobody can pledge for someone else.",
     phase: "family",
     who: FAMILY.map((p) => ({ ...p, ticks: p.name !== "Rina" })),
-    status: "CNY 45,000 approved",
+    status: "CNY 45,000 pledged",
     more: "and the masjid fund",
   },
   {
     title: "Guardian pays the verified hospital",
-    text: "Only to the hospital’s official account, once the approvals cover the amount. Every step is recorded.",
+    text: "Only to the hospital’s official account, once the pledges cover the amount. Every step is recorded.",
     phase: "code",
     who: agentPeople(["gate", "auditor"], ["gate"]),
     status: "Paid to •••• 2222",
@@ -154,7 +154,7 @@ export function HowItWorks() {
                 >
                   <p className={`-mx-7 -mt-7 mb-7 px-7 py-3 font-serif text-lg italic md:hidden ${phase.tint} ${phase.ink}`}>{phase.label}</p>
                   <div className="flex items-end justify-between gap-3">
-                    <span className={`font-serif text-6xl leading-none transition-colors duration-500 ${on ? "text-serpent" : "text-wolverine"}`}>{i + 1}</span>
+                    <span className={`text-6xl font-extrabold leading-none tracking-tighter tabular-nums transition-colors duration-500 ${on ? "text-serpent" : "text-wolverine"}`}>{i + 1}</span>
                     {on && (
                       <span key={`m-${active}`} className="pop mb-1 rounded-full border border-line bg-white px-3 py-1 text-xs font-semibold text-lead md:hidden">
                         {s.status}
