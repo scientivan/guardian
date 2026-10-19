@@ -30,7 +30,7 @@ export default function BillPage() {
           <div>
             <p className="text-sm text-ink-2">Estimated range</p>
             <p className="mt-1">
-              <Figure code={e.currency} value={`${money(e.estimate.low, "").trim()}–${money(e.estimate.high, "").trim()}`} tone="text-lead" />
+              <Figure code={e.currency} value={`${money(e.estimate.low, "").trim()}–${money(e.estimate.high, "").trim()}`} />
             </p>
           </div>
           <div className="sm:text-right">

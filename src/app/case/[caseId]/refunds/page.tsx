@@ -21,19 +21,19 @@ export default function RefundsPage() {
           <div>
             <dt className="text-sm text-ink-2">Deposits paid</dt>
             <dd className="mt-1">
-              <MoneyFigure minor={r.deposits} currency={r.currency} tone="text-lead" />
+              <MoneyFigure minor={r.deposits} currency={r.currency} />
             </dd>
           </div>
           <div>
             <dt className="text-sm text-ink-2">Final bill</dt>
             <dd className="mt-1">
-              <MoneyFigure minor={r.finalBill} currency={r.currency} tone="text-lead" />
+              <MoneyFigure minor={r.finalBill} currency={r.currency} />
             </dd>
           </div>
           <div>
             <dt className="text-sm text-ink-2">Coming back</dt>
             <dd className="mt-1">
-              <MoneyFigure minor={r.totalRefund} currency={r.currency} tone="text-ok-ink" />
+              <MoneyFigure minor={r.totalRefund} currency={r.currency} />
             </dd>
           </div>
         </dl>
