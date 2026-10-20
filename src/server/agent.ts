@@ -3,7 +3,7 @@ import type { DB } from "./db";
 import { appendAudit } from "./audit";
 import { chat, type ModelRef } from "./llm";
 import { openAnomaly, resolvePayee } from "./gateway";
-import { scrub } from "./pii";
+import { scrubCase } from "./pii";
 
 // Chat planner. The model only classifies the member's message into a fixed
 // intent with references to ids it was shown. Code resolves those references,
@@ -63,10 +63,16 @@ function state(db: DB, caseId: string, memberId: string) {
       `SELECT d.id, d.type, d.created_at,
               COALESCE((SELECT SUM(CAST(ROUND(qty * unit_price) AS INTEGER)) FROM bill_items WHERE document_id = d.id), 0) total,
               COALESCE((SELECT SUM(amount) FROM payment_requests WHERE document_id = d.id AND status = 'paid'), 0) paid
-       FROM documents d WHERE d.case_id = ? AND d.type IN ('interim','final') AND d.status = 'parsed' ORDER BY d.created_at`,
+       FROM documents d WHERE d.case_id = ? AND d.type IN ('interim','final') AND d.status = 'parsed' ORDER BY d.created_at,d.rowid`,
     )
     .all(caseId) as BillRow[];
-  const open = bills.filter((b) => b.total - b.paid > 0);
+  const replaced = db.prepare("SELECT 1 FROM sqlite_master WHERE name='web_replacements'").get()
+    ? new Set((db.prepare("SELECT old_id FROM web_replacements").all() as {old_id:string}[]).map(r=>r.old_id)) : new Set<string>();
+  const current = bills.filter(b=>!replaced.has(b.id));
+  const open = current.filter((b) => b.total - b.paid > 0);
+  const latest = [...current].reverse().find(b=>b.type === "final") ?? current.at(-1);
+  const committed = (db.prepare("SELECT COALESCE(SUM(amount),0) total FROM payment_requests WHERE case_id=? AND status IN ('pending','executing','paid')").get(caseId) as {total:number}).total;
+  const blocked = latest && db.prepare("SELECT 1 FROM payment_requests WHERE case_id=? AND document_id=? AND status IN ('pending','executing')").get(caseId,latest.id);
   const requests = db
     .prepare(
       `SELECT r.id, r.amount, r.purpose FROM payment_requests r
@@ -74,7 +80,7 @@ function state(db: DB, caseId: string, memberId: string) {
          AND NOT EXISTS (SELECT 1 FROM approvals a WHERE a.request_id = r.id AND a.member_id = ? AND a.status = 'approved')`,
     )
     .all(caseId, memberId) as { id: string; amount: number; purpose: string }[];
-  return { open, requests };
+  return { open, requests, payable: latest && !blocked ? {id:latest.id,balance:latest.total-committed} : null };
 }
 
 const ACCOUNT_RE = /(?:\d[ -]?){10,19}\d/g;
@@ -144,7 +150,7 @@ export async function handleMessage(db: DB, caseId: string, memberId: string, me
   const accounts = message.match(ACCOUNT_RE) ?? [];
   const accountAlerts = accounts.filter((acct) => !resolvePayee(db, caseId, memberId, { account: acct, source: "chat" }).ok);
 
-  const scrubbed = scrub(message).text;
+  const prompt = scrubCase(db,caseId,`STATE: ${JSON.stringify({ role: member.role, currency: c.currency, openBills: st.open.map((b) => ({ id: b.id, type: b.type, uploaded: b.created_at.slice(0, 10), balance: (b.total - b.paid) / 100 })), pendingRequestsForMe: st.requests.map((r) => ({ id: r.id, purpose: r.purpose, amount: r.amount / 100 })) })}\n<message>${message}</message>`).text;
   let intent: Intent = Intent.parse({ intent: "other" });
   let model: ModelRef | null = null;
   try {
@@ -153,7 +159,7 @@ export async function handleMessage(db: DB, caseId: string, memberId: string, me
         { role: "system", content: SYSTEM },
         {
           role: "user",
-          content: `STATE: ${JSON.stringify({ role: member.role, currency: c.currency, openBills: st.open.map((b) => ({ id: b.id, type: b.type, uploaded: b.created_at.slice(0, 10), balance: (b.total - b.paid) / 100 })), pendingRequestsForMe: st.requests.map((r) => ({ id: r.id, purpose: r.purpose, amount: r.amount / 100 })) })}\n<message>${scrubbed}</message>`,
+          content: prompt,
         },
       ],
       { json: true, fetchImpl: opts.fetchImpl, accept: (t) => Intent.safeParse(safeJson(t)).success },
@@ -222,7 +228,11 @@ export async function handleMessage(db: DB, caseId: string, memberId: string, me
           replies.push(t.ownerOnly);
           break;
         }
-        const balance = bill.total - bill.paid;
+        if (st.payable?.id !== bill.id || st.payable.balance <= 0) {
+          replies.push(intent.language === "id" ? "Tagihan ini sudah diganti tagihan terbaru atau jumlahnya sudah tercakup dalam permintaan pembayaran. Buka Pledges untuk melihat saldo terkini." : "This bill was superseded or its balance is already covered by payment requests. Open Pledges for the current balance.");
+          break;
+        }
+        const balance = st.payable.balance;
         const amount = intent.amountIsFullBalance ? balance : parseAmount(intent.amount);
         if (!amount || amount > balance) {
           actions.push({ type: "ask_clarification", question: "amount", options: [{ label: `Full balance · ${fmt(balance, c.currency)}`, value: String(balance) }] });
@@ -261,7 +271,6 @@ export async function handleMessage(db: DB, caseId: string, memberId: string, me
         break;
       default:
         replies.push(
-          intent.replyText ??
             (intent.language === "id" ? "Aku bisa menjelaskan tagihan, menyiapkan pembayaran ke rekening resmi, dan melacak pengembalian dana." : "I can explain bills, prepare payments to the hospital's verified account, and track refunds."),
         );
     }

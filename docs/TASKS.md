@@ -6,6 +6,10 @@ Owners: **Dien** (backend, agent, API, services) and **Aurel** (UI/FE). FE ↔ B
 
 ## Current state (read this first, updated 20 Oct evening)
 
+**Audit remediation completed, 20 Oct (Codex)**. [Fact] Nine audit findings addressed through server fixes, precise sandbox/test copy and documentation. Payer audits filter nested system details, explanation display uses code/source templates, persistent case PII covers assembled chat prompts, GET explanation is cache-only and closed reads do not write reminders or refresh hospital authority. Chat payment preparation uses the global final-bill balance. Invoice sharing remains explicit with a receipt-only warning. Tests 125/125, lint, TypeScript, isolated production build and browser sandbox execution/refund privacy checks pass. Plan in `docs/AUDIT-REMEDIATION-PLAN.md`, evidence in `evidence/audit-remediation-2026-10-20/`. Live-service limits remain explicit.
+
+**Historical independent verification before remediation, 20 Oct (Codex)** — [Fact] Fresh 118/118 tests, lint, TypeScript and ten-page local browser smoke pass. The broader all-green claims in VERIFICATION.md need qualification. Reproduced payer audit disclosure, semantic explanation-guard gaps and known-name leakage in chat, plus rate-limit/closure/token issues. See [documentation audit](DOCUMENTATION-AUDIT-2026-10-20.md) and `evidence/docs-audit-2026-10-20/`. No product fixes applied in this verification-only pass.
+
 For an agent or person picking this up. Details per area are in the linked docs; `docs/VERIFICATION.md` maps every PRD/ARCHITECTURE/API/TEST-PLAN requirement to where it lives.
 
 **Product, as built on `main`:**
@@ -22,7 +26,7 @@ For an agent or person picking this up. Details per area are in the linked docs;
 - **Blockchain** (FISCO BCOS, hash only, best effort): bills and invoices on upload, log head on demand / after each payment / at closing, closing-pack hash at closing, hospital verification snapshots by admins. Table in `docs/API.md` v1.6.
 - **FX:** demo table with one CNY row; every other pair is a cross rate, so MYR, SGD, THB, AED, USD and IDR hospitals get quotes. Conversions are written "payer amount (hospital amount)".
 
-**Checks on `main`:** `npm test` 118/118, `npm run lint`, `npx tsc --noEmit`, `npm run build` all pass (20 Oct).
+**Current checks:** `npm test` 125/125, `npm run lint`, `npx tsc --noEmit`, `npm run build` all pass (20 Oct).
 
 **Open items:** guarantee amount still typed (no "hospital guarantee letter" document type); Gmail sending not yet tried with real credentials; FISCO anchoring of the new invoice / closing-pack paths not yet run against a live chain; sections 6.5, 6.7, 6.8 and 7–10 below (deployment, video, submission) unchanged.
 
@@ -271,3 +275,7 @@ Video outline (4:45):
 - 20 Oct, Claude, twelfth round. Hospital Invoice section on paid requests (`request_invoices` table, `POST/GET /payment-requests/:id/invoices`). Case closing (`case_closure` table, `POST /cases/:id/close`, read-only guard in `src/server/api.ts`) with the Close and Records tab and printable closing documents. Hospital name merged into one menu button. "Helper" renamed "Payer" in UI, server messages and docs; role chips added. Status chips removed from card corners; request form text condensed.
 - 20 Oct, Claude, thirteenth round. Bill Review "Ask about this bill". Invoices viewable by every member. Gmail emails on new requests (`nodemailer`, `memberships.email` stored when an invitation is accepted). Review and Pay moved into the request card, request switcher in the card header (filled `Select strong`), invite link hidden once covered. Upload confirmation dialog. Request status card under the tab list.
 - 20 Oct, Claude, fourteenth round. Closing also requires the final bill and an invoice on every paid request; checklist "Open" links go to the exact request (`?requestId=…#invoice`). Blockchain: invoices anchored on upload, log head anchored after each executed payment and at closing, closing-pack SHA-256 written into the `case.closed` row and anchored (`case_closure.pack_sha256/pack_tx/audit_hash/audit_tx`). All docs updated for handoff. Tests 118/118.
+
+- 20 Oct, Codex (independent documentation audit). [Fact] Read all ten existing docs plus README and inspected routes, UI and services. Fresh 118/118, lint and TypeScript pass. Chrome opened ten primary pages and checked payer projection and mobile Bill Review. Isolated probes reproduced gaps beyond the existing tests. Nine prioritized findings, implementation coverage and live-service limits are in `docs/DOCUMENTATION-AUDIT-2026-10-20.md`. Evidence in `evidence/docs-audit-2026-10-20/`. No product code changes, live payment or external message.
+
+- 20 Oct, Codex (audit remediation). [Fact] Completed `docs/AUDIT-REMEDIATION-PLAN.md`. Fixed nested payer audit disclosure, canonical explanation rendering including old caches, case-stable PII and full chat-prompt scrubbing, cache-only explanation GET and closed-read side effects. Aligned chat preparation with current global balances. Corrected sandbox/test settlement claims, invoice privacy notice, wizard/API docs and landing arithmetic. Seven new regressions, 125/125 total tests, lint, TypeScript and isolated production build pass. Local Chrome executed sandbox shares and refund reconciliation, confirmed payer isolation and mobile layout, with no page errors. Evidence in `evidence/audit-remediation-2026-10-20/`. User package.json and bun.lock changes preserved. No external email or real payment.

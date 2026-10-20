@@ -5,7 +5,7 @@ import { type CaseAccess, ApiError, requireOwner, denyAccess } from "./access";
 import { now, advanceClock } from "./clock";
 import { ingestDocument } from "./documents";
 import { analyse, loadItems } from "./analysis";
-import { explain } from "./explain";
+import { canonicalLines, explain } from "./explain";
 import { secondCheck } from "./secondcheck";
 import { handleMessage } from "./agent";
 import { AskContext, answerAbout } from "./case-answers";
@@ -25,7 +25,7 @@ import { enrollFromSignedList, resolvePayeeAnomalies } from "./enrollment";
 import { fetchSignedPayeeList, type SignedPayeeList } from "./portal";
 import { PORTAL_PAYEES } from "./seed";
 import { stripeCharger } from "./stripe";
-import { scrub } from "./pii";
+import { scrubCase } from "./pii";
 import { syncDirectoryHospital } from "./hospital-directory";
 
 function gate<T extends {ok:boolean;reason?:string;check?:number}>(value:T):T {
@@ -49,11 +49,16 @@ export class Integration {
     return { ...this.view().documents.find(d=>d.id===id),currency:this.view().case.currency,items:this.c.member.role==="payer" ? [] : loadItems(this.c.db,id).map(i=>({...i,id:i.code,flags:[]})) };
   }
   async explanation(documentId:string,force=false) {
-    this.document(documentId);
+    if(!this.c.db.prepare("SELECT 1 FROM documents WHERE id=? AND case_id=?").get(documentId,this.c.caseId))throw new ApiError("Document not found.",404);
     const cached=this.c.db.prepare("SELECT payload FROM web_explanations WHERE document_id=?").get(documentId) as {payload:string}|undefined;
-    if(cached && !force) return this.presentExplanation(JSON.parse(cached.payload));
     const analysis=analyse(this.c.db,this.c.caseId,documentId,this.c.session.user.mode==="google"?[]:undefined);
     if("error" in analysis)throw new ApiError(analysis.error,409);
+    if (!force) {
+      if (!cached) throw new ApiError("No saved explanation for this bill. Generate it with POST while the case is open.",409);
+      const value=JSON.parse(cached.payload);
+      return this.presentExplanation({...value,lines:canonicalLines(analysis),questions:[...analysis.questions,...value.questions.filter((q:{kind:string})=>q.kind==="models_disagree")]});
+    }
+    if(this.closed())throw new ApiError("This care case is closed. Saved explanations remain available.",409);
     const reading=await secondCheck(this.c.db,analysis,[],{...this.dependencies,waitForCooldownMs:0,totalTimeoutMs:15_000});
     const result=await explain(analysis,"en",{...this.dependencies,totalTimeoutMs:20_000});
     const explanation:NonNullable<CareCase["explanation"]>={...result,documentId,demo:this.c.session.user.mode==="demo",secondModelChecked:reading.checked,questions:[...result.questions,...reading.disagreements],referenceNote:this.c.session.user.mode==="google"?"No external reference-price table is configured for this hospital.":"Reference prices are indicative, not regulated prices."};
@@ -92,7 +97,9 @@ export class Integration {
     return {checked:reading.checked,disagreements:reading.disagreements,unavailable:Boolean(reading.skipped)&&!reading.checked.length,reason:reading.skipped??null};
   }
   private presentExplanation(explanation:NonNullable<CareCase["explanation"]>) {
-    return this.c.member.role==="payer" ? {...explanation,lines:explanation.lines.filter(l=>l.type==="arithmetic_fact"),questions:[]}:explanation;
+    if(this.c.member.role!=="payer")return explanation;
+    const {demo,documentId,currency,total,estimate,actualStayDays,byCategory,referenceNote,secondModelChecked}=explanation;
+    return {demo,documentId,currency,total,estimate,actualStayDays,byCategory,referenceNote,secondModelChecked,lines:explanation.lines.filter(l=>l.type==="arithmetic_fact"),questions:[]};
   }
   async upload(file:File,type:"estimate"|"interim"|"final",replacementId?:string) {
     if(this.c.member.role==="payer")denyAccess(this.c,"Only the owner or companion can upload documents.");
@@ -272,11 +279,11 @@ export class Integration {
       const about=AskContext.parse(context);
       const result=answerAbout(this.view(),about);
       const seq=appendAudit(this.c.db,{caseId:this.c.caseId,actor:this.c.member.id,action:"chat",inputSources:["user","system"],decision:"info",result:{context:about.kind,actions:result.actions.map(a=>a.type)}},now(this.c.db)).seq;
-      this.c.db.prepare("INSERT INTO web_messages VALUES (?,?,?,?,?,?,?)").run(randomUUID(),this.c.caseId,this.c.member.id,scrub(message).text,result.reply,JSON.stringify(result.actions),now(this.c.db).toISOString());
+      this.c.db.prepare("INSERT INTO web_messages VALUES (?,?,?,?,?,?,?)").run(randomUUID(),this.c.caseId,this.c.member.id,scrubCase(this.c.db,this.c.caseId,message).text,result.reply,JSON.stringify(result.actions),now(this.c.db).toISOString());
       return {...result,auditSeq:seq,model:null};
     }
     const result=await handleMessage(this.c.db,this.c.caseId,this.c.member.id,message,this.dependencies,now(this.c.db));
-    this.c.db.prepare("INSERT INTO web_messages VALUES (?,?,?,?,?,?,?)").run(randomUUID(),this.c.caseId,this.c.member.id,scrub(message).text,result.reply,JSON.stringify(result.actions),now(this.c.db).toISOString());
+    this.c.db.prepare("INSERT INTO web_messages VALUES (?,?,?,?,?,?,?)").run(randomUUID(),this.c.caseId,this.c.member.id,scrubCase(this.c.db,this.c.caseId,message).text,result.reply,JSON.stringify(result.actions),now(this.c.db).toISOString());
     return result;
   }
   messages() {return this.c.db.prepare("SELECT question,reply,actions,ts FROM web_messages WHERE case_id=? AND member_id=? ORDER BY rowid").all(this.c.caseId,this.c.member.id);}

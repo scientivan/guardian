@@ -126,7 +126,7 @@ export async function dispatch(request:NextRequest,path:string[]) {
         return reply(await api.upload(file,z.enum(["estimate","interim","final"]).parse(form.get("type")),typeof form.get("replacementDocumentId")==="string"?String(form.get("replacementDocumentId")):undefined));
       }
       if(section==="explanation") {
-        const doc=request.nextUrl.searchParams.get("documentId")??api.view().documents.filter(d=>d.type!=="estimate"&&d.status==="parsed").at(-1)?.id;
+        const doc=request.nextUrl.searchParams.get("documentId")??(c.db.prepare("SELECT id FROM documents WHERE case_id=? AND type!='estimate' AND status='parsed' AND id NOT IN (SELECT old_id FROM web_replacements) ORDER BY created_at DESC,rowid DESC LIMIT 1").get(c.caseId) as {id:string}|undefined)?.id;
         if(!doc)throw new ApiError("Upload an estimate and a bill first.",409);
         return reply(await api.explanation(doc,request.method==="POST"));
       }

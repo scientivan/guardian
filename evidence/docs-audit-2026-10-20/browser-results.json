@@ -1,0 +1,40 @@
+{
+  "mode": "fresh localhost Chrome navigation smoke",
+  "pages": {
+    "/case/C1": "Agent Office",
+    "/case/C1/bill": "Bill Review",
+    "/case/C1/pledges": "Pledges",
+    "/case/C1/refunds": "Refund Tracking",
+    "/case/C1/log": "Case History",
+    "/case/C1/members": "Case Members",
+    "/case/C1/closing": "Close and Records",
+    "/case/C1/guide": "How It Works",
+    "/projects/new": "Start a Care Case",
+    "/hospitals": "Hospital Directory"
+  },
+  "payer": {
+    "status": 200,
+    "role": "payer",
+    "items": 0,
+    "approvals": [
+      {
+        "id": "R1",
+        "members": []
+      },
+      {
+        "id": "R2",
+        "members": [
+          "M_JKT"
+        ]
+      }
+    ]
+  },
+  "mobile": {
+    "viewport": [
+      390,
+      844
+    ],
+    "page": "/case/C1/bill",
+    "horizontalOverflow": false
+  }
+}

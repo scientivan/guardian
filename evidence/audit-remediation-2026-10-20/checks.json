@@ -1,0 +1,16 @@
+{
+  "tests": {
+    "passed": 125,
+    "files": 19
+  },
+  "lint": "pass",
+  "typescript": "pass",
+  "productionBuild": "pass in isolated copy",
+  "buildSourceDiffers": false,
+  "browser": "pass",
+  "liveGmail": "not run",
+  "realGoogleConsent": "not run",
+  "realHospitalOnboarding": "not run",
+  "realBankSettlement": "not implemented",
+  "liveModelBaseline": "historical only"
+}

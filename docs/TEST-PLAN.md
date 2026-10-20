@@ -74,3 +74,10 @@ npm run baseline       # generic LLM vs guardian, 3 trials, logs/baseline/
 ```
 
 `evidence` needs the FISCO BCOS node (`docs/FISCO-SETUP.md`) and test keys. LLM replies are cached in `.cache/llm` so a rerun gives the same text.
+
+
+## 6. Audit regression checks, 20 October 2026
+
+`src/server/audit-remediation.test.ts` exercises nested payer audit privacy after execution and refunds, wrong numeric and diagnostic model prose, case-stable token allocation, known names and identifiers in assembled chat prompts, cache-only explanation GET through the route dispatcher, closed reads after 15 simulated days, and final-bill preparation after existing deposits. These use temporary databases and fake services.
+
+The explanation renderer changed after the 18 Oct baseline. Arithmetic and question sentences now come from code, and document statements are attributed extracted content. The old live/baseline reports remain historical, not a fresh performance measurement of this version. Rerun live evaluation separately if new model performance numbers are needed.

@@ -29,10 +29,10 @@ export function PaymentRecord({ caseId, memberId, print = false }: { caseId: str
   if (!record) return <p role="status" className="flex items-center gap-2 text-sm text-ink-2"><Spinner className="h-4 w-4 text-serpent" />Loading your record…</p>;
   return (
     <div className="space-y-5">
-      <p><MoneyFigure minor={record.paidTotal} currency={care.currency} /><span className="ml-2 text-ink-2">paid {memberId && memberId !== care.me.id ? "by this person" : "by you"} to the hospital</span></p>
+      <p><MoneyFigure minor={record.paidTotal} currency={care.currency} /><span className="ml-2 text-ink-2">paid {memberId && memberId !== care.me.id ? "by this person" : "by you"} in sandbox/test charges</span></p>
       {record.payments.length ? <ul className="divide-y divide-line rounded-2xl bg-white px-4">{record.payments.map(p => (
         <li key={`${p.requestId}-${p.ts}`} className="flex flex-wrap items-center gap-x-4 gap-y-1 py-3 text-sm">
-          <span className="min-w-0 flex-1"><span className="block font-semibold text-lead">{p.purpose}</span><span className="block text-xs text-ink-2">{day(p.ts)} · {p.chargeRef ? `Receipt ${p.chargeRef}` : "No receipt"}</span></span>
+          <span className="min-w-0 flex-1"><span className="block font-semibold text-lead">{p.purpose}</span><span className="block text-xs text-ink-2">{day(p.ts)} · {p.chargeRef ? `Test charge ${p.chargeRef}` : "No receipt"}</span></span>
           <span className="text-right"><b className="block font-num text-serpent-dark">{p.payCurrency && p.payAmount !== null ? converted(p.payAmount, p.payCurrency, p.amount, p.currency) : money(p.amount, p.currency)}</b>{p.payCurrency && p.payAmount !== null && <span className="text-xs text-ink-2">+ {money(p.fee ?? 0, p.payCurrency)} fee</span>}</span>
           <Chip tone={p.status === "charged" ? "ok" : "danger"}>{p.status === "charged" ? "Paid" : "Failed"}</Chip>
         </li>

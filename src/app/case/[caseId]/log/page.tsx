@@ -55,6 +55,7 @@ export default function LogPage() {
           </>
         }
       >
+        {care.me.role === "payer" && <p className="mb-4 text-sm text-ink-2">This is a filtered record with your own payment details. Other members’ details are private. The server checks integrity against the complete log.</p>}
         <div className="overflow-x-auto">
           <table className="w-full min-w-[40rem] text-left text-sm">
             <thead className="text-xs text-ink-2">

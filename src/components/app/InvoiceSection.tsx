@@ -39,7 +39,8 @@ export function InvoiceSection({ request }: { request: PaymentRequest }) {
   }
   return (
     <div id="invoice" className="scroll-mt-24"><Section title="Hospital Invoice" agent="auditor">
-      <p className="mb-4 leading-relaxed text-ink-2">The hospital’s own invoice or receipt for this payment, kept next to the payment receipts as proof the hospital received it.</p>
+      <p className="mb-4 leading-relaxed text-ink-2">Attach a hospital-issued payment receipt if available. Guardian does not authenticate the issuer or prove bank settlement from an uploaded file.</p>
+      <p className="mb-4 rounded-xl bg-warn-soft p-3 text-sm text-warn-ink">Every case member can view and download these files. Upload a payment receipt only, with medical details, patient identifiers and card numbers removed. Keep itemised medical bills in Bill Review.</p>
       {invoices.length > 0 ? <ul className="mb-4 divide-y divide-line rounded-2xl bg-white px-4">{invoices.map(i => (
         <li key={i.id} className="flex flex-wrap items-center gap-x-4 gap-y-1 py-3 text-sm">
           <span className="min-w-0 flex-1"><span className="block font-semibold text-lead">{i.filename}</span><span className="block break-all text-xs text-ink-2">{day(i.ts)} · {i.by} · SHA-256 {i.sha256}</span><span className="block break-all text-xs text-ink-2">{i.anchoredTx ? `On FISCO BCOS · tx ${i.anchoredTx}` : "Not on the blockchain yet (anchoring not configured); the case history keeps its hash."}</span></span>

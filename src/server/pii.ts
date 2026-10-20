@@ -19,13 +19,21 @@ export interface Scrubbed {
   tokens: Array<{ token: string; value: string; kind: Kind }>;
 }
 
-export function scrub(text: string, knownNames: Array<{ value: string; label: string }> = []): Scrubbed {
+export function scrub(text: string, knownNames: Array<{ value: string; label: string }> = [], existing: Scrubbed["tokens"] = []): Scrubbed {
   const tokens: Scrubbed["tokens"] = [];
   const counters: Partial<Record<string, number>> = {};
   const seen = new Map<string, string>();
+  for (const t of existing) {
+    seen.set(t.value, t.token);
+    const match = t.token.match(/^\[(.+)_(\d+)\]$/);
+    if (match) counters[match[1]] = Math.max(counters[match[1]] ?? 0, Number(match[2]));
+  }
   const take = (kind: Kind, value: string, label: string = kind) => {
     const existing = seen.get(value);
-    if (existing) return existing;
+    if (existing) {
+      if (!tokens.some(t => t.token === existing)) tokens.push({ token:existing,value,kind });
+      return existing;
+    }
     counters[label] = (counters[label] ?? 0) + 1;
     const token = `[${label}_${counters[label]}]`;
     seen.set(value, token);
@@ -47,8 +55,29 @@ export function scrub(text: string, knownNames: Array<{ value: string; label: st
 }
 
 export function storeTokens(db: DB, caseId: string, s: Scrubbed): void {
-  const stmt = db.prepare("INSERT OR IGNORE INTO pii_tokens (case_id, token, value, kind) VALUES (?, ?, ?, ?)");
-  for (const t of s.tokens) stmt.run(caseId, t.token, t.value, t.kind);
+  db.transaction(() => {
+    const stmt = db.prepare("INSERT INTO pii_tokens (case_id, token, value, kind) VALUES (?, ?, ?, ?)");
+    for (const t of s.tokens) {
+      const row = db.prepare("SELECT value,kind FROM pii_tokens WHERE case_id=? AND token=?").get(caseId,t.token) as {value:string;kind:string}|undefined;
+      if (row && (row.value !== t.value || row.kind !== t.kind)) throw new Error("Conflicting PII token. Use scrubCase for persistent case text.");
+      if (!row) stmt.run(caseId, t.token, t.value, t.kind);
+    }
+  })();
+}
+
+/** Allocate and persist tokens atomically, reusing the case's existing mapping. */
+export function scrubCase(db: DB, caseId: string, text: string): Scrubbed {
+  return db.transaction(() => {
+    const existing = db.prepare("SELECT token,value,kind FROM pii_tokens WHERE case_id=?").all(caseId) as Scrubbed["tokens"];
+    const members = db.prepare("SELECT display_name FROM members WHERE case_id=?").all(caseId) as {display_name:string}[];
+    const names = [
+      ...existing.filter(t => t.kind === "NAME").map(t => ({value:t.value,label:t.token.replace(/^\[|_\d+\]$/g,"")})),
+      ...members.map(m => ({value:m.display_name.replace(/\s*\(.*\)\s*$/, ""),label:"ANGGOTA"})).filter(m=>m.value.length>2),
+    ];
+    const result = scrub(text,names,existing);
+    storeTokens(db,caseId,result);
+    return result;
+  })();
 }
 
 /** Restores tokens for display. Payers never see medical identifiers. */

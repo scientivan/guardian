@@ -23,7 +23,8 @@ describe("Ask buttons", () => {
   });
   it("explains a line with its cited bill items, and keeps the conversation", async () => {
     await as("M_OWNER", async api => {
-      const r = await api.chat("Explain this", { kind: "line", index: 5 });
+      const index=api.view().explanation!.lines.findIndex(l=>l.type==="unknown_ask_hospital"&&l.itemIds.includes("I22"));
+      const r = await api.chat("Explain this", { kind: "line", index });
       expect(r.reply).toMatch(/question for the hospital/);
       expect(r.reply).toContain("I22");
       expect(api.messages()).toHaveLength(1);

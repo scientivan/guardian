@@ -53,13 +53,14 @@ export function setRefundStatus(db: DB, caseId: string, memberId: string, status
 
 /** Status per member; logs one reminder per overdue refund that has not arrived. */
 export function refundStatus(db: DB, caseId: string, now = new Date()) {
+  const closed = Boolean(db.prepare("SELECT 1 FROM case_closure WHERE case_id=?").get(caseId));
   const rows = db
     .prepare("SELECT r.id, r.member_id, m.display_name, r.amount, r.status, r.due_at, r.reminded_at FROM refunds r JOIN members m ON m.id = r.member_id WHERE r.case_id = ? ORDER BY r.amount DESC")
     .all(caseId) as { id: number; member_id: string; display_name: string; amount: number; status: RefundStatus; due_at: string; reminded_at: string | null }[];
   const reminders: string[] = [];
   const items = rows.map((r) => {
     const overdue = r.status !== "received" && new Date(r.due_at) <= now;
-    if (overdue && !r.reminded_at) {
+    if (overdue && !r.reminded_at && !closed) {
       db.prepare("UPDATE refunds SET reminded_at = ? WHERE id = ?").run(now.toISOString(), r.id);
       appendAudit(db, { caseId, actor: "system", action: "refund.reminder", inputSources: ["system"], decision: "info", result: { memberId: r.member_id, amount: r.amount, dueAt: r.due_at } }, now);
       reminders.push(r.member_id);

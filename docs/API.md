@@ -201,7 +201,7 @@ Plus a member picker (sets `x-member-id`) to switch roles during the demo. The 1
 - `GET /api/cases/:id/chat` returns the acting member’s stored chat history.
 - `POST /api/cases/:id/invitations` accepts `name`, `delivery` (`email` or `link`), `email` (required for `email`), `role`, `shareLimit` and `limitCurrency`. `shareLimit` is in `limitCurrency` (the owner's own currency) and is stored in the hospital currency at the reference rate, rounded down. The owner no longer chooses the payer's payment currency. The payer picks it on acceptance: `currency` in the accept body must be one with a reference rate for the case, and every invitation preview lists the options in `currencies`. Names and emails are checked with the same rules as the forms (`src/lib/validate.ts`); a failed rule returns `400 INVALID_INPUT` with its message. An `email` invite is bound to that Google address. A `link` invite has no email and can be accepted once by the first Google account that opens it, within 72 hours.
 - `POST /api/hospitals/request` (Google accounts) takes `{ name, country, city }`, has AI draft the remaining profile fields with source citations, and files a pending profile proposal. It returns `{ review: { id, hospitalId, status }, profile, uncertainties }`. A second request for the same name and city returns the existing pending review. An incomplete AI draft returns `422`. Google care cases must name `hospitalDirectoryId` (a listed or verified directory hospital). Free text is refused.
-- `POST /api/cases/:id/payment-requests` accepts an optional `documentId` of a read interim or final bill. The amount must be at most the bill's open balance (its line total less pending, executing or paid requests for it), else `409` with `check: 4`. Requests carry `documentId` in the case view. The payee is always the registry `payeeId`, never an account from the bill.
+- `POST /api/cases/:id/payment-requests` accepts an optional `documentId` of a read interim or final bill. The amount must be at most the current final/latest bill total minus all pending, executing or paid requests for the case, else `409` with `check: 4`. A final bill supersedes interim bills. A request may also bind the estimate and must use its lower or upper range end. One live request per document is enforced. Requests carry `documentId` in the case view. The payee is always the registry `payeeId`, never an account from the bill.
 - `GET /api/invitations` lists pending email invitations addressed to the signed-in account (Dashboard → Invitation Requests). `GET /api/invitations/id/:id` shows one; `POST` with `{ action: "accept" | "decline" }` answers it.
 - `GET /api/invitations/:token` previews a link invitation and `POST` accepts it. Every preview returns the case brief: patient, hospital, country, inviter, role, share limit, payment currency and expiry.
 - `POST /api/cases/:id/refunds/reconcile` accepts documentId. Demo-only `/refunds/status` accepts memberId and status. `/follow-up` records an audit event, without sending external messages.
@@ -238,3 +238,15 @@ Anchored to FISCO BCOS (hash only, best effort; the action never fails when anch
 | Hospital verification snapshot | administrator, Verification Desk | directory |
 
 Not anchored: individual log rows (covered by the head), receipts, quotes, pledges, chat, any personal data or document content.
+
+
+## Audit remediation update, version 1.7, 20 October 2026
+
+This update takes precedence over earlier examples.
+
+- Explanation GET reads a saved result only. A cache miss returns 409 without model calls. POST is rate-limited and generates only while the case is open. Displayed lines, including legacy cache lines, are rebuilt from calculated facts and attributed extracted statements.
+- Payer projections remove other members' system-generated charge/refund details as well as their approval rows. Audit results use a scalar field allowlist. A payer's filtered record is not a separately verifiable complete hash chain. Full-log integrity is checked on the server.
+- Closed reads do not synchronise hospital authority, expire requests or record refund reminders. Chat remains an explicit mutation exception after closing. An open case records an overdue reminder on view, without sending an external hospital message or running a scheduled worker.
+- Case model inputs use persistent case token allocation, including names and request-purpose text in chat state. AI-generated views keep tokens. Unsupported PII formats may still be missed.
+- Stripe payeeId metadata identifies the intended recipient only. Sandbox/test charges do not route funds to the hospital's bank account. Charge references are not proof of hospital settlement.
+- Uploaded receipt files remain downloadable by every case member under the agreed invoice-sharing scope. The UI warns uploaders to remove medical details, identifiers and card numbers. No automatic redaction or issuer-authentication claim is made.

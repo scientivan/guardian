@@ -6,8 +6,8 @@ Version 1.1, 17 October 2026. Stack approved by Dien on 17 Oct 2026. This docume
 
 - **Assume the LLM will be fooled.** Every consequential action is blocked or allowed by deterministic code outside the model. Based on CaMeL (Google DeepMind + ETH Zurich, arXiv 2503.18813) and the design-pattern paper arXiv 2506.08837: once an agent has read untrusted input, that input must not be able to trigger consequential actions.
 - **Separate instructions from data.** The LLM that reads external documents has no tools. The LLM that plans never sees raw external text.
-- **Provenance labels.** Every value carries its source: `user`, `official_registry`, `hospital_doc`, `chat`, `system`. The gateway checks labels before any payment.
-- **Money math in code only.** Differences, totals, FX, shares and refunds are computed by code. The LLM writes words, not numbers.
+- **Provenance boundaries.** Payee claims carry source fields and operations record input source labels. Reader fields are ordinary schema-validated values, not general per-value taint tracking. The gateway enforces recipient provenance. This is reader quarantine inspired by CaMeL, not its full information-flow implementation.
+- **Money math in code only.** Differences, totals, FX, shares and refunds are computed by code. The LLM extracts fields and proposes text. Displayed arithmetic is rendered from code templates.
 - **Least privilege and data minimisation.** The LLM gets tokenised text and the minimum fields; scoped keys; role-based display.
 - **Everything logged.** Hash-chained audit log, which doubles as execution evidence.
 
@@ -49,8 +49,8 @@ See §4.
 
 - Input: tokenised text of an estimate, bill or message.
 - Output: JSON in a fixed schema: `items[] {id, category, description, qty, unitPrice}`, `currency`, `total`, `assumedStayDays`, `exclusions[]`, `statedReasons[]` (only reasons written in the document), `payeeMentions[]`.
-- Output is validated with `zod`; fields outside the schema are dropped. Every value is labelled `hospital_doc` or `chat`.
-- Instructions inside a document can at worst become a wrong field value. A wrong `payeeMentions` value is caught by the gateway; a wrong price is caught by the totals check (sum of lines must equal the stated total, else the agent asks for re-upload).
+- Output is validated with `zod`; fields outside the schema are dropped. The ingestion operation records `hospital_doc` or `chat` provenance. Individual reader strings are not capability-labelled.
+- Instructions inside a document can at worst become a wrong field value. A wrong `payeeMentions` value is caught by the gateway; an inconsistent total is caught by the totals check. Self-consistent wrong prices, reasons or categories may remain and need independent reading or hospital confirmation.
 
 ### 3.3 Planner (LLM)
 
@@ -59,7 +59,7 @@ See §4.
 - The planner references payees only by `payeeId` from the registry; it cannot write an account number. It cannot approve or execute.
 - Explanation lines must cite item ids and carry a type: `arithmetic_fact`, `stated_in_document`, `unknown_ask_hospital`. Lines without citations are dropped before display.
 
-Implementation: `src/server/explain.ts` (bill explanation) and `src/server/agent.ts` (chat). Code checks every explanation line: citations must exist, numbers must appear in the facts, and a clinical cause is dropped unless the document states it. Any cause the model skips gets a fixed template line. In chat, the model only classifies the message into a fixed intent; code resolves which bill, amount or request it means, asks a clarifying question when the message does not identify it (relative words like "kemarin" are not accepted), and can only prepare a payment, never execute one. Account numbers in chat are checked by the gateway before any model runs.
+Implementation: `src/server/explain.ts` (bill explanation) and `src/server/agent.ts` (chat). Every displayed arithmetic line is reconstructed from its computed cause with code templates. Document statements are attributed quotations of extracted source statements, not independently verified clinical facts. Hospital-question lines use bounded templates. Planner free prose never becomes a displayed fact, and legacy cached prose is reconstructed on reads. In chat, the model only classifies the message into a fixed intent; code resolves which bill, amount or request it means, asks a clarifying question when the message does not identify it (relative words like "kemarin" are not accepted), and can only prepare a payment, never execute one. Account numbers in chat are checked by the gateway before any model runs.
 
 ### 3.4 Comparator (code, `src/server/compare.ts`)
 
@@ -98,23 +98,23 @@ pending ──(approvals cover amount, checks 1–5 pass)──► executing ─
    └──(owner cancels)──► cancelled
 ```
 
-When `executing`, each approved share is a separate Stripe test charge in the payer's currency, converted at the locked quote, to the registry payee. Each payer receives their own receipt. Approvals can be withdrawn only in `pending`.
+When `executing`, each approved share is a separate sandbox or Stripe test charge in the payer's currency at the locked quote. The registry payee is the intended recipient and payeeId is Stripe metadata, not a settlement destination. Each payer receives a test charge reference. No hospital bank settlement is implemented. Approvals can be withdrawn only in `pending`.
 
 ### 3.7 Auditor (code, `src/server/audit.ts`)
 
 - Row: `seq, ts, case_id, actor, action, input_sources, decision, result, prev_hash, hash`; `hash = sha256(prev_hash, ts, case_id, actor, action, input_sources, decision, result)`.
 - `verifyChain` recomputes every hash and returns the first broken row.
-- Anchoring: SHA-256 of each uploaded document and hospital invoice, the log head (on demand, after each payment and at closing) and the closing pack are written to a FISCO BCOS contract (`anchor(bytes32 hash, string kind)`). Tx hash stored in `documents.anchored_tx`.
+- Anchoring: SHA-256 of each uploaded document and hospital invoice, the log head (on demand, after each payment and at closing) and the closing pack are written to a FISCO BCOS contract (`anchor(bytes32 hash, string kind)`). Tx hashes are stored by kind in document/invoice anchor columns, audit-anchor settings and case_closure fields.
 - Claim limit: an anchor proves a file or log did not change after anchoring. It does not prove who issued the file or that the bill is correct.
 
 ## 4. PII removal (`src/server/pii.ts`)
 
 1. Document becomes text (text-layer PDF or local OCR).
 2. Code detects fixed patterns (email, card number, medical record number, passport, phone, date of birth) and the names already known from case data (patient, members). Longest names first.
-3. Each value becomes a token such as `[PASIEN_1]`, `[PASSPORT_1]`. Same value, same token.
+3. Supported values become tokens such as `[PASIEN_1]` and `[PASSPORT_1]`. Case-aware allocation reuses the stored mapping and allocates new counters in a transaction. Different values cannot silently overwrite an existing token. Known-name scrubbing also covers the complete chat prompt, including request purposes.
 4. Token table (`pii_tokens`) is stored apart and never sent to an LLM.
 5. LLMs read only tokenised text.
-6. Display restores tokens by role: owner sees all; payers do not see medical record number, passport, date of birth or card; nobody but the owner sees card numbers.
+6. AI-generated views retain tokens. `restore` remains a role-aware utility, not a web display path. Owner/companion original medical-document downloads and all-member shared receipt downloads are explicit separate surfaces. Receipt upload warns to remove medical details, identifiers and card numbers.
 
 Limits: unusual formats can slip through; doctor names not in case data and addresses need a local name detector (planned); drug and procedure names stay, so a diagnosis can be guessed. Role masking is the second layer.
 
@@ -163,3 +163,12 @@ Web-layer additions (20 Oct): request amounts are validated against `src/lib/pay
 - FISCO BCOS setup needs Docker. Fallback: anchoring stays "planned", on-chain bonus 0, local hash chain still runs.
 - Multi-person approval adds dialogue turns. Mitigation: one-screen summary per payer and one tap to approve.
 - Stripe test mode does not simulate cross-border settlement. FX is shown from the demo table; Stripe charges are in test currency.
+
+
+## 8. Audit remediation, 20 October 2026
+
+Payer audit projections use an allowlist of actions and scalar result fields, scoped by raw member IDs. Nested refund allocations, recipients and other members' charge references are not returned. Full-log integrity remains a server calculation, with a filtered-view notice in Case History.
+
+Explanation GET is cache-only and never calls a model. A closed case does not refresh local hospital authority or record new refund reminders during a view. Chat is the explicit post-closure exception and can still append conversation, token and audit state. Closed financial records remain fixed.
+
+PII protection covers supported patterns and known case names, not arbitrary sensitive content. Existing stored text from earlier versions is not retroactively reparsed or re-tokenised. If an earlier document used an ambiguous token mapping, re-upload the original rather than claiming its lost mapping can be recovered.

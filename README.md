@@ -1,6 +1,6 @@
 # Deposit and Bill Guardian
 
-An AI agent on the patient family's side that reads a foreign hospital's bills, explains in plain language why the cost changed from the estimate, and pays deposits only to the hospital's verified account after each payer approves their own share.
+An AI agent on the patient family's side that reads a foreign hospital's bills, explains in plain language why the cost changed from the estimate, and prepares deposit payments for a verified intended recipient after each payer approves their own share. This prototype records sandbox or Stripe test charges, without hospital bank settlement.
 
 - **Track:** 2026 Shenzhen International FinTech Competition (FinTechathon), International Track (AI)
 - **Topic:** C, Cross-border & Student Finance
@@ -12,11 +12,11 @@ An AI agent on the patient family's side that reads a foreign hospital's bills, 
 ## 1. What it does
 
 1. **Estimate in.** A family member uploads the hospital's estimate (PDF or photo).
-2. **Payee check.** Payments can only go to accounts from the hospital's signed payee list.
+2. **Payee check.** The gateway permits only intended recipients from the hospital's signed payee list. Charge simulation does not transfer to a bank account.
 3. **Initial deposit.** The amount is the estimate's lower or upper end (not typed). FX quote per payer, each payer pledges, owner pays, Stripe test charge.
 4. **Bill explainer (core).** A 40-line interim bill is compared with the estimate; each difference is explained by cause and cited to bill lines. Duplicates, basic items billed separately and prices above an indicative reference become questions for the hospital, not accusations.
-5. **Emergency guarantee.** Payers in other countries (IDR, MYR, AED) each approve their own share; nothing is charged until the approved shares cover the amount; each share is a separate charge to the hospital.
-6. **Final bill and refund.** "Bill balance" requests use the latest bill (a final bill replaces interim bills) minus everything already requested. The refund is split in proportion to what each person paid and tracked with reminders. The owner or companion attaches the hospital's invoice to each paid request.
+5. **Emergency guarantee.** Payers in other countries (IDR, MYR, AED) each approve their own share; nothing is charged until the approved shares cover the amount; each share is a separate sandbox or Stripe test charge associated with the intended hospital recipient.
+6. **Final bill and refund.** "Bill balance" requests use the latest bill (a final bill replaces interim bills) minus everything already requested. The refund is split in proportion to what each person paid and tracked with reminders. The owner or companion attaches a payment receipt to each paid request. Every member can download it, so medical details, identifiers and card numbers must be removed before upload.
 7. **Recap and closing.** Each payer gets their own record with receipts and document hashes. The owner closes the case once requests are settled, the final bill is in and every paid request has an invoice; the case becomes read-only and the "Close and Records" tab offers printable closing documents per role.
 
 ## 2. Architecture
@@ -32,10 +32,10 @@ An AI agent on the patient family's side that reads a foreign hospital's bills, 
                                      Stripe test mode, FISCO BCOS anchor
 ```
 
-- **The LLM never decides a payment.** A deterministic gateway (`src/server/gateway.ts`) runs five checks: payee in the official registry, exact normalized name, role, amount and share limit, no open anomaly. There is no override, including for the owner.
-- **Instructions and data are separated** (CaMeL pattern). The reader that sees documents has no tools; the planner never sees raw document text.
-- **Money math is code only.** The LLM writes words; totals, causes, FX and refunds come from code.
-- **PII is replaced by tokens before any LLM call** and restored by role for display.
+- **The LLM never executes a payment.** A deterministic gateway (`src/server/gateway.ts`) runs five checks: payee in the official registry, exact normalized name, role, amount and share limit, no open anomaly. There is no override, including for the owner.
+- **Instructions and data are separated** through reader quarantine, inspired by CaMeL. This is not a full per-value information-flow implementation. The reader that sees documents has no tools; the planner never sees raw document text.
+- **Money math is code only.** Models extract fields and propose text. Totals, causes, FX, refunds and displayed arithmetic sentences come from code.
+- **Supported PII is replaced by case-stable tokens before case LLM calls**, including known patient/member names and chat state. AI views retain tokens. Role-controlled original downloads and the explicitly shared receipt files are separate from tokenised AI views.
 - **Every action is in a hash-chained audit log**; FISCO BCOS anchors the hashes of every bill and hospital invoice, the log head (on demand, after each payment, at closing) and the closing pack. Full list: `docs/API.md` v1.6.
 
 Details: `docs/ARCHITECTURE.md`, `docs/PRD.md`, `docs/API.md`, `docs/TEST-PLAN.md`.
@@ -95,7 +95,7 @@ The router uses whichever LLM keys are present and skips a model that is rate-li
 git clone https://github.com/scientivan/guardian.git
 cd guardian
 npm ci
-npm test            # 118 tests covering the core, authentication, isolation, hospital verification, rate limits, document-based requests, invoices and case closing
+npm test            # 125 tests covering the core, authentication, isolation, hospital verification, rate limits, document-based requests, invoices and case closing
 npm run fixtures    # regenerates the demo PDFs in fixtures/pdf/
 ```
 
@@ -148,7 +148,7 @@ Hospital profiles are available at `/hospitals`. Human administrators enter `/ad
 
 | Command | Covers | Last result |
 |---|---|---|
-| `npm test` | Unit and scenario tests with fakes | 118 passing (20 Oct) |
+| `npm test` | Unit and scenario tests with fakes | 125 passing (20 Oct) |
 | `npm run evidence` | D1–D6, D4b, A1–A9 live | 16/16 from a fresh clone (`evidence/run-2026-10-18-clean-clone/summary.md`) |
 | `npm run eval:reader` | 40-item bill reading vs answer key | 40/40 items, total and causes match |
 | `npm run eval:chat` | Clarification, colloquial input, chat attacks | 10/10 |
@@ -182,6 +182,9 @@ Known limitations:
 - **Confirmation:** the agent can only prepare a payment. Creating, approving and executing are explicit user actions. Each payer approves an FX quote for their own share; quotes expire after 15 minutes and requests expire on their own timer.
 - **Payee trust:** accounts come only from the hospital's signed list. Accounts in invoices or chat are matched against the registry and never enrolled; a new or changed account opens an anomaly that pauses all payments until the family checks with the hospital's official channel.
 - **Prompt injection:** the reader has no tools and a fixed schema; the planner sees typed facts only; explanation lines with numbers not in the facts, uncited lines, or clinical causes the document does not state are dropped.
-- **Data:** PII is tokenised before any LLM call; token values stay in the local DB; payers never see medical identifiers; nobody but the owner sees card numbers.
+- **Data:** Supported PII is tokenised before case LLM calls. Token values stay in the local DB and AI views retain tokens. Payers cannot download original medical bills. Shared receipt attachments are unredacted files and must contain no medical details, identifiers or card numbers.
 - **Audit:** every check, approval, denial and charge is written to a hash-chained log; tampering is detected (`verifyChain`, test A9).
 - **Secrets:** only test keys; `.env` is git-ignored; `stripe.ts` refuses any key that is not `sk_test_`.
+
+
+Audit remediation and verification are recorded in [the remediation plan](docs/AUDIT-REMEDIATION-PLAN.md) and [current verification](docs/VERIFICATION.md). The 18 Oct live model/baseline results are historical. The current renderer has new deterministic regressions, not a new live baseline. Closed financial records are read-only, while chat is an explicit exception. Rejected reads of closed cases do not append into the frozen case log.

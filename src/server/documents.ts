@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 import type { DB } from "./db";
 import { appendAudit, sha256 } from "./audit";
 import { extract } from "./extract";
-import { scrub, storeTokens } from "./pii";
+import { scrubCase } from "./pii";
 import { readDocument, type ReaderOutput } from "./reader";
 import { resolvePayee, openAnomaly } from "./gateway";
 import { anchorHash } from "./anchor";
@@ -20,16 +20,6 @@ export interface IngestResult {
   anchoredTx: string | null;
   warnings: string[];
   auditSeq: number;
-}
-
-function knownNames(db: DB, caseId: string) {
-  const fromTokens = db.prepare("SELECT token, value FROM pii_tokens WHERE case_id = ? AND kind = 'NAME'").all(caseId) as { token: string; value: string }[];
-  const members = db.prepare("SELECT id, display_name FROM members WHERE case_id = ?").all(caseId) as { id: string; display_name: string }[];
-  return [
-    ...fromTokens.map((t) => ({ value: t.value, label: t.token.replace(/^\[|_\d+\]$/g, "") })),
-    // "Adi (Jakarta)" -> "Adi"
-    ...members.map((m) => ({ value: m.display_name.replace(/\s*\(.*\)\s*$/, ""), label: "ANGGOTA" })).filter((m) => m.value.length > 2),
-  ];
 }
 
 export function itemsSum(items: ReaderOutput["items"]): number {
@@ -63,8 +53,7 @@ export async function ingestDocument(
   const ex = await extract(args.data, args.mime);
   if (!ex.ok) return { documentId: id, sha256: hash, status: "needs_reupload", reason: ex.reason, anchoredTx: null, warnings, auditSeq: finish("needs_reupload", ex.reason, {}) };
 
-  const s = scrub(ex.text, knownNames(db, args.caseId));
-  storeTokens(db, args.caseId, s);
+  const s = scrubCase(db, args.caseId, ex.text);
   scrubbedText = s.text;
 
   const read = await readDocument(s.text, args.interactive ? { timeoutMs: 25_000, totalTimeoutMs: 70_000, waitForCooldownMs: 0 } : {});

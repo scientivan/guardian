@@ -12,7 +12,7 @@ const STAGES = [
   { key: "requested", label: "Requested", note: "The owner asked the family" },
   { key: "pledging", label: "Pledging", note: "Payers promise shares" },
   { key: "covered", label: "Covered", note: "100% promised" },
-  { key: "paid", label: "Paid", note: "Charged and sent to the hospital" },
+  { key: "paid", label: "Paid", note: "Sandbox/test charge completed" },
 ] as const;
 
 /** Where a request is, and whether any money has moved yet. */
@@ -23,7 +23,7 @@ export function RequestStages({ status, approved, amount }: { status: string; ap
     : status === "failed" ? { tone: "bg-danger-soft text-danger-ink", text: "Some shares could not be charged. See each receipt below." }
     : stopped ? { tone: "bg-mist text-ink-2", text: `This request ${status === "expired" ? "expired" : "was cancelled"}. Nothing was charged.` }
     : status === "executing" ? { tone: "bg-warn-soft text-warn-ink", text: "Paying now: shares are being charged one by one." }
-    : { tone: "bg-firstlight text-serpent-dark", text: "No money has moved yet. Pledges are promises; cards are charged only when the owner pays the hospital." };
+    : { tone: "bg-firstlight text-serpent-dark", text: "No money has moved yet. Pledges are promises; test charges run only when the owner confirms execution." };
   return (
     <div className="mb-5 space-y-3">
       <ol className="grid grid-cols-4 gap-2" aria-label="Request progress">
@@ -73,7 +73,7 @@ export function SandboxCheckout({ rows, total, hospital, sandbox, busy, onConfir
         <p className="mt-1 font-num text-lead">VISA •••• 4242 · 12/34</p>
         <p className="mt-1 text-xs text-ink-2">Stripe test card. No real money moves.</p>
       </div>
-      <p className="text-sm leading-relaxed text-ink-2">Your card is <b className="text-lead">not charged now</b>. It is charged only when the request is fully covered and the owner pays {hospital}. You can withdraw until then.</p>
+      <p className="text-sm leading-relaxed text-ink-2">Your card is <b className="text-lead">not charged now</b>. A sandbox/test charge runs only when the request is fully covered and the owner confirms execution for {hospital}. You can withdraw until then.</p>
       <div className="flex flex-wrap gap-3">
         <button type="button" disabled={busy} onClick={onConfirm} className={PRIMARY}>{busy ? <><Spinner />Authorizing…</> : "Authorize pledge"}</button>
         <button type="button" disabled={busy} onClick={onClose} className={SECONDARY}>Back</button>
@@ -86,8 +86,8 @@ export function SandboxCheckout({ rows, total, hospital, sandbox, busy, onConfir
 export function PaidReceipt({ rows, total, receipt, hospital, onClose }: { rows: [string, string][]; total: string; receipt: string; hospital: string; onClose: () => void }) {
   return (
     <Sheet title="Your share was paid" kicker="Payment complete" onClose={onClose}>
-      <p className="flex items-center gap-2 rounded-xl bg-ok-soft px-3 py-2 text-sm text-ok-ink"><Check className="h-4 w-4 shrink-0" />{total} was charged to VISA •••• 4242 and sent straight to {hospital}.</p>
-      <dl className="divide-y divide-line text-sm">{rows.map(([k, v]) => <Row key={k} k={k} v={v} />)}<Row k="Receipt" v={receipt} /></dl>
+      <p className="flex items-center gap-2 rounded-xl bg-ok-soft px-3 py-2 text-sm text-ok-ink"><Check className="h-4 w-4 shrink-0" />Sandbox/test charge recorded for {total} using the test card. Intended recipient is {hospital}. No bank settlement occurred.</p>
+      <dl className="divide-y divide-line text-sm">{rows.map(([k, v]) => <Row key={k} k={k} v={v} />)}<Row k="Test charge reference" v={receipt} /></dl>
       <button type="button" onClick={onClose} className={PRIMARY}>Done</button>
     </Sheet>
   );

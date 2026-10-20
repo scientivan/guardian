@@ -63,7 +63,7 @@ export function caseAccess(session: Session, caseId: string, requestedMember?: s
 }
 export type CaseAccess = ReturnType<typeof caseAccess>;
 export function denyAccess(c:CaseAccess,message:string):never {
-  appendAudit(c.db,{caseId:c.caseId,actor:c.member.id,action:"permission.denied",inputSources:["user"],decision:"deny",result:{check:3,reason:message}});
+  if(!c.db.prepare("SELECT 1 FROM case_closure WHERE case_id=?").get(c.caseId))appendAudit(c.db,{caseId:c.caseId,actor:c.member.id,action:"permission.denied",inputSources:["user"],decision:"deny",result:{check:3,reason:message}});
   throw new ApiError(message,403,3);
 }
 export function requireOwner(c: CaseAccess) { if(c.member.role!=="owner") denyAccess(c,"Only the case owner can do this."); }

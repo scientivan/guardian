@@ -51,11 +51,11 @@ const STEPS: { title: string; text: string; phase: Phase; who: Person[]; status:
     more: "and the masjid fund",
   },
   {
-    title: "Guardian pays the verified hospital",
-    text: "Only to the hospital’s official account, once the pledges cover the amount. Every step is recorded.",
+    title: "Review and run a test payment",
+    text: "Once pledges cover the amount, the owner confirms sandbox/test charges for the verified intended recipient. No bank transfer occurs.",
     phase: "code",
     who: agentPeople(["gate", "auditor"], ["gate"]),
-    status: "Paid to •••• 2222",
+    status: "Test charge for •••• 2222",
   },
 ];
 

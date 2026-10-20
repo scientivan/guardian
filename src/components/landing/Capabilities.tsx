@@ -1,3 +1,5 @@
+import { fromCaseCurrency } from "@/lib/fx-rates";
+import { money } from "@/lib/format";
 import type { ReactNode } from "react";
 import { FeatureCarousel, type Slide } from "./FeatureCarousel";
 import { Check, Cross } from "./icons";
@@ -30,9 +32,12 @@ function Foot({ className = "text-ink-2", children }: { className?: string; chil
   return <p className={`mt-auto rounded-xl bg-mist px-3 py-2.5 text-xs leading-relaxed ${className}`}>{children}</p>;
 }
 
+const BILL_TOTAL = 36_782;
+const examplePay = (cny: number, currency: string) => money(fromCaseCurrency(cny * 100, "CNY", currency)!, currency);
+
 const BILL_LINES = [
   { chip: "Fact", tone: "fact" as const, text: "The stay is 2 days longer than the estimate assumed", amount: "+CNY 3,000" },
-  { chip: "In the bill", tone: "doc" as const, text: "The hospital notes an extra antibiotic course", source: "item I12" },
+  { chip: "In the bill", tone: "doc" as const, text: "The hospital notes an extra antibiotic course", source: "items I10–I11" },
   { chip: "Ask hospital", tone: "ask" as const, text: "Why are pillow cases billed separately?", source: "item I35" },
 ];
 
@@ -48,12 +53,12 @@ function BillVisual() {
         </div>
         <div className="flex flex-wrap items-baseline justify-between gap-x-3">
           <dt>Bill so far, 5 days</dt>
-          <dd className="whitespace-nowrap text-sm font-bold tabular-nums text-lead">CNY 36,782</dd>
+          <dd className="whitespace-nowrap text-sm font-bold tabular-nums text-lead">{money(BILL_TOTAL * 100, "CNY")}</dd>
         </div>
       </dl>
       <div className="relative mt-3 h-3 rounded-full bg-firstlight">
         <div className="absolute inset-y-0 rounded-full bg-cerulean" style={{ left: pos(30000), width: `${(4000 / 15000) * 100}%` }} />
-        <div className="absolute -top-1.5 h-6 w-1.5 -translate-x-1/2 rounded-sm bg-serpent ring-2 ring-white" style={{ left: pos(32700) }} />
+        <div className="absolute -top-1.5 h-6 w-1.5 -translate-x-1/2 rounded-sm bg-serpent ring-2 ring-white" style={{ left: pos(BILL_TOTAL) }} />
       </div>
       <ul className="mb-5 mt-4 space-y-3 text-sm">
         {BILL_LINES.map((l) => (
@@ -98,17 +103,17 @@ function PayeeVisual() {
 }
 
 const HELPERS = [
-  { name: "Adi", pay: "Rp 45,900,000", cny: 20000, done: true, color: "#4875a1" },
-  { name: "Sari", pay: "RM 9,750", cny: 15000, done: true, color: "#375d84" },
-  { name: "Fajar", pay: "AED 5,100", cny: 10000, done: true, color: "#6e5e52" },
-  { name: "Masjid fund", pay: "Rp 11,475,000", cny: 5000, done: false, color: "" },
+  { name: "Adi", pay: examplePay(20000, "IDR"), cny: 20000, done: true, color: "#4875a1" },
+  { name: "Sari", pay: examplePay(15000, "MYR"), cny: 15000, done: true, color: "#375d84" },
+  { name: "Fajar", pay: examplePay(10000, "AED"), cny: 10000, done: true, color: "#6e5e52" },
+  { name: "Masjid fund", pay: examplePay(5000, "IDR"), cny: 5000, done: false, color: "" },
 ];
 const GOAL = 50000;
 
 function GuaranteeVisual() {
   return (
     <Panel>
-      <p className="text-xs text-ink-2">Emergency guarantee</p>
+      <p className="text-xs text-ink-2">Emergency guarantee · amounts before the 1% demo FX fee</p>
       <p className="mt-0.5 tabular-nums text-ink-2">
         <b className="text-xl font-extrabold text-lead">CNY 45,000</b> of 50,000
       </p>
@@ -248,7 +253,7 @@ function RefundVisual() {
           </li>
         ))}
       </ul>
-      <Foot>Overdue refunds get a reminder automatically.</Foot>
+      <Foot>Overdue refunds are flagged when an open case is viewed. No hospital message is sent.</Foot>
     </Panel>
   );
 }
@@ -260,10 +265,10 @@ const SLIDES: Slide[] = [
     visual: <BillVisual />,
     tone: "firstlight",
   },
-  { title: "Pay only the real hospital", text: "Money can only go to the account the hospital published itself.", visual: <PayeeVisual />, tone: "serpent" },
+  { title: "Pay only the real hospital", text: "The gateway validates the intended recipient against the hospital’s signed account list. Charges are simulated.", visual: <PayeeVisual />, tone: "serpent" },
   {
     title: "Raise an emergency guarantee together",
-    text: "Family, friends and the mosque community chip in from different countries, straight to the hospital.",
+    text: "Family, friends and the mosque community pledge from different countries towards the verified hospital recipient in the sandbox.",
     visual: <GuaranteeVisual />,
     tone: "chocolate",
   },

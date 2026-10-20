@@ -1,0 +1,67 @@
+{
+  "payments": {
+    "status": "paid",
+    "ownChargeRows": [
+      {
+        "seq": 24,
+        "ts": "2026-10-20T08:38:26.512Z",
+        "actor": "gateway",
+        "action": "charge",
+        "decision": "allow",
+        "hash": "943c5e8ee1a1c32cd31a998f93472a5c7dc8de08e75e11a05c2c85c092b57637",
+        "inputSources": [
+          "system"
+        ],
+        "result": {
+          "requestId": "R2",
+          "memberId": "M_JKT",
+          "amount": 4635900000,
+          "currency": "IDR",
+          "ref": "sandbox_1622cc304e1af3e106669ab4"
+        },
+        "prevHash": "628a7eb136f432dbc85a6281125d7b77c7ed9e594a4501c6eda910adadf65b04"
+      }
+    ],
+    "otherMemberIdsInAudit": false,
+    "approvals": [
+      "M_JKT"
+    ],
+    "refundMembers": [
+      "M_JKT"
+    ]
+  },
+  "pages": [
+    {
+      "url": "/case/C1/bill",
+      "heading": [
+        "Bill Review"
+      ]
+    },
+    {
+      "url": "/case/C1/pledges",
+      "heading": [
+        "Pledges"
+      ]
+    },
+    {
+      "url": "/case/C1/log",
+      "heading": [
+        "Case History"
+      ]
+    },
+    {
+      "url": "/case/C1/closing",
+      "heading": [
+        "Close and Records"
+      ]
+    },
+    {
+      "url": "/case/C1/guide",
+      "heading": [
+        "How It Works"
+      ]
+    }
+  ],
+  "mobileOverflow": false,
+  "pageErrors": []
+}

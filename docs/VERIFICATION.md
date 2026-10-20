@@ -1,8 +1,24 @@
 # Requirements verification
 
-Checked on 20 October 2026: every requirement in `PRD.md`, `ARCHITECTURE.md`, `API.md`, `TEST-PLAN.md`, `HOSPITAL-DIRECTORY.md` and `GOOGLE-OAUTH.md` against the code and the running app. The roles were checked as owner, payer (Adi) and companion (Dewi) in the demo account. A Google case linked to a directory hospital was also checked.
+Current verification is the audit-remediation pass on 20 October 2026. Earlier rows below are historical build checks and must be read with the corrections in this section. A checkmark means the path exists under the stated limits, not a universal security guarantee or proof of live settlement.
 
-Status: **✅** in the product · **✅ new** gap found in this check and fixed · **⚠️** partly, with the limit stated · **—** not a product feature (process, deployment or people).
+| Audit item | Current behavior | Proof |
+|---|---|---|
+| Payer audit privacy | Raw actor/member scope plus action and scalar-result allowlists, no other members' nested charge/refund data | audit-remediation.test.ts |
+| Explanation correctness | Code-rendered arithmetic, attributed extracted statements and bounded hospital questions, including legacy caches | explain.test.ts, audit-remediation.test.ts |
+| Payment destination | Verified intended recipient only, separate sandbox/Stripe test charges, no bank settlement | stripe.ts, payment UI and README |
+| Known-name PII and token stability | Case-aware persistent token allocation, complete chat prompt scrubbed, no free model reply prose | audit-remediation.test.ts |
+| Explanation GET | Cache-only, 409 on miss, no model call or audit write | API regression in audit-remediation.test.ts |
+| Closed reads | No directory synchronisation, request expiry or refund reminder mutation, chat explicitly excepted | audit-remediation.test.ts |
+| Chat payable balance | Latest/final bill minus all live case requests | audit-remediation.test.ts |
+| Wizard and API | Directory choice/review required, current global payment-plan rules documented | HOSPITAL-DIRECTORY.md, API.md v1.7 |
+| Landing examples | Bill marker uses visible total, MYR example uses shared rate table, amounts labelled before fee | Capabilities.tsx, browser check |
+
+Invoice attachments remain shared raw files, with a receipt-only privacy warning. There is no automatic file redaction or issuer authentication. Original medical bills remain restricted to owner/companion. AI views retain PII tokens rather than restoring raw identifiers. Unusual PII formats and extraction errors remain possible.
+
+Live Gmail delivery, real Google consent with two accounts, real hospital confirmation and the new invoice/closing anchors remain unverified in this pass. No real payment or external message is sent for these regressions. Historical live evidence and baseline numbers are not a fresh evaluation of the revised renderer.
+
+## Historical build mapping, corrected by the current section
 
 ## PRD §4: product chain
 
@@ -37,7 +53,7 @@ Status: **✅** in the product · **✅ new** gap found in this check and fixed 
 | F2 | PII tokens before any LLM | `pii.ts`; agents see `[PASIEN_1]` | ✅ |
 | F3 | Quarantined reader, fixed schema | `reader.ts` | ✅ |
 | F4 | Comparator: categories, stay, outside estimate, duplicates, basic items, reference, FX | `compare.ts` | ✅ |
-| F5 | Cited lines in three types; no invented clinical cause | `explain.ts`, Bill Review | ✅ |
+| F5 | Code-rendered facts, attributed extracted statements and bounded questions | `explain.ts`, Bill Review | ✅ |
 | F6 | Second model for big or flagged items **and items a family member questions** | Bill Review → open a group → "Double-check" per line (`POST /cases/:id/second-check`) | ✅ new (the "family questions" path was missing) |
 | F7 | Reference prices labelled indicative | Bill Review note above the hospital questions | ✅ new (the note existed in data but was not shown) |
 | F8 | Payees only from an independent signed channel | `enrollment.ts`, directory review | ✅ |
@@ -88,7 +104,7 @@ Status: **✅** in the product · **✅ new** gap found in this check and fixed 
 
 ## HOSPITAL-DIRECTORY and GOOGLE-OAUTH
 
-All described flows are present: suggestions, AI search with sources, separate profile and payment reviews, holds, key rotation, verification-hash anchoring, admin allowlist, email-bound and link invitations, an eight-hour session and the Dashboard. ✅
+Implementation paths exist for suggestions, AI search with sources, separate profile and payment reviews, holds, key rotation, verification-hash anchoring, admin allowlist, email-bound and link invitations, an eight-hour session and the Dashboard. See the operational limits above.
 
 ## Added after this check (20 Oct, later rounds)
 

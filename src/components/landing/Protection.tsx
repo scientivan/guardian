@@ -56,7 +56,7 @@ const CHAIN = [
 const POINTS: { title: string; text: string; icon: ReactNode; tone: Tone; example: ReactNode }[] = [
   {
     title: "Official accounts only",
-    text: "The Payment Gate only pays accounts the hospital published through its official channel. A new account in a chat message goes nowhere, and there is no override, not even for the case owner.",
+    text: "The Payment Gate validates the intended recipient against the hospital’s signed account list before a sandbox/test charge. A new account in chat is blocked, with no owner override. No bank transfer is implemented.",
     icon: <Lock className="h-5 w-5" />,
     tone: LIGHT_ON_DARK("bg-serpent"),
     example: (
@@ -85,7 +85,7 @@ const POINTS: { title: string; text: string; icon: ReactNode; tone: Tone; exampl
   },
   {
     title: "The AI never sees your name",
-    text: "Names and ID numbers become tokens like [PASIEN_1] before any AI reads the bill. Even if someone tricks the chat, there is nothing personal for it to leak.",
+    text: "Supported identifiers and known case names become tokens before case AI calls. Payers receive a limited summary. Unusual formats may be missed, and shared payment receipts must exclude medical details.",
     icon: <EyeOff className="h-5 w-5" />,
     tone: LIGHT_ON_DARK("bg-serpent-dark"),
     example: (
@@ -106,7 +106,7 @@ const POINTS: { title: string; text: string; icon: ReactNode; tone: Tone; exampl
   },
   {
     title: "Every step on the record",
-    text: "Every action goes into a tamper-evident log. Each entry carries the fingerprint of the one before, and the latest fingerprint is anchored on FISCO BCOS, so nobody can quietly change the history.",
+    text: "Case actions are recorded in a hash-chained log. Configured FISCO BCOS anchoring can record its fingerprint. Without a successful anchor, only the local chain is checked. A hash does not prove who issued a document.",
     icon: <Chain className="h-5 w-5" />,
     tone: { bg: "bg-cerulean", text: "text-lead", icon: "bg-white/45", hint: "bg-white/50" },
     example: (

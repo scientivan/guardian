@@ -12,7 +12,7 @@ import { CHECKS } from "@/lib/demo";
 // upload and log pages). Plain words first; the rules match docs/ARCHITECTURE.md and docs/PRD.md.
 
 const TEAM: { id: AgentId; does: string; never: string }[] = [
-  { id: "clerk", does: "Replaces names, passport and card numbers with tokens before any AI reads a document.", never: "Sends personal details to an AI model." },
+  { id: "clerk", does: "Replaces names, passport and card numbers with tokens before any AI reads a document.", never: "Guarantees detection of every sensitive format. Keep unnecessary personal data out of uploads." },
   { id: "reader", does: "Reads the lines of an estimate or bill into a fixed form, and checks they add up to the stated total.", never: "Takes actions. It has no tools, so a hidden instruction in a document can’t make it do anything." },
   { id: "calculator", does: "Compares the bill with the estimate: longer stay, items outside the estimate, duplicates, prices above a reference.", never: "Lets AI do the maths. Every total and difference is computed by code." },
   { id: "second", does: "A second AI from a different provider re-reads flagged or expensive items.", never: "Picks a side. If the two disagree, it becomes a question for the hospital." },
@@ -39,7 +39,7 @@ const CHECK_WHY: Record<number, string> = {
 export default function GuidePage() {
   return (
     <div className="space-y-12">
-      <p className="max-w-3xl leading-relaxed text-ink-2">Guardian works for the patient’s family. It explains foreign hospital bills and pays deposits only to the hospital’s verified account, after each person approves their own share. This page explains how, in plain words.</p>
+      <p className="max-w-3xl leading-relaxed text-ink-2">Guardian works for the patient’s family. It explains foreign hospital bills and simulates payments for a verified hospital recipient after each person approves their own share. This page explains how, in plain words.</p>
 
       <Section title="What Happens to a Bill" agent="reader">
         <ol className="flex flex-col items-stretch gap-2 sm:flex-row sm:items-start">
@@ -56,7 +56,7 @@ export default function GuidePage() {
             );
           })}
         </ol>
-        <p className="mt-6 leading-relaxed text-lead">Each reason in Bill Review is one of three kinds: <b>calculated</b> from the bill by code, <b>stated</b> in the hospital’s documents, or a <b>question for the hospital</b> when the documents don’t say. Guardian never invents a medical reason, and a high price is a question, not an accusation.</p>
+        <p className="mt-6 leading-relaxed text-lead">Each reason in Bill Review is one of three kinds: <b>calculated</b> from the bill by code, <b>stated</b> in the hospital’s documents, or a <b>question for the hospital</b> when the documents don’t say. Calculated text comes from code. Document statements are quoted from the extracted reading, which can be wrong and needs hospital confirmation. The planner cannot add a diagnosis. A high price is a question, not an accusation.</p>
       </Section>
 
       <Section title="How Payments Are Protected" agent="gate" action={<AskButton question="How does Guardian make sure money only goes to the real hospital?" label="Ask about this" />}>
@@ -75,7 +75,7 @@ export default function GuidePage() {
         <ol className="space-y-4 leading-relaxed text-lead">
           <li><b>1. A request.</b> The owner asks for an amount the hospital needs, such as a deposit or an emergency guarantee.</li>
           <li><b>2. Pledges.</b> Each payer chooses their own share, up to their limit, in their own currency. They see the exchange rate and fee first. Nothing is charged yet, and a pledge can be withdrawn.</li>
-          <li><b>3. Payment.</b> When the pledges cover 100%, the owner confirms. Each share is charged separately and goes <b>straight to the hospital’s verified account</b>. Every payer gets their own receipt.</li>
+          <li><b>3. Payment.</b> When the pledges cover 100%, the owner confirms. Each share produces a separate <b>sandbox or Stripe test charge</b> associated with the verified intended recipient. Every payer gets a test charge reference. This version does not transfer funds to the hospital’s bank account.</li>
           <li><b>4. Refund.</b> If the final bill is lower than the deposits, the hospital returns the difference, split by what each person paid. Guardian tracks it and reminds when it’s late.</li>
         </ol>
         <p className="mt-5 text-sm leading-relaxed text-ink-2">Guardian never holds money: there is no wallet, vault or escrow. A share limit is only a ceiling, not an amount that is taken. Payments in this version run in a sandbox or Stripe test mode, and exchange rates come from a reference table.</p>

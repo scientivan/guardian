@@ -129,13 +129,13 @@ function Summary() {
   const c = care.currency;
   return <div>
     <H>Hospital and account</H>
-    <Rows rows={[["Hospital", care.hospital.name], ["Paid only to", care.payees.map(p => `${p.accountMasked} (${p.source === "official_registry" ? "official registry" : p.source})`).join(", ") || "No verified account"]]} />
+    <Rows rows={[["Hospital", care.hospital.name], ["Intended recipient", care.payees.map(p => `${p.accountMasked} (${p.source === "official_registry" ? "official registry" : p.source})`).join(", ") || "No verified account"]]} />
     <H>Documents</H>
     <Rows rows={documents.filter(d => d.status === "parsed").map(d => [`${d.title} (${d.type})`, d.estimate ? `${money(d.estimate.low, c)} – ${money(d.estimate.high, c)}` : d.total !== null ? money(d.total, c) : "—"] as [string, ReactNode])} />
     <H>Payment requests</H>
     <Rows rows={requests.map(r => [`${r.purpose} · ${day(r.createdAt)}`, <>{money(r.amount, c)} · {r.status}{r.status === "paid" ? ` · ${r.approvals.filter(a => a.chargeRef).length} receipt${r.approvals.filter(a => a.chargeRef).length === 1 ? "" : "s"} · invoice ${(r.invoices ?? []).length ? "on file" : "missing"}` : ""}</>] as [string, ReactNode])} />
     <H>Totals</H>
-    <Rows rows={[["Paid to the hospital", money(care.totals.paid, c)], ...(plan.bill ? [[`${plan.bill.type === "final" ? "Final" : "Latest"} bill`, money(plan.bill.total, c)] as [string, ReactNode]] : []), ...(refunds ? [["Coming back as refunds", money(refunds.totalRefund, c)] as [string, ReactNode]] : plan.bill && plan.bill.balance > 0 ? [["Still owed to the hospital", money(plan.bill.balance, c)] as [string, ReactNode]] : [])]} />
+    <Rows rows={[["Sandbox/test charges", money(care.totals.paid, c)], ...(plan.bill ? [[`${plan.bill.type === "final" ? "Final" : "Latest"} bill`, money(plan.bill.total, c)] as [string, ReactNode]] : []), ...(refunds ? [["Coming back as refunds", money(refunds.totalRefund, c)] as [string, ReactNode]] : plan.bill && plan.bill.balance > 0 ? [["Still owed to the hospital", money(plan.bill.balance, c)] as [string, ReactNode]] : [])]} />
     {refunds && <><H>Refunds per person</H><Rows rows={refunds.items.map(r => [r.displayName, `${money(r.amount, refunds.currency)} · ${r.status} · due ${day(r.dueAt)}`] as [string, ReactNode])} /></>}
   </div>;
 }

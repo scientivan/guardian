@@ -47,13 +47,28 @@ const CLINICAL = /\b(infect\w*|complicat\w*|sepsis|abscess|perforat\w*|bleed\w*|
 
 const money = (fen: number) => (fen / 100).toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 2 });
 
-function causeText(c: CitedCause, currency: string): string {
+function causeText(c: CitedCause, currency: string, language: "en" | "id" = "en"): string {
   const x = c.cause;
+  if (language === "id") {
+    if (x.kind === "longer_stay") return `Rawat inap lebih lama ${x.extraDays} hari dari perkiraan, menambah biaya kamar dan perawatan harian sebesar ${currency} ${money(x.amount)}.`;
+    if (x.kind === "category_over") return `Biaya kategori ${x.category} melebihi perkiraan sebesar ${currency} ${money(x.amount)}.`;
+    return `Biaya kategori ${x.category} sebesar ${currency} ${money(x.amount)} tidak termasuk dalam perkiraan.`;
+  }
   if (x.kind === "longer_stay") return `The stay is ${x.extraDays} days longer than the estimate assumed, adding ${currency} ${money(x.amount)} in daily room and care charges.`;
   if (x.kind === "category_over") return `${cap(x.category)} charges are ${currency} ${money(x.amount)} above the estimate.`;
   return `${cap(x.category)} charges of ${currency} ${money(x.amount)} were not part of the estimate.`;
 }
 const cap = (s: string) => s[0].toUpperCase() + s.slice(1);
+
+/** Canonical display text never includes the planner's prose, including legacy cached prose. */
+export function canonicalLines(a: Analysis, language: "en" | "id" = "en"): ExplanationLine[] {
+  const ids = a.items.map(i=>i.code);
+  return [
+    ...a.causes.map(c => ({type:"arithmetic_fact" as const,text:causeText(c,a.currency,language),itemIds:c.itemIds,amount:c.cause.amount})),
+    ...a.statedReasons.map(text => ({type:"stated_in_document" as const,text:language === "id" ? `Catatan yang diekstrak dari dokumen (belum diverifikasi secara klinis). “${text}”` : `Extracted document statement (not clinically verified). “${text}”`,itemIds:ids})),
+    ...a.questions.map(q => ({type:"unknown_ask_hospital" as const,text:language === "id" ? `Minta rumah sakit menjelaskan baris ${q.itemIds.join(", ")}.` : `Ask the hospital to explain bill items ${q.itemIds.join(", ")}.`,itemIds:q.itemIds})),
+  ].filter(l=>l.itemIds.length>0);
+}
 
 function facts(a: Analysis) {
   return {
@@ -101,7 +116,7 @@ export async function explain(a: Analysis, language: "en" | "id" = "en", opts: {
   const statedText = a.statedReasons.join(" ").toLowerCase();
 
   const dropped: Explanation["dropped"] = [];
-  const lines: ExplanationLine[] = [];
+  // The model can propose a structure, but all displayed sentences are reconstructed below.
   const covered = new Set<string>();
   let model: ModelRef | null = null;
 
@@ -135,16 +150,15 @@ export async function explain(a: Analysis, language: "en" | "id" = "en", opts: {
         continue;
       }
       if (cause) covered.add(cause.ref);
-      lines.push({ type: l.type, text: l.text, itemIds: cited, ...(cause ? { amount: cause.cause.amount } : {}) });
+      // A valid reference is not proof that arbitrary prose describes it correctly.
+      // Keep model metadata for diagnostics, never its free text as a displayed fact.
+      dropped.push({line:l,reason:"planner prose replaced by source-bound display text"});
     }
   } catch (e) {
     dropped.push({ line: null, reason: `planner unavailable: ${(e as Error).message.slice(0, 120)}` });
   }
 
-  // Fallback: every cause gets a line, written by code if the model skipped it.
-  for (const c of a.causes) {
-    if (!covered.has(c.ref)) lines.push({ type: "arithmetic_fact", text: causeText(c, a.currency), itemIds: c.itemIds, amount: c.cause.amount });
-  }
+  const lines = canonicalLines(a,language);
 
   return {
     currency: a.currency,

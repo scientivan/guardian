@@ -21,7 +21,7 @@ export type AskContext = z.infer<typeof AskContext>;
 const CATEGORY: Record<string, string> = { procedure: "operation and anaesthesia", room: "room and daily care", drug: "medicines", lab: "laboratory and imaging", consumable: "consumables", other: "other items" };
 const LINE_TYPE = {
   arithmetic_fact: "This is calculated by Guardian from the bill lines, not guessed by AI.",
-  stated_in_document: "This reason is written in the hospital’s own documents.",
+  stated_in_document: "This is a statement extracted from the document, not an independently verified clinical fact.",
   unknown_ask_hospital: "The documents don’t say why, so this is a question for the hospital, not an accusation.",
 } as const;
 const QUESTION_KIND: Record<string, string> = {
@@ -68,6 +68,7 @@ export function answerAbout(view: CareCase, context: AskContext): Answer {
     case "line": {
       const l = e?.lines[context.index];
       if (!e || !l) return noBill;
+      if (l.type === "stated_in_document") return {reply:`${l.text} This statement was extracted from the document as a whole. Ask the hospital to confirm its reading and which items it applies to.`,actions:explain};
       const cited = payer ? [] : items(l.itemIds);
       return { reply: [`“${l.text}${l.amount !== undefined ? ` ${money(l.amount, e.currency)}` : ""}”`, LINE_TYPE[l.type], cited.length ? `It comes from these bill lines: ${cited.join("; ")}.` : `It cites bill lines ${l.itemIds.join(", ")}.`, l.type === "unknown_ask_hospital" ? "You can copy the questions for the hospital from Bill Review." : ""].filter(Boolean).join(" "), actions: explain };
     }
@@ -81,7 +82,7 @@ export function answerAbout(view: CareCase, context: AskContext): Answer {
       const r = view.requests.find(r => r.id === context.requestId);
       if (!r) return { reply: "That payment request isn’t in this case any more.", actions: [] };
       const mine = r.approvals.find(a => a.memberId === c.me.id && a.status === "approved");
-      return { reply: [`“${r.purpose}” asks for ${money(r.amount, r.currency)} for ${r.payeeName}. ${money(r.approved, r.currency)} is approved, ${money(r.remaining, r.currency)} is still missing, and its status is ${r.status}.`, "Nothing is charged until the approvals cover the full amount and the owner confirms. Then each approved share is charged separately, straight to the hospital’s verified account.", mine ? `You approved ${money(mine.amount, r.currency)}; you can withdraw it while the request is pending.` : c.me.role === "payer" ? "You can pledge any amount up to your share limit and the remaining balance." : ""].filter(Boolean).join(" "), actions: c.me.role === "payer" && r.status === "pending" ? [{ type: "request_approval", requestId: r.id }] : [] };
+      return { reply: [`“${r.purpose}” asks for ${money(r.amount, r.currency)} for ${r.payeeName}. ${money(r.approved, r.currency)} is approved, ${money(r.remaining, r.currency)} is still missing, and its status is ${r.status}.`, "Nothing is charged until the approvals cover the full amount and the owner confirms. Then each approved share gets a separate sandbox or Stripe test charge for the verified intended recipient. No hospital bank settlement is implemented.", mine ? `You approved ${money(mine.amount, r.currency)}; you can withdraw it while the request is pending.` : c.me.role === "payer" ? "You can pledge any amount up to your share limit and the remaining balance." : ""].filter(Boolean).join(" "), actions: c.me.role === "payer" && r.status === "pending" ? [{ type: "request_approval", requestId: r.id }] : [] };
     }
     case "bill": {
       const d = view.documents.find(x => x.id === context.documentId);

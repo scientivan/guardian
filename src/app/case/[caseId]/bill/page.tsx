@@ -109,7 +109,7 @@ export default function BillPage() {
                   <p className="min-w-0 flex-1 leading-relaxed text-lead">
                     {l.text}
                     {l.amount !== undefined && <b className="whitespace-nowrap tabular-nums"> +{money(l.amount, e.currency)}</b>}
-                    <span className="ml-2 text-xs text-ink-2">{l.itemIds.join(", ")}</span>
+                    <span className="ml-2 text-xs text-ink-2">{l.type === "stated_in_document" ? "Document-wide note. Confirm affected items with the hospital." : l.itemIds.join(", ")}</span>
                   </p>
                 </li>
               ))}

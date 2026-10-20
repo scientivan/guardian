@@ -4,7 +4,8 @@ import { verifyChain, type AuditRow } from "./audit";
 import { createQuote, formatRate } from "./fx";
 import { expireDue } from "./payments";
 import { paidByMember, refundStatus } from "./refunds";
-import { loadItems } from "./analysis";
+import { analyse, loadItems } from "./analysis";
+import { canonicalLines } from "./explain";
 import { FINAL, INTERIM_ITEMS, INTERIM } from "./fixtures/demo-case";
 import { now } from "./clock";
 import type { Member, PaymentRequest, Pledge } from "@/lib/demo";
@@ -51,17 +52,22 @@ export function importLegacyState(db: DB, snapshots: CareCase[], demo: boolean) 
 export function projectCase(db: DB, source: CareCase, memberId: string): CareCase {
   const data = structuredClone(source);
   const id = data.case.id;
-  syncDirectoryHospital(db,data.case.hospital.id);
+  const closed = Boolean(db.prepare("SELECT 1 FROM case_closure WHERE case_id=?").get(id));
+  if (!closed) syncDirectoryHospital(db,data.case.hospital.id);
   const hospital=db.prepare("SELECT name,official_channel FROM hospitals WHERE id=?").get(data.case.hospital.id) as {name:string;official_channel:string};
   data.case.hospital.name=hospital.name.replace(" (demo)","");
   data.case.hospital.officialChannel=hospital.official_channel;
   const at = now(db);
-  expireDue(db, at);
+  if (!closed) expireDue(db, at);
   const members = db.prepare("SELECT id,display_name displayName,role,share_limit shareLimit,currency FROM members WHERE case_id=?").all(id) as Member[];
   const me = members.find(m => m.id === memberId);
   if (!me) throw new Error("You are not a member of this care case.");
   data.case.members = members;
   data.case.me = { id: me.id, role: me.role };
+  if (data.explanation) {
+    const a = analyse(db,id,data.explanation.documentId,data.case.demo?undefined:[]);
+    data.explanation = "error" in a ? null : {...data.explanation,lines:canonicalLines(a),questions:[...a.questions,...data.explanation.questions.filter(q=>q.kind==="models_disagree")]};
+  }
   data.case.payees = (db.prepare("SELECT id,account,source,verified_at FROM payees WHERE hospital_id=? AND source='official_registry'").all(data.case.hospital.id) as { id: string; account: string; source: string; verified_at: string }[]).map(p => ({ id: p.id, name: data.case.hospital.name, accountMasked: `•••• ${p.account.replace(/\D/g, "").slice(-4)}`, source: p.source, verifiedAt: p.verified_at }));
   data.case.anomalies = (db.prepare("SELECT id,kind,detail,resolved,ts FROM anomalies WHERE case_id=?").all(id) as { id: number; kind: string; detail: string; resolved: number; ts: string }[]).map(a => ({ ...a, resolved: Boolean(a.resolved) }));
   const docs = db.prepare("SELECT id,type,sha256,anchored_tx,status,reason,created_at,meta FROM documents WHERE case_id=? ORDER BY created_at,rowid").all(id) as { id: string; type: "estimate" | "interim" | "final"; sha256: string; anchored_tx: string | null; status: "parsed" | "needs_reupload"; reason: string | null; created_at: string; meta: string | null }[];
@@ -109,13 +115,27 @@ export function projectCase(db: DB, source: CareCase, memberId: string): CareCas
   if (me.role === "payer") {
     data.items = {};
     data.documents=data.documents.map(d=>({...d,title:`${d.type} bill`}));
-    if (data.explanation) data.explanation = { ...data.explanation, lines: data.explanation.lines.filter(l => l.type === "arithmetic_fact"), questions: [] };
+    if (data.explanation) {
+      const {demo,documentId,currency,total,estimate,actualStayDays,byCategory,referenceNote,secondModelChecked}=data.explanation;
+      data.explanation = {demo,documentId,currency,total,estimate,actualStayDays,byCategory,referenceNote,secondModelChecked,lines:data.explanation.lines.filter(l=>l.type==="arithmetic_fact"),questions:[]};
+    }
     if (data.refunds) data.refunds.items = data.refunds.items.filter(r => r.memberId === me.id);
     // PRD §2: a payer sees the bill summary and their own share, not other payers' money.
     data.requests = data.requests.map(r => ({ ...r, approvals: r.approvals.filter(a => a.memberId === me.id) }));
-    data.case.members = data.case.members.map(m => (m.id === me.id || m.role === "owner" ? m : { ...m, shareLimit: 0 }));
-    const others = data.case.members.filter(m => m.id !== me.id && m.role !== "owner").flatMap(m => [m.displayName, m.displayName.split(" (")[0]]);
-    data.audit = { ...data.audit, rows: data.audit.rows.filter(r => !others.includes(r.actor)) };
+    data.case.members = data.case.members.map(m => m.id === me.id ? m : { ...m, shareLimit: 0 });
+    // Actor names alone cannot protect system events containing another payer's money.
+    // Build this projection from raw actor IDs and allowlisted scalar result fields.
+    const visible = new Map(rows.map(r => {
+      const result = JSON.parse(r.result ?? "{}") as Record<string, unknown>;
+      const otherActor = members.some(m => m.id !== me.id && [m.id,m.displayName,m.displayName.split(" (")[0]].includes(r.actor));
+      const sharedActions = ["permission.denied","request.create","request.cancel","request.execute","request.expire","request.recipient_invalidated","request.paid","request.failed","request.invoice","gateway.authorize","gateway.check","charge","fx.quote","approval.record","approval.withdraw","refund.open","refund.reminder","refund.status","followup.request","notify.email","bill.explain","document.ingest","document.second_check","payee.enroll","case.closed","chat","member.limit"];
+      if (!sharedActions.includes(r.action) || otherActor || (typeof result.memberId === "string" && result.memberId !== me.id)) return [r.seq,null] as const;
+      const own = r.actor === me.id || result.memberId === me.id;
+      const keys = own ? ["requestId","quoteId","memberId","amount","payAmount","fee","currency","status","ref","check"] : ["requestId","status","check"];
+      const safe = Object.fromEntries(keys.filter(k => typeof result[k] === "string" || typeof result[k] === "number").map(k=>[k,result[k]]));
+      return [r.seq,safe] as const;
+    }));
+    data.audit = { ...data.audit, rows: data.audit.rows.filter(r => visible.get(r.seq) !== null).map(r => ({...r,result:visible.get(r.seq)??{}})) };
   }
   return data;
 }

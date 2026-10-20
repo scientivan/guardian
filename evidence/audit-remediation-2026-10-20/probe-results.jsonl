@@ -1,0 +1,7 @@
+{"probe":"payer_projection","systemRows":[{"action":"charge","result":{"requestId":"R2","memberId":"M_JKT","amount":4635900000,"currency":"IDR","ref":"sandbox_1622cc304e1af3e106669ab4"}}],"invoiceBytes":"PATIENT MEDICAL DETAIL SYNTHETIC"}
+{"probe":"explanation_guard","accepted":[],"actualCause":{"kind":"longer_stay","extraDays":2,"amount":300000}}
+{"probe":"closed_case_get_after_15_days","before":{"n":32},"after":{"n":32},"last":"case.closed"}
+{"probe":"quota_get","getLimited":false,"postLimited":true}
+{"probe":"chat_name_redaction","patientNameReachedModel":false}
+{"probe":"legacy_token_collision_rejected","rejected":true}
+{"probe":"token_collision","first":"[EMAIL_1]","second":"[EMAIL_1]","restored":"alpha@example.com"}

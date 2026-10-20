@@ -1,0 +1,6 @@
+{"probe":"payer_projection","systemRows":[{"action":"charge","result":{"requestId":"R2","memberId":"M_JKT","currency":"IDR","amount":4635900000,"ref":"sandbox_1622cc304e1af3e106669ab4"}},{"action":"charge","result":{"requestId":"R2","memberId":"M_KL","currency":"MYR","amount":893850,"ref":"sandbox_17b85535a1012196fc0f9bb8"}},{"action":"charge","result":{"requestId":"R2","memberId":"M_DXB","currency":"AED","amount":515100,"ref":"sandbox_ea8cc23949b5a38dbf220285"}},{"action":"charge","result":{"requestId":"R2","memberId":"M_OWNER","currency":"IDR","amount":1158975000,"ref":"sandbox_f35025a1d93d4be5d0c420f6"}}],"invoiceBytes":"PATIENT MEDICAL DETAIL SYNTHETIC"}
+{"probe":"explanation_guard","accepted":[{"type":"arithmetic_fact","text":"The stay is 5 days longer, adding CNY 34,000.","itemIds":["I01","I02","I03"],"amount":300000},{"type":"unknown_ask_hospital","text":"The patient has cancer.","itemIds":["I01","I02","I03"]}],"actualCause":{"kind":"longer_stay","extraDays":2,"amount":300000}}
+{"probe":"closed_case_get_after_15_days","before":{"n":32},"after":{"n":36},"last":"refund.reminder"}
+{"probe":"quota_get","getLimited":false,"postLimited":true}
+{"probe":"chat_name_redaction","patientNameReachedModel":true}
+{"probe":"token_collision","first":"[EMAIL_1]","second":"[EMAIL_1]","restored":"alpha@example.com"}

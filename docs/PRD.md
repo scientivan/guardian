@@ -8,7 +8,7 @@ Labels used in this document: **[Fact]** has a source; **[Design]** is a team de
 
 ## 1. Product in one sentence
 
-An AI agent on the patient family's side that reads a foreign hospital's bills, explains in plain language why the cost changed from the estimate, and pays deposits only to the hospital's verified account after each payer approves their own share.
+An AI agent on the patient family's side that reads a foreign hospital's bills, explains in plain language why the cost changed from the estimate, and prepares deposit payments for a verified intended recipient after each payer approves their own share. This prototype records sandbox or Stripe test charges without hospital bank settlement.
 
 - **Framing:** a *deposit and bill guardian*, not a fraud detector. Most bill changes have non-malicious causes (longer stay, complications, items outside the package). The agent explains; it does not accuse.
 - **Core feature:** the bill explainer (problem M2). The other steps serve M1, M3, M4 and M5 in the same chain.
@@ -78,10 +78,10 @@ Security tests A1–A7 are in `docs/TEST-PLAN.md`.
 | # | Requirement | Scenario |
 |---|---|---|
 | F1 | Upload estimate, interim and final bills (PDF, photo). Text-layer PDF read directly; photos through local OCR (Tesseract). Raw images never go to an LLM. | D1, D2 |
-| F2 | Code-based PII removal before any LLM call; tokens such as `[PASIEN_1]`; token table stored separately; restore by role. | D2, A5 |
+| F2 | Code-based supported PII removal before case LLM calls. Case-stable tokens such as `[PASIEN_1]` are stored separately. AI display retains tokens, with role-controlled original medical-document downloads. | D2, A5 |
 | F3 | Quarantined reader extracts items into a fixed schema; output validated, unknown fields dropped. | D2 |
 | F4 | Comparator (code): estimate vs bill by category, stay length, items outside estimate, duplicates, basic items billed separately, above reference price, FX. All money math in code. | D2, D3 |
-| F5 | Each explanation line cites the item ids it is based on and is typed as one of: **arithmetic fact** (from code), **likely cause stated in the document**, or **unknown, ask the hospital**. The agent never states a clinical cause the documents do not state. | D2, D3 |
+| F5 | Each explanation line cites the item ids it is based on and is typed as one of: **arithmetic fact** (from code), **likely cause stated in the document**, or **unknown, ask the hospital**. Arithmetic uses code templates. Extracted document statements are attributed quotations, not verified clinical facts. Planner prose cannot introduce a diagnosis. | D2, D3 |
 | F6 | Selective second-model check (different provider) only for items above a threshold, flagged items, or items a family member questions. Disagreement turns the item into a question for the hospital. | D3 |
 | F7 | Reference prices are labelled indicative (e.g. LIAM Jan 2026 ranges come from insured claims). A price above reference is a question, never proof of overcharging. | D3 |
 
@@ -100,7 +100,7 @@ Security tests A1–A7 are in `docs/TEST-PLAN.md`.
 |---|---|
 | F12 | Payment request states payee, amount (hospital currency), purpose, and an expiry time. |
 | F13 | Each payer approves only their own share, within their share limit. Approved total can never exceed the requested amount. |
-| F14 | **State machine:** `pending` → (`approvals cover amount`) → `executing` → `paid`; or `pending` → `expired` / `cancelled`. Nothing is charged while `pending`. When covered, each approved share is charged separately and sent to the hospital's registry account, so every payer pays the hospital directly and gets their own receipt. |
+| F14 | **State machine:** `pending` → (`approvals cover amount`) → `executing` → `paid`; or `pending` → `expired` / `cancelled`. Nothing is charged while `pending`. When covered, each approved share receives a separate sandbox or Stripe test charge associated with the registry recipient. Each payer gets a test charge reference. No hospital bank settlement is implemented. |
 | F15 | A payer can withdraw their approval while the request is `pending`. A mistaken approval after `paid` can only be fixed through a hospital refund. |
 | F16 | Cross-currency: each payer sees an FX quote from their currency (IDR, MYR, AED) to the hospital currency (CNY) with fee and quote expiry. Rates come from a demo table labelled as demo. |
 | F17 | The agent can only prepare a request. Approval and execution are explicit user actions in the UI. |
@@ -165,7 +165,7 @@ These refine the scope above; where they differ, they take precedence.
 1. **Role name.** The contributing family member is called **Payer** everywhere (UI, server messages, docs). "Helper" is not used.
 2. **Amounts from documents.** A payment request is one of: initial deposit (the estimate's lower or upper end), bill balance (latest bill, a final bill replacing interim bills, minus every live request), or emergency guarantee (typed, the only manual amount). One live request per document.
 3. **Owner pays, payers pledge.** The owner creates and executes; pledging their own money is opt-in. A pledge is confirmed in a sandbox checkout dialog and charged only at execution.
-4. **Hospital invoice.** Each paid request gets the hospital's invoice (owner or companion uploads; every member can view it). Its hash is anchored like a bill.
+4. **Hospital invoice.** Each paid request gets a payment receipt (owner or companion uploads, every member can view it). Shared files must exclude medical details, patient identifiers and card numbers. Files are not automatically redacted or issuer-authenticated. Its hash is anchored like a bill.
 5. **Notifications.** New payment requests email the payers through Gmail when configured.
-6. **Closing.** The owner closes the case once no request is open, the final bill is read and every paid request has an invoice. The case then becomes read-only for everyone. Closing documents per role: Case Closing Summary (owner), Payment Record (each payer, F19), Questions for Hospital Billing and Document and Audit Proof (owner, companion).
+6. **Closing.** The owner closes the case once no request is open, the final bill is read and every paid request has an invoice. Financial state then becomes read-only for everyone. Chat remains available and appends its own conversation/audit entries. Closed reads do not record refund reminders or refresh directory authority. Closing documents per role: Case Closing Summary (owner), Payment Record (each payer, F19), Questions for Hospital Billing and Document and Audit Proof (owner, companion).
 7. **Anchoring scope (F20).** Bills, invoices, the log head (on demand, after each payment, at closing) and a closing-pack hash. See `docs/API.md` v1.6.
