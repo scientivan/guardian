@@ -1,0 +1,9 @@
+[
+  {"id": "s0-1", "scene": "disclaimer", "text": "This demo uses synthetic data, and no real money moves."},
+  {"id": "s1-1", "scene": "problem", "text": "When a parent is treated abroad, the family pays from far away."},
+  {"id": "s1-2", "scene": "problem", "text": "In 2023, 28% of one Singapore hospital's bills missed the estimate.", "say": "In 2023, 28 percent of one Singapore hospital's bills missed the estimate."},
+  {"id": "s1-3", "scene": "problem", "text": "Some hospitals billed pillowcases separately and marked up drugs by up to 300%.", "say": "Some hospitals billed pillowcases separately, and marked up drugs by up to 300 percent."},
+  {"id": "s1-4", "scene": "problem", "text": "In Malaysia, foreign patients pay a deposit before admission."},
+  {"id": "s2-1", "scene": "intro", "text": "Guardian is an AI agent on the family's side."},
+  {"id": "s2-2", "scene": "intro", "text": "It explains the bill and pays only the hospital's verified account."}
+]
