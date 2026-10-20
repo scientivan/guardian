@@ -14,6 +14,7 @@ export const AskContext = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("question"), index: z.number().int().min(0).max(200) }),
   z.object({ kind: z.literal("request"), requestId: z.string().max(100) }),
   z.object({ kind: z.literal("refund") }),
+  z.object({ kind: z.literal("bill"), documentId: z.string().max(100) }),
 ]);
 export type AskContext = z.infer<typeof AskContext>;
 
@@ -81,6 +82,20 @@ export function answerAbout(view: CareCase, context: AskContext): Answer {
       if (!r) return { reply: "That payment request isn’t in this case any more.", actions: [] };
       const mine = r.approvals.find(a => a.memberId === c.me.id && a.status === "approved");
       return { reply: [`“${r.purpose}” asks for ${money(r.amount, r.currency)} for ${r.payeeName}. ${money(r.approved, r.currency)} is approved, ${money(r.remaining, r.currency)} is still missing, and its status is ${r.status}.`, "Nothing is charged until the approvals cover the full amount and the owner confirms. Then each approved share is charged separately, straight to the hospital’s verified account.", mine ? `You approved ${money(mine.amount, r.currency)}; you can withdraw it while the request is pending.` : c.me.role === "payer" ? "You can pledge any amount up to your share limit and the remaining balance." : ""].filter(Boolean).join(" "), actions: c.me.role === "payer" && r.status === "pending" ? [{ type: "request_approval", requestId: r.id }] : [] };
+    }
+    case "bill": {
+      const d = view.documents.find(x => x.id === context.documentId);
+      if (!d) return { reply: "I can’t find that bill in this case.", actions: [] };
+      if (d.status !== "parsed") return { reply: `${d.title} couldn’t be read${d.reason ? `: ${d.reason}` : ""}. Upload a clearer copy and I can explain it.`, actions: [] };
+      const cur = c.currency, est = view.documents.filter(x => x.type === "estimate" && x.estimate).at(-1)?.estimate;
+      const newer = view.documents.some(x => x.type === "final" && x.status === "parsed" && x.id !== d.id) && d.type !== "final";
+      const parts = [
+        `${d.title} is ${d.type === "final" ? "the final bill" : "an interim bill"}${d.total !== null ? ` for ${money(d.total, cur)}` : ""}${d.items ? `, with ${d.items} lines` : ""}.`,
+        est && d.total !== null ? (d.total > est.high ? `That is ${money(d.total - est.high, cur)} above the top of the estimate (${money(est.low, cur)}–${money(est.high, cur)}).` : d.total < est.low ? `That is ${money(est.low - d.total, cur)} below the estimate.` : "That is inside the estimated range.") : "",
+        newer ? "The final bill replaces it, so payments follow the final bill." : "",
+        e?.documentId === d.id ? `The calculated reasons: ${e.lines.filter(l => l.type === "arithmetic_fact").slice(0, 3).map(l => l.text.replace(/[.,]?\s*$/, "")).join("; ")}.${!payer && e.questions.length ? ` ${e.questions.length} things are worth asking the hospital, listed in Bill Review.` : ""}` : "",
+      ];
+      return { reply: parts.filter(Boolean).join(" "), actions: [] };
     }
     case "refund": {
       const f = view.refunds;

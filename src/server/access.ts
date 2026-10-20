@@ -24,7 +24,15 @@ function directory() {
   if(!columns.has("delivery"))db.exec("ALTER TABLE invitations ADD COLUMN delivery TEXT NOT NULL DEFAULT 'email'");
   if(!columns.has("inviter"))db.exec("ALTER TABLE invitations ADD COLUMN inviter TEXT NOT NULL DEFAULT ''");
   if(!columns.has("declined_by"))db.exec("ALTER TABLE invitations ADD COLUMN declined_by TEXT");
+  // Added 20 Oct: the member's Google address, for payment-request notifications.
+  if(!(db.prepare("PRAGMA table_info(memberships)").all() as {name:string}[]).some(c=>c.name==="email"))db.exec("ALTER TABLE memberships ADD COLUMN email TEXT");
   return db;
+}
+/** Google addresses of the members who joined a case, by member id. */
+export function memberEmails(ownerId: string, caseId: string): Record<string, string> {
+  const index=directory();
+  try { return Object.fromEntries((index.prepare("SELECT member_id,email FROM memberships WHERE owner_id=? AND case_id=? AND email IS NOT NULL").all(ownerId,caseId) as {member_id:string;email:string}[]).map(r=>[r.member_id,r.email])); }
+  finally { index.close(); }
 }
 export function memberships(accountId: string) {
   const index=directory();
@@ -126,7 +134,7 @@ export function invitationById(session: Session, hash:string, action:"view"|"acc
         const pays=currency ?? (row.currency || data.case.currency);
         if(!choices.includes(pays)) throw new ApiError(`Choose one of: ${choices.join(", ")}.`);
         db.prepare("INSERT OR IGNORE INTO members (id,case_id,display_name,role,share_limit,currency) VALUES (?,?,?,?,?,?)").run(memberId,row.case_id,session.user.mode==="google" ? session.user.name ?? row.name : row.name,row.role,row.share_limit,pays);
-        index.prepare("INSERT OR REPLACE INTO memberships VALUES (?,?,?,?)").run(session.user.id,row.owner_id,row.case_id,memberId);
+        index.prepare("INSERT OR REPLACE INTO memberships (account_id,owner_id,case_id,member_id,email) VALUES (?,?,?,?,?)").run(session.user.id,row.owner_id,row.case_id,memberId,session.user.email??row.email??null);
         index.prepare("UPDATE invitations SET used_by=?, declined_by=NULL WHERE hash=?").run(session.user.id,hash);
         appendAudit(db,{caseId:row.case_id,actor:memberId,action:"member.join",inputSources:["user"],decision:"allow",result:{role:row.role,delivery:row.delivery}});
       }

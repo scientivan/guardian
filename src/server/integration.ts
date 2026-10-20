@@ -17,6 +17,9 @@ import { createPaymentRequest, cancelRequest, executeRequest, type Charger } fro
 import { openRefunds, setRefundStatus, type RefundStatus } from "./refunds";
 import { anchorHash } from "./anchor";
 import { appendAudit } from "./audit";
+import { sendMails } from "./notify";
+import { memberEmails } from "./access";
+import { money } from "@/lib/format";
 import { enrollFromSignedList, resolvePayeeAnomalies } from "./enrollment";
 import { fetchSignedPayeeList, type SignedPayeeList } from "./portal";
 import { PORTAL_PAYEES } from "./seed";
@@ -130,6 +133,17 @@ export class Integration {
     gate(resolvePayee(this.c.db,this.c.caseId,this.c.member.id,{payeeId:v.payeeId,source:"official_registry"}));
     return gate(createPaymentRequest(this.c.db,{...v,caseId:this.c.caseId,actor:this.c.member.id},now(this.c.db)));
   }
+  /** Emails every payer who joined with a Google account that a new request needs pledges. */
+  async notifyRequest(requestId:string,origin:string) {
+    const r=this.request(requestId),v=this.view();
+    const emails=memberEmails(this.c.ownerId,this.c.caseId);
+    const mails=v.case.members.filter(m=>m.role==="payer"&&emails[m.id]).map(m=>({to:emails[m.id],
+      subject:`Payment request: ${r.purpose} (${money(r.amount,r.currency)})`,
+      text:[`Hi ${m.displayName},`,"",`${this.c.member.displayName} asked the family to cover “${r.purpose}” for ${v.case.hospital.name}: ${money(r.amount,r.currency)}.`,`It expires ${new Date(r.expiresAt).toUTCString()}. Nothing is charged until the request is fully pledged and the owner pays the hospital.`,"",`Pledge your share: ${origin}/case/${this.c.caseId}/pledges?requestId=${r.id}`,"","Guardian never asks you to pay an account by email. Pay only inside Guardian."].join("\n")}));
+    const result=await sendMails(mails);
+    appendAudit(this.c.db,{caseId:this.c.caseId,actor:"system",action:"notify.email",inputSources:["system"],decision:"info",result:{requestId,recipients:mails.length,sent:result.sent,skipped:result.skipped}});
+    return result;
+  }
   quote(requestId:string,amount:unknown) {
     this.request(requestId);
     if(this.c.member.role==="companion")denyAccess(this.c,"Companions cannot approve payments.");
@@ -159,7 +173,7 @@ export class Integration {
     return {id,sha256};
   }
   invoiceFile(requestId:string,invoiceId:string) {
-    if(this.c.member.role==="payer")denyAccess(this.c,"Your role can see that an invoice is on file, not the document itself.");
+    // Every member may open it: it is the hospital's proof of payment, which payers paid towards.
     this.request(requestId);
     const f=this.c.db.prepare("SELECT filename,mime,bytes FROM request_invoices WHERE id=? AND request_id=?").get(invoiceId,requestId) as {filename:string;mime:string;bytes:Buffer}|undefined;
     if(!f)throw new ApiError("Invoice not found.",404);

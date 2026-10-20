@@ -9,7 +9,7 @@ import { useCaseData, useWorkspace } from "./WorkspaceProvider";
 import { PRIMARY, SECONDARY, Section } from "./ui";
 
 // Proof from the hospital for a paid request: its invoice or receipt, kept with the payment. The
-// owner or companion attaches it; payers see that it is on file and its fingerprint, not the file.
+// owner or companion attaches it; every member can view or download it.
 
 export function InvoiceSection({ request }: { request: PaymentRequest }) {
   const { case: care } = useCaseData();
@@ -25,11 +25,12 @@ export function InvoiceSection({ request }: { request: PaymentRequest }) {
     const form = new FormData(); form.set("file", file);
     if (await run(() => call(`/payment-requests/${request.id}/invoices`, "POST", form, care.id))) setFile(null);
   }
-  async function open(id: string, filename: string) {
+  async function open(id: string, filename: string, view = false) {
     try {
       const res = await fetchApi(`/api/payment-requests/${request.id}/invoices/${id}`, { cache: "no-store" });
       if (!res.ok) await readResponse(res);
       const url = URL.createObjectURL(await res.blob());
+      if (view) { window.open(url, "_blank", "noopener"); setTimeout(() => URL.revokeObjectURL(url), 60_000); return; }
       const a = document.createElement("a"); a.href = url; a.download = filename; a.click();
       setTimeout(() => URL.revokeObjectURL(url), 1000);
     } catch (e) { showError(e instanceof ClientError ? e : new ClientError("The invoice couldn’t be downloaded.", 0)); }
@@ -40,9 +41,9 @@ export function InvoiceSection({ request }: { request: PaymentRequest }) {
       {invoices.length > 0 ? <ul className="mb-4 divide-y divide-line rounded-2xl bg-white px-4">{invoices.map(i => (
         <li key={i.id} className="flex flex-wrap items-center gap-x-4 gap-y-1 py-3 text-sm">
           <span className="min-w-0 flex-1"><span className="block font-semibold text-lead">{i.filename}</span><span className="block break-all text-xs text-ink-2">{day(i.ts)} · {i.by} · SHA-256 {i.sha256}</span></span>
-          {care.me.role !== "payer" && <button type="button" onClick={() => void open(i.id, i.filename)} className={SECONDARY}>Download</button>}
+          <div className="flex gap-2"><button type="button" onClick={() => void open(i.id, i.filename, true)} className={SECONDARY}>View</button><button type="button" onClick={() => void open(i.id, i.filename)} className={SECONDARY}>Download</button></div>
         </li>
-      ))}</ul> : <p className="mb-4 rounded-xl bg-warn-soft p-3 text-sm text-warn-ink">No invoice from the hospital yet.{care.me.role === "payer" ? " The owner attaches it when the hospital sends it." : ""}</p>}
+      ))}</ul> : <p className="mb-4 rounded-xl bg-warn-soft p-3 text-sm text-warn-ink">No invoice from the hospital yet.</p>}
       {canAttach && <div className="flex flex-wrap items-start gap-3">
         <label className={`${SECONDARY} cursor-pointer`}>
           {file ? file.name : "Choose invoice (PDF, PNG or JPEG)"}

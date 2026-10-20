@@ -25,6 +25,7 @@ const ACTIONS: Record<string, string> = {
   "member.join": "A payer joined the case",
   "member.limit": "Changed a payer’s share limit",
   "request.invoice": "Attached the hospital’s invoice to a paid request",
+  "notify.email": "Emailed the payers about a new payment request",
   "case.closed": "Closed the care case; it is read-only now",
   "permission.denied": "Tried something their role does not allow",
 };

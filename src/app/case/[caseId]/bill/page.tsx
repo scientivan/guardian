@@ -4,12 +4,12 @@ import { Select } from "@/components/app/Select";
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useCaseData, useWorkspace } from "@/components/app/WorkspaceProvider";
-import { ClientError, Spinner, useFeedback, useTask, WORK } from "@/components/app/Feedback";
+import { ClientError, useFeedback, useTask } from "@/components/app/Feedback";
 
 import Link from "next/link";
 import { CopyButton } from "@/components/app/CopyButton";
 import { MoneyBreakdown } from "@/components/app/MoneyBreakdown";
-import { Chip, Figure, FoldSection, MoneyFigure, PRIMARY, Section, SECONDARY, type Tone } from "@/components/app/ui";
+import { Chip, Figure, FoldSection, MoneyFigure, PRIMARY, Section, type Tone } from "@/components/app/ui";
 import { Upload } from "@/components/landing/icons";
 import { AskButton } from "@/components/app/Assistant";
 import type { AgentId } from "@/components/landing/agents";
@@ -29,24 +29,9 @@ export default function BillPage() {
   const {call}=useWorkspace();
   const query=useSearchParams();
   const [selected,setSelected]=useState(query.get("documentId")??e?.documentId??documents.find(d=>d.type!=="estimate"&&d.status==="parsed")?.id??"");
-  const {busy,run}=useTask();
-  const {showError,startWork}=useFeedback();
-  const [auto,setAuto]=useState(false);
-  async function refreshExplanation() {
-    await run(()=>call(`/cases/${care.id}/explanation?documentId=${encodeURIComponent(selected)}`,"POST",{},care.id),{work:WORK.explain,retry:true});
-  }
   useEffect(()=>{if(query.get("documentId"))setSelected(query.get("documentId")!);},[query]);
-  const target=query.get("documentId");
-  useEffect(()=>{
-    if(!target||target===e?.documentId||care.closed)return;
-    let active=true;setAuto(true);
-    const stop=startWork(WORK.explain);
-    call(`/cases/${care.id}/explanation?documentId=${encodeURIComponent(target)}`,"POST",{},care.id).catch(error=>{if(active)showError(error);}).finally(()=>{stop();if(active)setAuto(false);});
-    return()=>{active=false;stop();};
-  },[target,e?.documentId,care.id,care.closed,call,showError,startWork]);
-  const working=busy||auto;
   const bills=documents.filter(d=>d.type!=="estimate");
-  const controls=<div className="space-y-3"><div className="block text-sm font-semibold text-ink-2">Bill to review<Select label="Bill to review" className="mt-2" value={selected} onChange={setSelected} disabled={!bills.length} placeholder="No bills uploaded yet" options={bills.map(d=>({value:d.id,label:d.title,hint:`${d.type==="final"?"Final bill":"Interim bill"} · ${d.status==="needs_reupload"?"needs a clearer copy":d.status==="parsed"?"read":d.status}`}))}/></div><button type="button" disabled={!selected||working} onClick={refreshExplanation} className={SECONDARY}>{working?<><Spinner />Reading and checking…</>:"Explain selected bill"}</button></div>;
+  const controls=<div className="space-y-3"><div className="block text-sm font-semibold text-ink-2">Bill to review<Select label="Bill to review" className="mt-2" value={selected} onChange={setSelected} disabled={!bills.length} placeholder="No bills uploaded yet" options={bills.map(d=>({value:d.id,label:d.title,hint:`${d.type==="final"?"Final bill":"Interim bill"} · ${d.status==="needs_reupload"?"needs a clearer copy":d.status==="parsed"?"read":d.status}`}))}/></div>{selected&&<AskButton question={`Explain ${bills.find(d=>d.id===selected)?.title??"this bill"}`} context={{kind:"bill",documentId:selected}} label="Ask about this bill" />}</div>;
   const helper=care.me.role==="payer";
   const {busy:checking,run:runCheck}=useTask();
   const {showError:notify}=useFeedback();

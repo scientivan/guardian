@@ -134,7 +134,10 @@ export async function dispatch(request:NextRequest,path:string[]) {
       if(section==="members" && path[3] && request.method==="POST")return reply(api.setShareLimit(path[3],await body()));
       if(section==="second-check" && request.method==="POST"){const b=z.object({documentId:z.string(),itemIds:z.array(z.string())}).parse(await body());return reply(await api.questionItems(b.documentId,b.itemIds));}
       if(section==="payment-requests" && request.method==="GET")return reply(api.view().requests);
-      if(section==="payment-requests" && request.method==="POST")return reply(api.createRequest(await body()));
+      if(section==="payment-requests" && request.method==="POST") {
+        const created=api.createRequest(await body()) as {id:string};
+        return reply({...created,notified:await api.notifyRequest(created.id,process.env.NEXTAUTH_URL??request.nextUrl.origin)});
+      }
       if(section==="payees" && path[3]==="verify" && request.method==="POST")return reply(await api.verifyPayees());
       if(section==="chat" && request.method==="POST"){const b=await body();return reply(await api.chat(b.message,b.context));}
       if(section==="chat" && request.method==="GET")return reply(api.messages());
