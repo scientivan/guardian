@@ -9,7 +9,7 @@ import { useCaseData, useWorkspace } from "./WorkspaceProvider";
 import type { ReactNode } from "react";
 import type { AgentId } from "@/components/landing/agents";
 import { Building, Chain, Coins, Doc, Lock, People, ShieldMark, Upload } from "@/components/landing/icons";
-import { AssistantProvider } from "./Assistant";
+import { AssistantLauncher, AssistantProvider } from "./Assistant";
 import type { RoomId } from "@/components/office/model";
 import { money, share } from "@/lib/format";
 import { AgentDock } from "./AgentDock";
@@ -113,7 +113,8 @@ export function AppShell({ caseId, children }: { caseId: string; children: React
               );
             })}
           </ul>
-          {guarantee && <Link href={`${base}/pledges`} className="mt-auto block rounded-2xl bg-mist p-4 text-sm transition-colors hover:bg-firstlight/60">
+          <div className="mt-auto pt-4"><AssistantLauncher /></div>
+          {guarantee && <Link href={`${base}/pledges`} className="mt-3 block rounded-2xl bg-mist p-4 text-sm transition-colors hover:bg-firstlight/60">
             <p className="text-xs text-ink-2">{guarantee.purpose}</p>
             <p className="mt-0.5 tabular-nums text-ink-2">
               <b className="font-num text-lg font-extrabold text-serpent-dark">{money(guarantee.approved, guarantee.currency)}</b> of {money(guarantee.amount, "").trim()}

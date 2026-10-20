@@ -167,6 +167,7 @@ Known limitations:
 - **Live demo:** not deployed yet.
 - **Deployment:** local by default (SQLite files, local chain). VPS steps with HTTPS, backups and AI rate limits are in [`docs/DEPLOY.md`](docs/DEPLOY.md). No real accounts or money.
 - **Demo reset:** `npm run demo:reset` removes demo workspaces so the next demo sign-in starts from the seeded case.
+- **Demo payments for directory hospitals:** `npm run hospitals:demo-verify` marks the listed directory hospitals as verified, with synthetic signed "DEMO" accounts, so Pledges can be tried with a Google case. It is for testing only: there is no real hospital confirmation, and it refuses to run with `NODE_ENV=production`. Exchange quotes exist only for CNY cases (China hospitals).
 
 ## 7. Security notes
 

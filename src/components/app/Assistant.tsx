@@ -18,7 +18,7 @@ import { useCaseData, useWorkspace } from "./WorkspaceProvider";
 
 const PLANNER = AGENT_BY_ID.planner;
 type Message = { from: "me" | "agent"; text: string; actions?: Action[] };
-type Value = { open: () => void; ask: (question: string, context?: AskContext) => void };
+type Value = { isOpen: boolean; open: () => void; toggle: () => void; ask: (question: string, context?: AskContext) => void };
 const Context = createContext<Value | null>(null);
 
 export function useAssistant() {
@@ -76,6 +76,8 @@ export function AssistantProvider({ children, raised = false }: { children: Reac
   }, [call, care.id, run]);
 
   const value: Value = {
+    isOpen: open,
+    toggle: () => (open ? setOpen(false) : value.open()),
     open: () => { setOpen(true); setTimeout(() => input.current?.focus(), 50); },
     ask: (question, context) => { if (!busy) void send(question, context); },
   };
@@ -89,9 +91,10 @@ export function AssistantProvider({ children, raised = false }: { children: Reac
   return (
     <Context.Provider value={value}>
       {children}
-      <div className={`fixed left-3 z-40 flex flex-col items-start gap-3 lg:left-[16.25rem] ${raised ? "bottom-[calc(14.5rem+env(safe-area-inset-bottom))] lg:bottom-[11.25rem]" : "bottom-[calc(4.75rem+env(safe-area-inset-bottom))] lg:bottom-5"}`}>
+      {/* Phones: floats above the tab bar. Wide screens: opens from the bottom of the left sidebar. */}
+      <div className={`fixed left-3 z-40 flex flex-col items-start gap-3 lg:bottom-3 ${raised ? "bottom-[calc(14.5rem+env(safe-area-inset-bottom))]" : "bottom-[calc(4.75rem+env(safe-area-inset-bottom))]"}`}>
         {open && (
-          <section aria-label="Case assistant" className={`pop flex ${raised ? "h-[min(30rem,calc(100dvh-20rem))]" : "h-[min(34rem,calc(100dvh-9rem))]"} w-[min(25rem,calc(100vw-1.5rem))] flex-col overflow-hidden rounded-[1.75rem] bg-white shadow-[0_30px_60px_-28px_rgba(32,33,33,0.6)] ring-1 ring-line`}>
+          <section aria-label="Case assistant" className={`pop flex ${raised ? "h-[min(30rem,calc(100dvh-20rem))]" : "h-[min(34rem,calc(100dvh-9rem))]"} w-[min(25rem,calc(100vw-1.5rem))] lg:h-[min(40rem,calc(100dvh-5.5rem))] lg:w-[25rem] flex-col overflow-hidden rounded-[1.75rem] bg-white shadow-[0_30px_60px_-28px_rgba(32,33,33,0.6)] ring-1 ring-line`}>
             <header className="flex shrink-0 items-end gap-3 bg-serpent-dark px-5 pt-3 text-white">
               <Minifig skin={PLANNER.skin} hair={PLANNER.hair} hijab={PLANNER.hijab} shirt={PLANNER.color} className="-mb-1 h-12 w-12" />
               <div className="min-w-0 flex-1 pb-3">
@@ -128,11 +131,27 @@ export function AssistantProvider({ children, raised = false }: { children: Reac
             </form>
           </section>
         )}
-        <button type="button" onClick={() => (open ? setOpen(false) : value.open())} aria-expanded={open} className="flex items-center gap-2 rounded-full bg-serpent-dark py-1.5 pl-1.5 pr-4 text-sm font-semibold text-white shadow-[0_16px_30px_-16px_rgba(32,33,33,0.7)] transition-colors hover:bg-[#2f5274]">
+        <button type="button" onClick={value.toggle} aria-expanded={open} className="flex items-center lg:hidden gap-2 rounded-full bg-serpent-dark py-1.5 pl-1.5 pr-4 text-sm font-semibold text-white shadow-[0_16px_30px_-16px_rgba(32,33,33,0.7)] transition-colors hover:bg-[#2f5274]">
           <Minifig skin={PLANNER.skin} hair={PLANNER.hair} hijab={PLANNER.hijab} shirt={PLANNER.color} className="h-9 w-9 rounded-full bg-white" />
           {open ? "Close assistant" : "Ask the assistant"}
         </button>
       </div>
     </Context.Provider>
+  );
+}
+
+/** The assistant's place in the left sidebar on wide screens: opens and closes the window. */
+export function AssistantLauncher() {
+  const { isOpen, toggle } = useAssistant();
+  return (
+    <button type="button" onClick={toggle} aria-expanded={isOpen}
+      className={`flex w-full items-center gap-3 rounded-2xl p-2.5 text-left transition-colors ${isOpen ? "bg-serpent-dark text-white" : "bg-firstlight text-serpent-dark hover:bg-cerulean/60"}`}>
+      <Minifig skin={PLANNER.skin} hair={PLANNER.hair} hijab={PLANNER.hijab} shirt={PLANNER.color} className="h-10 w-10 shrink-0 rounded-xl bg-white" />
+      <span className="min-w-0 flex-1">
+        <span className="block text-sm font-semibold">Case Assistant</span>
+        <span className={`block text-xs ${isOpen ? "text-cerulean" : "text-ink-2"}`}>{isOpen ? "Close the window" : "Ask about bills and payments"}</span>
+      </span>
+      <ChatBubble className="h-5 w-5 shrink-0" />
+    </button>
   );
 }
