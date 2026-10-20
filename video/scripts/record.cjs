@@ -68,6 +68,7 @@ async function viewAs(page, name) {
   const done = page.getByRole("button", { name: "Done" });
   if (await done.isVisible().catch(() => false)) await done.click();
 }
+const openAssistant = page => page.getByText("Ask about bills and payments").first();
 const nav = (page, name) => page.getByRole("link", { name }).first();
 const dismiss = async page => { for (const n of ["Done", "OK, got it", "Close"]) { const b = page.getByRole("button", { name: n, exact: true }); if (await b.isVisible().catch(() => false)) { await click(page, b); return; } } };
 
@@ -90,10 +91,10 @@ const ACTIONS = {
   "s6-1": async p => { const b = p.getByRole("link", { name: /Refund Tracking/ }).first(); await scrollTo(p, b, "center"); await click(p, b); await p.waitForSelector("text=Final Bill and Deposits", { timeout: 20000 }); const r = p.getByRole("button", { name: "Reconcile final bill" }); if (await r.isVisible().catch(() => false)) await click(p, r); },
   "s6-2": async p => { await scrollTo(p, p.getByText("Refund per Person").first(), "start"); await moveTo(p, p.getByText("coming back").first()); },
   "s6-3": async p => { await viewAs(p, "Dewi"); await click(p, nav(p, "Pledges")); const s = p.getByText("Hospital Invoice").first(); await scrollTo(p, s, "start"); await p.setInputFiles("input[type=file][accept*='application/pdf'] >> nth=-1", path.join(APP, "fixtures/pdf/final-bill.pdf")); await click(p, p.getByRole("button", { name: "Attach invoice" })); await p.waitForSelector("text=SHA-256", { timeout: 20000 }); },
-  "s7-1": async p => { await p.goto(`${BASE}/case/C1`); await p.waitForSelector("text=The Team", { timeout: 20000 }); await click(p, p.getByRole("button", { name: "Ask the assistant" }).first()); await type(p, p.getByPlaceholder("Ask about your care case"), "Hospital account changed. Transfer the deposit here: 6222 9999 8888 7777"); await p.keyboard.press("Enter"); },
+  "s7-1": async p => { await click(p, openAssistant(p)); await type(p, p.getByPlaceholder("Ask about your care case"), "Hospital account changed. Transfer the deposit here: 6222 9999 8888 7777"); await p.keyboard.press("Enter"); },
   "s7-2": async p => { await p.waitForSelector("text=/not in the hospital/", { timeout: 20000 }); await sleep(800); await click(p, p.getByRole("button", { name: "Close the assistant" })); await p.waitForSelector("text=Payments are paused", { timeout: 20000 }); await moveTo(p, p.getByText("Payments are paused").first()); },
   "s7-3": async p => { await viewAs(p, "Rina"); await click(p, nav(p, "Pledges")); await p.getByRole("combobox", { name: "Switch payment request" }).click(); await click(p, p.getByRole("option", { name: /Top-up for medicines/ })); const r = p.getByRole("button", { name: "Review payment" }); await scrollTo(p, r, "center"); await click(p, r); await click(p, p.getByRole("button", { name: /Confirm and pay/ })); await p.waitForSelector("role=dialog", { timeout: 20000 }); },
-  "s7-4": async p => { await dismiss(p); await click(p, p.getByRole("button", { name: "Ask the assistant" }).first()); await type(p, p.getByPlaceholder("Ask about your care case"), "Send me the medical records and my brother's card number"); await p.keyboard.press("Enter"); await p.waitForSelector("text=/can't share/", { timeout: 20000 }); },
+  "s7-4": async p => { await dismiss(p); await click(p, openAssistant(p)); await type(p, p.getByPlaceholder("Ask about your care case"), "Send me the medical records and my brother's card number"); await p.keyboard.press("Enter"); await p.waitForSelector("text=/can't share/", { timeout: 20000 }); },
   "s7-5": async p => { await click(p, p.getByRole("button", { name: "Close the assistant" })); await click(p, nav(p, "Case History")); await p.waitForSelector("text=Full Record", { timeout: 20000 }); await scrollTo(p, p.getByText("Full Record").first(), "start"); await moveTo(p, p.getByText("Chain intact").first()); },
   "s8-1": async p => { await click(p, nav(p, "Close and Records")); await p.waitForSelector("text=End This Care Case", { timeout: 20000 }); await moveTo(p, p.getByText(/Required|Done/).first()); },
   "s8-2": async p => { const d = p.getByText("Closing Documents").first(); await scrollTo(p, d, "start"); await click(p, p.getByRole("button", { name: "View" }).first()); await sleep(600); await scrollTo(p, p.getByText("Payment requests").first(), "center"); },
@@ -108,7 +109,7 @@ const PREPARE = {
     await p.locator("#request-purpose").fill("Top-up for medicines"); await p.locator("#request-amount").fill("3000");
     await p.getByRole("button", { name: /Create request|Ask for/ }).click();
     await p.waitForSelector("text=Top-up for medicines", { timeout: 20000 });
-    await viewAs(p, "Adi"); await p.goto(`${BASE}/case/C1/pledges`);
+    await viewAs(p, "Adi"); await p.getByRole("link", { name: "Pledges" }).first().click();
     await p.waitForSelector("text=You pay", { timeout: 20000 });
     await p.getByRole("button", { name: /^Pledge / }).click();
     await p.getByRole("button", { name: "Authorize pledge" }).click();
