@@ -12,7 +12,7 @@ Guardian is a Next.js 15 app (TypeScript, Supabase Postgres and private Storage 
 
 ```bash
 npm ci --legacy-peer-deps
-npm test              # vitest, no network needed (125 tests on 20 Oct)
+npm test              # vitest, no network needed (131 tests on 20 Oct)
 npm run lint
 npx tsc --noEmit
 npm run build

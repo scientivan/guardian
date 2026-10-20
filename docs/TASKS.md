@@ -6,7 +6,7 @@ Owners: **Dien** (backend, agent, API, services) and **Aurel** (UI/FE). FE ↔ B
 
 ## Current state (read this first, updated 20 Oct evening)
 
-**English and Simplified Chinese UI, 20 Oct (Codex)**. [Decision Dien] Add an English / 中文 language switch. [Fact] Added a persistent cookie-based language preference, server-rendered locale and static Chinese interface messages across public, entry, case and verification screens. Switching preserves active form state. Names, amounts and original source content remain intact. 131 unit/integration tests, lint, TypeScript and isolated-browser checks passed. Browser checks cover demo entry, six case tabs, reload persistence, wizard form retention and 375px layouts with no horizontal overflow or JavaScript errors. Isolated production build passed. Production deployment validation pending. See docs/LOCALIZATION.md.
+**English and Simplified Chinese UI, 20 Oct (Codex)**. [Decision Dien] Add an English / 中文 language switch. [Fact] Added a persistent cookie-based language preference, server-rendered locale and static Chinese interface messages across public, entry, case and verification screens. Switching preserves active form state. Names, amounts and original source content remain intact. 131 unit/integration tests, lint, TypeScript and isolated-browser checks passed. Browser checks cover demo entry, six case tabs, reload persistence, wizard form retention and 375px layouts with no horizontal overflow or JavaScript errors. Isolated and Vercel production builds passed. Source 2305084 deployed to https://guardian.scientivan.dev. Live browser checks passed demo login, six tabs, locale persistence, wizard form retention, keyboard toggle and 375px layouts with zero JavaScript errors. Chinese server rendering returned HTTP 200 with the expected language, heading and title. See docs/LOCALIZATION.md.
 
 **Publication privacy cleanup, 20 Oct (Codex)**. [Decision Dien] Remove the invitation screenshot containing a personal recipient address from publication. [Fact] The original screenshot is excluded from the current tree and the rewritten history of both repository branches. A private local backup is retained. An ignore rule prevents accidentally adding the original screenshot again. Application source and behavior are unchanged. Git commit identities before and after the affected history differ. This cleanup does not remove the separately identified browser-session artifact.
 
@@ -36,7 +36,7 @@ For an agent or person picking this up. Details per area are in the linked docs;
 - **Blockchain** (FISCO BCOS, hash only, best effort): bills and invoices on upload, log head on demand / after each payment / at closing, closing-pack hash at closing, hospital verification snapshots by admins. Table in `docs/API.md` v1.6.
 - **FX:** demo table with one CNY row; every other pair is a cross rate, so MYR, SGD, THB, AED, USD and IDR hospitals get quotes. Conversions are written "payer amount (hospital amount)".
 
-**Current checks:** `npm test` 125/125, `npm run lint`, `npx tsc --noEmit`, `npm run build` all pass (20 Oct).
+**Current checks:** `npm test` 131/131, `npm run lint`, `npx tsc --noEmit`, `npm run build` all pass (20 Oct).
 
 **Open items:** guarantee amount still typed (no "hospital guarantee letter" document type); Gmail self-delivery and local FISCO invoice/closing paths are now verified. Independent second-model checks still time out in the tested 15-second web window. sections 6.5, 6.7, 6.8 and 7–10 below (deployment, video, submission) unchanged.
 
@@ -312,3 +312,5 @@ Outline lama (4:45), dipertahankan sebagai riwayat dan digantikan storyboard rin
 ## Progress, 20 Oct. English / Simplified Chinese
 
 Added the language switch, static catalogue, localized interface helpers and six localization regression tests. Original stored values and source documents retain their language. Local browser checks passed on public and case pages, with retained form values and mobile width checks. See LOCALIZATION.md for scope and reproduction.
+
+Production verification passed on https://guardian.scientivan.dev for source 2305084. Deployment dpl_Gp82Mq9M1ZEfvoXEe1WThuJxBw1X is ready. See evidence/i18n-2026-10-20/README.md.

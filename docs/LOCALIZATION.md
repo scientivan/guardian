@@ -17,3 +17,5 @@ Browser checks cover both directions, cookie persistence and server-rendered Chi
 ## Verified on 20 October 2026
 
 131 tests passed, including six localization tests. ESLint, TypeScript and an isolated production build passed. Chromium checks passed demo login, language-cookie persistence, six case tabs, wizard form retention, 375px public and case layouts without horizontal overflow, and no JavaScript errors. The Chinese catalogue contains 1,519 messages. Unknown source prose remains in its original language.
+
+The same browser checks passed on https://guardian.scientivan.dev after deployment of source commit `2305084`. Keyboard activation of the English button passed. A direct request with the Chinese preference returned HTTP 200 with Chinese HTML language, heading and document title. No financial mutation was submitted during these production checks.

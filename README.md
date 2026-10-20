@@ -9,7 +9,7 @@
 | Competition | 2026 Shenzhen International FinTech Competition (FinTechathon), International Track (AI), Topic C: Cross-border & Student Finance |
 | Team | Dien (backend, agents, services), Aurel (UI/FE) |
 | Status | Working prototype, deployed on Vercel + Supabase. Synthetic demo data. Payments are a sandbox or Stripe **test mode**; no real money and no hospital bank settlement. Blockchain anchoring runs on a local FISCO BCOS chain (off in production). |
-| Checks | 125/125 unit and scenario tests · lint · TypeScript · production build · 16/16 live scripted tasks and attacks · 18/18 keyless sandbox lifecycle run |
+| Checks | 131/131 unit and scenario tests · lint · TypeScript · production build · 16/16 live scripted tasks and attacks · 18/18 keyless sandbox lifecycle run |
 
 ## The problem
 
@@ -74,7 +74,7 @@ Requires Node.js 22 and npm 10+ (macOS or Linux). Docker only for the FISCO chai
 ```bash
 git clone https://github.com/scientivan/guardian.git && cd guardian
 npm ci --legacy-peer-deps
-npm test                                                   # 125 tests, no keys or network
+npm test                                                   # 131 tests, no keys or network
 node --import tsx evidence/sandbox-run-2026-10-20/run.mts  # full payment lifecycle + attacks in the sandbox
 npm run dev                                                # http://localhost:3000 → Use demo account
 ```
@@ -120,7 +120,7 @@ The model router uses whichever LLM keys exist and skips rate-limited models; on
 
 | What | Result | Where |
 |---|---|---|
-| Unit and scenario tests | 125/125 | `npm test` |
+| Unit and scenario tests | 131/131 | `npm test` |
 | Keyless sandbox lifecycle with timestamps, actions and outcomes | 18/18 | [`evidence/sandbox-run-2026-10-20/`](evidence/sandbox-run-2026-10-20/summary.md) |
 | Live scripted tasks and attacks (models, Stripe test IDs, anchor tx) | 16/16 | [`evidence/run-2026-10-18-clean-clone/`](evidence/run-2026-10-18-clean-clone/summary.md) |
 | Attacks through the web UI | 11 attempts refused, 0 charges | [`evidence/e2e-2026-10-20/attacks/`](evidence/e2e-2026-10-20/attacks/ATTACKS.md) |
