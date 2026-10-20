@@ -9,8 +9,8 @@ import { AccountMenu } from "@/components/auth/AccountMenu";
  * Frame for the screens before a case is open (log in, projects, create, join): the top bar,
  * the dark title band with the team, and the content in folders on a white page.
  */
-export function EntryFrame({ title, working = [], children, wide = false, profile = false }: { title: string; working?: AgentId[]; children: ReactNode; wide?: boolean; profile?: boolean }) {
-  const width = wide ? "max-w-5xl" : "max-w-3xl";
+export function EntryFrame({ title, working = [], children, wide = false, xwide = false, profile = false }: { title: string; working?: AgentId[]; children: ReactNode; wide?: boolean; xwide?: boolean; profile?: boolean }) {
+  const width = xwide ? "max-w-7xl" : wide ? "max-w-5xl" : "max-w-3xl";
   return (
     <div className="min-h-screen bg-white">
       <header className="border-b border-line bg-white">
@@ -23,7 +23,7 @@ export function EntryFrame({ title, working = [], children, wide = false, profil
         </div>
       </header>
       <TabBand title={title} working={working} inner={`mx-auto px-6 ${width}`} compact />
-      <main className={`mx-auto space-y-10 px-6 py-10 sm:py-12 ${width}`}>{children}</main>
+      <main className={`mx-auto space-y-10 px-6 ${xwide ? "py-8" : "py-10 sm:py-12"} ${width}`}>{children}</main>
     </div>
   );
 }

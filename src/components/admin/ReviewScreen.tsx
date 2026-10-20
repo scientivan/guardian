@@ -1,5 +1,6 @@
 "use client";
 
+import { Select } from "@/components/app/Select";
 import Link from "next/link";
 import { useState } from "react";
 import type { HospitalProfile, HospitalSource, HospitalTrust, VerificationProof } from "@/lib/hospitals";
@@ -45,7 +46,7 @@ export function ReviewScreen({id}:{id:string}) {
           <Field label="Decision notes *"><textarea className={`${FIELD} min-h-24`} minLength={10} value={notes} onChange={e=>setNotes(e.target.value)} placeholder="Explain the decision and remaining concerns."/></Field>
           <fieldset className="space-y-4 border-t border-line pt-4"><legend className="pr-2 text-sm font-bold">Required to approve</legend>
             <Field label="Channel used for confirmation *" hint="For changes, use an already verified phone, email or billing channel. A newly proposed contact cannot verify itself."><input className={FIELD} list="verified-channels" value={channel} onChange={e=>setChannel(e.target.value)}/><datalist id="verified-channels">{h.profileVersion>0&&[h.profile.phone,h.profile.billingPhone,h.profile.billingEmail,h.profile.website,h.trust?.officialChannel].filter(Boolean).map(c=><option key={c} value={c}/>)}</datalist></Field>
-            <Field label="Independent evidence source *"><select className={FIELD} value={source} onChange={e=>setSource(e.target.value)}><option value="">Choose a submitted source</option>{r.sources.map(s=><option key={s.url} value={s.url}>{s.url}</option>)}</select></Field>
+            <Field label="Independent evidence source *"><Select className="mt-2" value={source} onChange={setSource} placeholder="Choose a submitted source" options={r.sources.map(s=>({value:s.url,label:s.title||s.url,hint:s.url}))}/></Field>
             <Field label="Confirmation record *" hint="Record when and how you established contact, the institution representative or reference, and what was confirmed."><textarea className={`${FIELD} min-h-28`} value={confirmationNotes} onChange={e=>setConfirmationNotes(e.target.value)}/></Field>
             <label className="flex min-h-11 items-start gap-3 text-sm leading-relaxed"><input className="mt-1 h-4 w-4 shrink-0" type="checkbox" checked={identity} onChange={e=>setIdentity(e.target.checked)}/>I confirmed the exact institution and branch using independent evidence.</label>
             <label className="flex min-h-11 items-start gap-3 text-sm leading-relaxed"><input className="mt-1 h-4 w-4 shrink-0" type="checkbox" checked={ownership} onChange={e=>setOwnership(e.target.checked)}/>{r.kind==="payment"?"I confirmed the hospital’s ownership of these accounts, billing channel and verification key.":"I confirmed the institutional contact details through a channel established independently."}</label>

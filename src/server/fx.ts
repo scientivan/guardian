@@ -1,13 +1,12 @@
 import { randomUUID } from "node:crypto";
 import type { DB } from "./db";
+import { DEMO_RATES_E4 } from "@/lib/fx-rates";
 
 // DEMO FX table, not market rates. Rate = units of pay currency per 1 hospital
 // currency unit, scaled by 1e4 so all math stays in integers. All currencies are
 // stored in minor units x100 (IDR included), so the scale cancels out.
 
-export const DEMO_RATES_E4: Record<string, Record<string, number>> = {
-  CNY: { IDR: 22_950_000, MYR: 5_900, AED: 5_100, SGD: 1_800, USD: 1_400, CNY: 10_000 },
-};
+export { DEMO_RATES_E4 };
 export const FEE_BPS = 100; // 1.00 %, demo
 export const QUOTE_TTL_MS = 15 * 60_000;
 

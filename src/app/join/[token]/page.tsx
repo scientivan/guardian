@@ -25,9 +25,9 @@ export default function JoinPage() {
     call(`/invitations/${encodeURIComponent(token)}`).then(v => { if (active) setInvitation(v as InvitationBrief); }).catch(e => { if (active) setFailure(e); });
     return () => { active = false; };
   }, [token, call]);
-  async function accept() {
+  async function accept(currency: string) {
     const result = await run(async () => {
-      const r = await call(`/invitations/${encodeURIComponent(token)}`, "POST", {}) as InvitationBrief;
+      const r = await call(`/invitations/${encodeURIComponent(token)}`, "POST", { currency }) as InvitationBrief;
       await refresh();
       if (mode === "demo" && r.memberId) await selectMember(r.caseId, r.memberId);
       return r;

@@ -1,5 +1,7 @@
 "use client";
 
+import { Select } from "./Select";
+import { CaseSwitcher } from "./CaseSwitcher";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { AccountMenu } from "@/components/auth/AccountMenu";
@@ -72,12 +74,9 @@ export function AppShell({ caseId, children }: { caseId: string; children: React
             <span className="hidden font-serif text-xl text-lead sm:inline">Guardian</span>
           </Link>
           <span className="hidden h-7 w-px bg-line sm:block" />
-          <div className="min-w-0">
-            <p className="truncate text-sm font-semibold text-lead">{CASE.patient.name}’s care case</p>
-            <p className="truncate text-xs text-ink-2">Case {CASE.id}, {CASE.hospital.name}</p>
-          </div>
+          <CaseSwitcher />
           <div className="ml-auto flex shrink-0 items-center gap-2">
-            {mode === "demo" && <label className="hidden text-xs text-ink-2 sm:block">Viewing as<select aria-label="Viewing as" value={CASE.me.id} onChange={e=>void selectMember(CASE.id,e.target.value)} className="ml-2 max-w-36 rounded-lg border border-line bg-white p-2 text-sm text-lead">{CASE.members.map(m=><option key={m.id} value={m.id}>{m.displayName} · {m.role}</option>)}</select></label>}
+            {mode === "demo" && <div className="hidden items-center text-xs text-ink-2 sm:flex">Viewing as<Select label="Viewing as" className="ml-2 w-52" value={CASE.me.id} onChange={v=>void selectMember(CASE.id,v)} options={CASE.members.map(m=>({value:m.id,label:m.displayName,hint:m.role}))}/></div>}
             <AccountMenu />
           </div>
         </div>

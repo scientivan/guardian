@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useCallback, useEffect, useState } from "react";
 import { EntryFrame } from "@/components/app/EntryFrame";
+import { ScrollArea } from "@/components/app/ScrollArea";
 import { Spinner, useTask } from "@/components/app/Feedback";
 import { InvitationDialog, type InvitationBrief } from "@/components/app/InvitationDialog";
 import { MemberAvatar } from "@/components/app/people";
@@ -35,9 +36,9 @@ export default function DashboardPage() {
   }, [call]);
   useEffect(() => { void loadRequests(); }, [loadRequests]);
 
-  async function respond(action: "accept" | "decline") {
+  async function respond(action: "accept" | "decline", currency?: string) {
     if (!opened) return;
-    const r = await run(() => call(`/invitations/id/${opened.id}`, "POST", { action }) as Promise<InvitationBrief>);
+    const r = await run(() => call(`/invitations/id/${opened.id}`, "POST", { action, currency }) as Promise<InvitationBrief>);
     if (!r) return;
     setOpened(null);
     await loadRequests();
@@ -49,8 +50,10 @@ export default function DashboardPage() {
   }
 
   return (
-    <EntryFrame title="Dashboard" working={["planner"]} profile>
+    <EntryFrame title="Dashboard" working={["planner"]} profile xwide>
+      <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,1.7fr)_minmax(0,1fr)]">
       <Section
+        className="min-w-0"
         title="Care Cases"
         agent="planner"
         action={<Link href="/projects/new" className={PRIMARY}><Plus className="h-4 w-4" /> Start a care case</Link>}
@@ -66,6 +69,7 @@ export default function DashboardPage() {
             <Link href="/projects/new" className={SECONDARY}>Continue draft</Link>
           </div>
         )}
+        <ScrollArea label="Your care cases" fade="from-firstlight" boxClassName="max-h-[max(16rem,calc(100dvh-22rem))] pr-1">
         {cases.length === 0 && !draft ? (
           <div className="py-3"><h2 className="text-xl font-semibold text-lead">Your first care case starts here</h2><p className="mt-2 max-w-lg leading-relaxed text-ink-2">Keep a patient’s hospital bills, family contributions and refunds together. Start a care case when you’re ready.</p></div>
         ) : cases.map(({ case: c, country, requests: payments }) => {
@@ -81,8 +85,10 @@ export default function DashboardPage() {
             <Arrow className="h-5 w-5 text-serpent-dark" />
           </Link>;
         })}
+        </ScrollArea>
       </Section>
 
+      <div className="min-w-0 space-y-8">
       <Section title="Invitation Requests" agent="clerk" action={requests && requests.length > 0 ? <Chip tone="info">{requests.length} waiting</Chip> : undefined}>
         {requests === null ? <p role="status" className="flex items-center gap-3 text-ink-2"><Spinner className="h-5 w-5 text-serpent" />Checking for invitations…</p>
           : requests.length === 0 ? <p className="leading-relaxed text-ink-2">No invitations right now. When a family member invites your Google email to their care case, it appears here. If someone sent you a link, just open it.</p>
@@ -101,11 +107,14 @@ export default function DashboardPage() {
           ))}</ul>}
       </Section>
 
-      <Section title="Hospital Directory" agent="gate" action={<Link href="/hospitals" className={SECONDARY}><Hospital className="h-4 w-4" /> Open directory</Link>}>
-        <p className="max-w-2xl leading-relaxed text-ink-2">Look up hospitals whose identity and payment account were checked by a human, or suggest your hospital so it can be verified. Guardian only pays accounts that passed this check.</p>
+      <Section title="Hospital Directory" agent="gate">
+        <p className="leading-relaxed text-ink-2">Hospitals whose identity and payment account were checked by a person. Guardian only pays accounts that passed this check.</p>
+        <Link href="/hospitals" className={`${SECONDARY} mt-4`}><Hospital className="h-4 w-4" /> Open directory</Link>
       </Section>
+      </div>
 
-      {opened && <InvitationDialog invitation={opened} busy={busy} onAccept={() => void respond("accept")} onDecline={() => void respond("decline")} onClose={() => setOpened(null)} />}
+      </div>
+      {opened && <InvitationDialog invitation={opened} busy={busy} onAccept={currency => void respond("accept", currency)} onDecline={() => void respond("decline")} onClose={() => setOpened(null)} />}
     </EntryFrame>
   );
 }

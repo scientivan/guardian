@@ -66,4 +66,17 @@ describe("invitation requests", () => {
     expect(() => send(caseId, { delivery: "email" })).toThrow("Google email");
     expect(() => send(caseId, { email: "owner@example.com" })).toThrow("your own account");
   });
+
+  it("stores a limit given in the owner's currency in the hospital currency, and the helper picks how they pay", () => {
+    const caseId = newCase();
+    send(caseId, { email: "helper@example.com", shareLimit: 1_147_500_000, limitCurrency: "IDR" }); // IDR 11,475,000
+    const [request] = receivedInvitations(helper);
+    expect(request.shareLimit).toBe(500_000); // CNY 5,000
+    expect(request.currencies).toContain("AED");
+    expect(() => invitationById(helper, request.id, "accept", "EUR")).toThrow("Choose one of");
+    invitationById(helper, request.id, "accept", "AED");
+    const shared = caseAccess(helper, caseId);
+    try { expect(shared.member).toMatchObject({ currency: "AED", shareLimit: 500_000 }); } finally { shared.close(); }
+  });
 });
+

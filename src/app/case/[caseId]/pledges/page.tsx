@@ -1,5 +1,6 @@
 "use client";
 
+import { Select } from "@/components/app/Select";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -41,7 +42,7 @@ export default function PledgesPage() {
       {care.payees.length>0 && <form noValidate onSubmit={e=>{e.preventDefault();void create();}} className="mt-5 grid items-start gap-3 sm:grid-cols-[1fr_1fr_auto]"><div><input id="request-purpose" aria-label="Payment purpose" value={purpose} onChange={e=>setPurpose(e.target.value)} className={`w-full rounded-xl border border-line bg-white p-3 ${rv.invalid("purpose")?INVALID:""}`} {...rv.field("purpose")} />{rv.error("purpose")}</div><div><input id="request-amount" aria-label="Requested amount" inputMode="decimal" value={amount} onChange={e=>setAmount(e.target.value)} placeholder={`Amount in ${care.currency}`} className={`w-full rounded-xl border border-line bg-white p-3 ${rv.invalid("amount")?INVALID:""}`} {...rv.field("amount")} />{rv.error("amount")}</div><button type="submit" disabled={busy} className={PRIMARY}>Create request</button></form>}
     </Section>}
     {!requests.length ? <Section title="Pledges" agent="gate"><p>No payment request is waiting for approval. A hospital account must be verified before a request can be created.</p></Section> : <>
-      <label className="block text-sm font-semibold text-ink-2">Payment request<select value={selected} onChange={e=>setSelected(e.target.value)} className="mt-2 block w-full rounded-xl border border-line bg-white p-3">{requests.map(r=><option key={r.id} value={r.id}>{r.purpose} · {money(r.amount,r.currency)} · {r.status}</option>)}</select></label>
+      <div className="block text-sm font-semibold text-ink-2">Payment request<Select label="Payment request" className="mt-2" value={selected} onChange={setSelected} options={requests.map(r=>({value:r.id,label:r.purpose,hint:`${money(r.amount,r.currency)} · ${r.status}`}))}/></div>
       <PaymentForm key={`${selected}:${care.me.id}`} requestId={selected || requests[0].id} />
     </>}
   </div>;

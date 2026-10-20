@@ -5,6 +5,9 @@ import { CopyButton } from "@/components/app/CopyButton";
 import { MemberAvatar } from "@/components/app/people";
 import { Chip, PRIMARY, SECONDARY, Section, type Tone } from "@/components/app/ui";
 import { Spinner, useTask } from "@/components/app/Feedback";
+import { Select } from "@/components/app/Select";
+import { toCaseCurrency } from "@/lib/fx-rates";
+import { money } from "@/lib/format";
 import { INVALID, useFieldErrors } from "@/components/app/FieldError";
 import { amount, check, email, memberName } from "@/lib/validate";
 import { useCaseData, useWorkspace } from "@/components/app/WorkspaceProvider";
@@ -29,7 +32,10 @@ export default function MembersPage() {
   const [open, setOpen] = useState(false);
   const [sent, setSent] = useState<{ delivery: "email" | "link"; link: string; email: string; name: string } | null>(null);
   const [delivery, setDelivery] = useState<"email" | "link">("email");
-  const [form, setForm] = useState({ name: "", email: "", role: "payer", shareLimit: "5000", currency: "SGD" });
+  // The owner sets the limit in their own currency; the server stores it in the hospital currency.
+  const ownerCurrency = CASE.members.find(m => m.id === CASE.me.id)?.currency ?? CASE.currency;
+  const limitCurrency = toCaseCurrency(100, ownerCurrency, CASE.currency) === null ? CASE.currency : ownerCurrency;
+  const [form, setForm] = useState({ name: "", email: "", role: "payer", shareLimit: "" });
   const set = (key: keyof typeof form) => (e: { target: { value: string } }) => setForm(f => ({ ...f, [key]: e.target.value }));
   const errors = check(form, {
     name: memberName(),
@@ -37,11 +43,13 @@ export default function MembersPage() {
     ...(form.role === "payer" ? { shareLimit: amount("a maximum share", { min: 0 }) } : {}),
   });
   const v = useFieldErrors(errors, "invite");
+  const typedLimit = !errors.shareLimit && form.shareLimit ? Math.round(Number(form.shareLimit) * 100) : null;
+  const caseLimit = typedLimit === null ? null : toCaseCurrency(typedLimit, limitCurrency, CASE.currency);
 
   async function create(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (!v.submit()) return;
-    const r = await run(() => act(CASE.id, { action: "invite", delivery, name: form.name.trim(), role: form.role, currency: form.currency, email: delivery === "email" ? form.email.trim() : undefined, shareLimit: form.role === "payer" ? Math.round(Number(form.shareLimit) * 100) : 0 }) as Promise<{ link: string }>);
+    const r = await run(() => act(CASE.id, { action: "invite", delivery, name: form.name.trim(), role: form.role, limitCurrency, email: delivery === "email" ? form.email.trim() : undefined, shareLimit: form.role === "payer" ? Math.round(Number(form.shareLimit) * 100) : 0 }) as Promise<{ link: string }>);
     if (r) setSent({ delivery, link: r.link, email: form.email.trim(), name: form.name.trim() });
   }
   function another() { setSent(null); setForm(f => ({ ...f, name: "", email: "" })); v.reset(); }
@@ -77,23 +85,13 @@ export default function MembersPage() {
                 <input id="invite-name" className={`${FIELD} mt-1 ${v.invalid("name") ? INVALID : ""}`} value={form.name} onChange={set("name")} placeholder="Helper’s name" {...v.field("name")} />
                 {v.error("name")}
               </label>
-              <label className="text-sm text-ink-2">
+              <div className="text-sm text-ink-2">
                 Role
-                <select className={`${FIELD} mt-1`} value={form.role} onChange={set("role")}>
-                  <option value="payer">Helper (can pledge)</option>
-                  <option value="companion">Companion (uploads bills, can’t pay)</option>
-                </select>
-              </label>
+                <Select className="mt-1" label="Role" value={form.role} onChange={role => setForm(f => ({ ...f, role }))} options={[{ value: "payer", label: "Helper", hint: "Can pledge a share" }, { value: "companion", label: "Companion", hint: "Uploads bills, can’t pay" }]} />
+              </div>
               {delivery === "email" && <label className="text-sm text-ink-2">Google email<input id="invite-email" type="email" autoComplete="off" value={form.email} onChange={set("email")} className={`${FIELD} mt-1 ${v.invalid("email") ? INVALID : ""}`} placeholder="name@gmail.com" {...v.field("email")} />{v.error("email")}</label>}
-              {form.role === "payer" && <label className="text-sm text-ink-2">Maximum share in {CASE.currency}<input id="invite-shareLimit" inputMode="decimal" value={form.shareLimit} onChange={set("shareLimit")} className={`${FIELD} mt-1 ${v.invalid("shareLimit") ? INVALID : ""}`} {...v.field("shareLimit")} />{v.error("shareLimit")}<span className="mt-1 block text-xs leading-relaxed">The most this person can pledge to one payment request. Pledges stop at 100% of each request, so the total never goes over, however many helpers you invite.</span></label>}
-              <label className="text-sm text-ink-2">
-                Currency they pay in
-                <select className={`${FIELD} mt-1`} value={form.currency} onChange={set("currency")}>
-                  {["IDR", "MYR", "SGD", "AED", "USD"].map((c) => (
-                    <option key={c}>{c}</option>
-                  ))}
-                </select>
-              </label>
+              {form.role === "payer" && <label className="text-sm text-ink-2 sm:col-span-2">Maximum share in {limitCurrency}<input id="invite-shareLimit" inputMode="decimal" value={form.shareLimit} onChange={set("shareLimit")} placeholder={limitCurrency === "IDR" ? "e.g. 10000000" : "e.g. 5000"} className={`${FIELD} mt-1 ${v.invalid("shareLimit") ? INVALID : ""}`} {...v.field("shareLimit")} />{v.error("shareLimit")}
+                <span className="mt-1 block text-xs leading-relaxed">{caseLimit !== null && limitCurrency !== CASE.currency ? <>About <b>{money(caseLimit, CASE.currency)}</b> in the hospital’s currency at the reference rate. </> : null}The most this person can pledge to one payment request. Nothing is charged when you invite, and pledges stop at 100% of each request. They choose the currency they pay in when they accept.</span></label>}
               <div className="flex gap-2 sm:col-span-2">
                 <button type="submit" className={PRIMARY} disabled={busy}>
                   {busy ? <><Spinner />Creating…</> : delivery === "email" ? "Send invitation" : "Create invite link"}
@@ -107,7 +105,7 @@ export default function MembersPage() {
         </Section>
       )}
 
-      {mode === "demo" && <label className="block text-sm font-semibold text-ink-2">Viewing as<select aria-label="View case as member" value={CASE.me.id} onChange={e=>void selectMember(CASE.id,e.target.value)} className="mt-2 block w-full rounded-xl border border-line bg-white p-3">{CASE.members.map(m=><option key={m.id} value={m.id}>{m.displayName} · {m.role}</option>)}</select></label>}
+      {mode === "demo" && <div className="block text-sm font-semibold text-ink-2">Viewing as<Select label="View case as member" className="mt-2" value={CASE.me.id} onChange={id => void selectMember(CASE.id, id)} options={CASE.members.map(m => ({ value: m.id, label: m.displayName, hint: m.role }))} /></div>}
       <Section title="Patient" agent="clerk">
         <div className="flex flex-wrap items-center gap-3">
           <MemberAvatar id="PATIENT" className="h-12 w-12 rounded-xl" />

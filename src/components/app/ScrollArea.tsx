@@ -6,7 +6,7 @@ import { Chevron } from "@/components/landing/icons";
 // A scrolling box that shows it scrolls: soft fades at the edges that have more content, and a
 // small button that moves one page further. Used for the team, activity and next-steps lists.
 
-export function ScrollArea({ axis = "y", label, className = "", fade = "from-white", children }: { axis?: "x" | "y"; label: string; className?: string; fade?: string; children: ReactNode }) {
+export function ScrollArea({ axis = "y", label, className = "", boxClassName = "", fade = "from-white", children }: { axis?: "x" | "y"; label: string; className?: string; boxClassName?: string; fade?: string; children: ReactNode }) {
   const box = useRef<HTMLDivElement>(null);
   const [edges, setEdges] = useState({ start: false, end: false });
   const measure = useCallback(() => {
@@ -35,7 +35,7 @@ export function ScrollArea({ axis = "y", label, className = "", fade = "from-whi
   const button = "absolute z-10 grid place-items-center rounded-full bg-white text-serpent-dark shadow-[0_6px_16px_-6px_rgba(32,33,33,0.5)] ring-1 ring-line transition-opacity hover:bg-firstlight";
   return (
     <div className={`relative min-h-0 ${className}`}>
-      <div ref={box} onScroll={measure} tabIndex={0} aria-label={label} className={`h-full overscroll-contain ${vertical ? "overflow-y-auto" : "overflow-x-auto"}`}>
+      <div ref={box} onScroll={measure} tabIndex={0} aria-label={label} className={`h-full overscroll-contain ${vertical ? "overflow-y-auto" : "overflow-x-auto"} ${boxClassName}`}>
         {children}
       </div>
       {/* Edge fades say "there is more this way". */}

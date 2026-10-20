@@ -6,6 +6,7 @@ import type { Session } from "next-auth";
 import type { Member } from "@/lib/demo";
 import { ownerDatabase, WorkspaceStore } from "./workspace";
 import { appendAudit } from "./audit";
+import { payCurrencies, toCaseCurrency } from "@/lib/fx-rates";
 
 import { ApiError } from "./errors";
 export { ApiError } from "./errors";
@@ -66,8 +67,16 @@ export type Delivery="email"|"link";
  * account's Invitation Requests. "link" invites carry no email: the first Google account that opens
  * the link and accepts it joins, once, within 72 hours. The token is returned for the share link.
  */
-export function invite(c: CaseAccess, input: { name:string;email?:string;role:"payer"|"companion";currency:string;shareLimit:number;delivery?:Delivery }) {
+/**
+ * `shareLimit` is in `limitCurrency` (the owner's own currency by default) and is stored in the
+ * hospital currency at the reference rate, rounded down. The helper picks the currency they pay in
+ * when accepting; `currency` is only kept for older callers.
+ */
+export function invite(c: CaseAccess, input: { name:string;email?:string;role:"payer"|"companion";currency?:string;shareLimit:number;limitCurrency?:string;delivery?:Delivery }) {
   requireOwner(c);
+  const caseCurrency=c.store.get(c.caseId).case.currency;
+  const limit=input.role==="payer"?toCaseCurrency(input.shareLimit,input.limitCurrency??caseCurrency,caseCurrency):0;
+  if(limit===null) throw new ApiError(`There is no reference rate from ${input.limitCurrency} to ${caseCurrency}. Enter the limit in ${caseCurrency}.`);
   const delivery:Delivery=input.delivery ?? "email";
   const email=input.email?.trim().toLowerCase() ?? "";
   if(c.session.user.mode==="google" && delivery==="email" && !email) throw new ApiError("Enter the helper’s Google email address.");
@@ -76,7 +85,7 @@ export function invite(c: CaseAccess, input: { name:string;email?:string;role:"p
   const index=directory();
   try {
     index.prepare("INSERT INTO invitations (hash,owner_id,case_id,mode,name,email,role,currency,share_limit,expires_at,used_by,delivery,inviter) VALUES (?,?,?,?,?,?,?,?,?,?,NULL,?,?)")
-      .run(hashToken(token),c.ownerId,c.caseId,c.session.user.mode,input.name,delivery==="email"?email:"",input.role,input.currency,input.shareLimit,new Date(Date.now()+72*3600_000).toISOString(),delivery,c.member.displayName);
+      .run(hashToken(token),c.ownerId,c.caseId,c.session.user.mode,input.name,delivery==="email"?email:"",input.role,input.currency??"",limit,new Date(Date.now()+72*3600_000).toISOString(),delivery,c.member.displayName);
   } finally{index.close();}
   appendAudit(c.db,{caseId:c.caseId,actor:c.member.id,action:"member.invite",inputSources:["user"],decision:"allow",result:{name:input.name,role:input.role,delivery}});
   return token;
@@ -93,12 +102,12 @@ function addressedTo(row:Invitation,session:Session) {
 }
 
 /** Open, accept or decline an invitation by its link token. */
-export function invitation(session: Session, token:string, accept=false) {
-  return invitationById(session,hashToken(token),accept?"accept":"view");
+export function invitation(session: Session, token:string, accept=false, currency?:string) {
+  return invitationById(session,hashToken(token),accept?"accept":"view",currency);
 }
 
 /** Same, by invitation id (the token's hash). Used by the Invitation Requests list. */
-export function invitationById(session: Session, hash:string, action:"view"|"accept"|"decline"="view") {
+export function invitationById(session: Session, hash:string, action:"view"|"accept"|"decline"="view", currency?:string) {
   const index=directory();
   try {
     const row=index.prepare("SELECT * FROM invitations WHERE hash=?").get(hash) as Invitation|undefined;
@@ -111,14 +120,18 @@ export function invitationById(session: Session, hash:string, action:"view"|"acc
       const store=new WorkspaceStore(db,session.user.mode,session.user.name ?? row.name);
       const data=store.get(row.case_id);
       const memberId=`M_invite_${hash.slice(0,24)}`;
+      const choices=payCurrencies(data.case.currency);
       if(action==="accept" && !row.used_by) {
-        db.prepare("INSERT OR IGNORE INTO members (id,case_id,display_name,role,share_limit,currency) VALUES (?,?,?,?,?,?)").run(memberId,row.case_id,session.user.mode==="google" ? session.user.name ?? row.name : row.name,row.role,row.share_limit,row.currency);
+        // The helper chooses the currency they pay in; it must have a reference rate for this case.
+        const pays=currency ?? (row.currency || data.case.currency);
+        if(!choices.includes(pays)) throw new ApiError(`Choose one of: ${choices.join(", ")}.`);
+        db.prepare("INSERT OR IGNORE INTO members (id,case_id,display_name,role,share_limit,currency) VALUES (?,?,?,?,?,?)").run(memberId,row.case_id,session.user.mode==="google" ? session.user.name ?? row.name : row.name,row.role,row.share_limit,pays);
         index.prepare("INSERT OR REPLACE INTO memberships VALUES (?,?,?,?)").run(session.user.id,row.owner_id,row.case_id,memberId);
         index.prepare("UPDATE invitations SET used_by=?, declined_by=NULL WHERE hash=?").run(session.user.id,hash);
         appendAudit(db,{caseId:row.case_id,actor:memberId,action:"member.join",inputSources:["user"],decision:"allow",result:{role:row.role,delivery:row.delivery}});
       }
       if(action==="decline" && !row.used_by) index.prepare("UPDATE invitations SET declined_by=? WHERE hash=?").run(session.user.id,hash);
-      return {id:hash,caseId:row.case_id,patientName:data.case.patient.name,hospitalName:data.case.hospital.name,country:data.country,caseCurrency:data.case.currency,inviter:row.inviter||"The case owner",role:row.role,name:row.name,currency:row.currency,shareLimit:row.share_limit,delivery:row.delivery,expiresAt:row.expires_at,accepted:Boolean(row.used_by)||action==="accept",declined:action==="decline",memberId};
+      return {id:hash,caseId:row.case_id,patientName:data.case.patient.name,hospitalName:data.case.hospital.name,country:data.country,caseCurrency:data.case.currency,inviter:row.inviter||"The case owner",role:row.role,name:row.name,currency:row.currency,currencies:choices,shareLimit:row.share_limit,delivery:row.delivery,expiresAt:row.expires_at,accepted:Boolean(row.used_by)||action==="accept",declined:action==="decline",memberId};
     } finally{db.close();}
   } finally{index.close();}
 }

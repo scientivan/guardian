@@ -1,5 +1,6 @@
 "use client";
 
+import { Select } from "@/components/app/Select";
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useCaseData, useWorkspace } from "@/components/app/WorkspaceProvider";
@@ -45,7 +46,7 @@ export default function BillPage() {
   },[target,e?.documentId,care.id,call,showError,startWork]);
   const working=busy||auto;
   const bills=documents.filter(d=>d.type!=="estimate");
-  const controls=<div className="space-y-3"><label className="block text-sm font-semibold text-ink-2">Bill to review<select aria-label="Bill to review" value={selected} onChange={event=>setSelected(event.target.value)} disabled={!bills.length} className="mt-2 block w-full rounded-xl border border-line bg-white p-3">{!bills.length&&<option value="">No bills uploaded yet</option>}{bills.map(d=><option key={d.id} value={d.id}>{d.title} · {d.status==="needs_reupload"?"needs a clearer copy":d.status}</option>)}</select></label><button type="button" disabled={!selected||working} onClick={refreshExplanation} className={SECONDARY}>{working?<><Spinner />Reading and checking…</>:"Explain selected bill"}</button></div>;
+  const controls=<div className="space-y-3"><div className="block text-sm font-semibold text-ink-2">Bill to review<Select label="Bill to review" className="mt-2" value={selected} onChange={setSelected} disabled={!bills.length} placeholder="No bills uploaded yet" options={bills.map(d=>({value:d.id,label:d.title,hint:`${d.type==="final"?"Final bill":"Interim bill"} · ${d.status==="needs_reupload"?"needs a clearer copy":d.status==="parsed"?"read":d.status}`}))}/></div><button type="button" disabled={!selected||working} onClick={refreshExplanation} className={SECONDARY}>{working?<><Spinner />Reading and checking…</>:"Explain selected bill"}</button></div>;
   const upload=<Link href={`/case/${care.id}/upload`} className={PRIMARY}><Upload className="h-4 w-4" />Upload a bill</Link>;
   if (!e) return <Section title="Bill Review" agent="reader" action={upload}>{controls}<p className="mt-4 text-ink-2">Upload the hospital’s estimate and a bill to see the comparison.</p></Section>;
   const scale=Math.max(e.estimate.high,e.estimate.low,e.total,1)*1.1;

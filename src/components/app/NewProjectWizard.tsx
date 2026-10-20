@@ -1,5 +1,6 @@
 "use client";
 
+import { Select, options } from "./Select";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
@@ -120,11 +121,11 @@ export function NewProjectWizard({ initialStep }: { initialStep?: number }) {
       <form id="wizard" noValidate onSubmit={e => { e.preventDefault(); void next(); }} className="space-y-4">
         {step === 0 && <>
           <Field label="Your name" htmlFor="wizard-ownerName"><input id="wizard-ownerName" autoComplete="name" value={ownerName} onChange={e => setOwnerName(e.target.value)} className={input("ownerName")} {...v.field("ownerName")} />{v.error("ownerName")}</Field>
-          <Field label="Currency you pay in" htmlFor="wizard-currency"><select id="wizard-currency" value={currency} onChange={e => setCurrency(e.target.value)} className={INPUT}>{CURRENCIES.map(c => <option key={c}>{c}</option>)}</select></Field>
+          <Field label="Currency you pay in" htmlFor="wizard-currency"><Select id="wizard-currency" className="mt-1" value={currency} onChange={setCurrency} options={options(CURRENCIES)} /></Field>
         </>}
         {step === 1 && <Field label="Patient’s name" htmlFor="wizard-patientName"><input id="wizard-patientName" value={patientName} onChange={e => setPatientName(e.target.value)} className={input("patientName")} {...v.field("patientName")} />{v.error("patientName")}</Field>}
         {step === 2 && <>
-          <Field label="Hospital country" htmlFor="wizard-country"><select id="wizard-country" value={country} disabled={waiting} onChange={e => { setCountry(e.target.value); setHospital(null); }} className={INPUT}>{COUNTRIES.map(c => <option key={c}>{c}</option>)}</select></Field>
+          <Field label="Hospital country" htmlFor="wizard-country"><Select id="wizard-country" className="mt-1" value={country} disabled={waiting} onChange={v => { setCountry(v); setHospital(null); }} options={options(COUNTRIES)} /></Field>
           <Field label="Hospital" htmlFor="wizard-hospital">
             <HospitalPicker country={country} mode={mode} value={hospital} pending={pending} onSelect={onSelect} onPending={onPending} invalid={v.invalid("hospital") && !waiting} describedBy={v.visible("hospital") ? "wizard-hospital-error" : undefined} />
             {!waiting && v.error("hospital")}

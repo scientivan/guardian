@@ -63,10 +63,10 @@ export async function dispatch(request:NextRequest,path:string[]) {
 
     if(path[0]==="invitations" && path.length===1 && request.method==="GET")return reply({invitations:receivedInvitations(session)});
     if(path[0]==="invitations" && path[1]==="id" && path[2]) {
-      const action=request.method==="POST"?z.object({action:z.enum(["accept","decline"])}).parse(await body()).action:"view";
-      return reply(invitationById(session,path[2],action));
+      const v=request.method==="POST"?z.object({action:z.enum(["accept","decline"]),currency:z.string().max(5).optional()}).parse(await body()):{action:"view" as const,currency:undefined};
+      return reply(invitationById(session,path[2],v.action,v.currency));
     }
-    if(path[0]==="invitations" && path[1])return reply(invitation(session,path[1],request.method==="POST"));
+    if(path[0]==="invitations" && path[1])return reply(invitation(session,path[1],request.method==="POST",request.method==="POST"?z.object({currency:z.string().max(5).optional()}).parse(await request.json().catch(()=>({}))).currency:undefined));
     if(path[0]==="cases" && path.length===1 && request.method==="GET")return reply(await accountWorkspace(session,selected));
     if(path[0]==="cases" && path.length===1 && request.method==="POST") {
       const db=ownerDatabase(session.user.id);
@@ -126,7 +126,7 @@ export async function dispatch(request:NextRequest,path:string[]) {
       if(section==="chat" && request.method==="POST"){const b=await body();return reply(await api.chat(b.message,b.context));}
       if(section==="chat" && request.method==="GET")return reply(api.messages());
       if(section==="invitations" && request.method==="POST") {
-        const v=z.object({name:z.string().trim().superRefine(zodRule(memberName())),email:z.string().trim().superRefine(zodRule(emailRule())).optional(),delivery:z.enum(["email","link"]).default("email"),role:z.enum(["payer","companion"]),currency:z.enum(["IDR","MYR","SGD","AED","USD","CNY"]),shareLimit:z.number().int().nonnegative().max(100_000_000_00).default(0)}).parse(await body());
+        const v=z.object({name:z.string().trim().superRefine(zodRule(memberName())),email:z.string().trim().superRefine(zodRule(emailRule())).optional(),delivery:z.enum(["email","link"]).default("email"),role:z.enum(["payer","companion"]),currency:z.enum(["IDR","MYR","SGD","AED","USD","CNY"]).optional(),limitCurrency:z.enum(["IDR","MYR","SGD","AED","USD","CNY","THB"]).optional(),shareLimit:z.number().int().nonnegative().max(100_000_000_00).default(0)}).parse(await body());
         return reply({link:`${request.nextUrl.origin}/join/${invite(c,v)}`});
       }
       if(section==="refunds" && request.method==="GET")return reply(api.view().refunds);
