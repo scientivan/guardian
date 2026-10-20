@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useCaseData, useWorkspace } from "@/components/app/WorkspaceProvider";
+import { Spinner, useFeedback, useTask, WORK } from "@/components/app/Feedback";
 
 import Link from "next/link";
 import { CopyButton } from "@/components/app/CopyButton";
@@ -25,23 +26,24 @@ export default function BillPage() {
   const {call}=useWorkspace();
   const query=useSearchParams();
   const [selected,setSelected]=useState(query.get("documentId")??e?.documentId??documents.find(d=>d.type!=="estimate"&&d.status==="parsed")?.id??"");
-  const [busy,setBusy]=useState(false);
-  const [error,setError]=useState("");
+  const {busy,run}=useTask();
+  const {showError,startWork}=useFeedback();
+  const [auto,setAuto]=useState(false);
   async function refreshExplanation() {
-    setBusy(true);setError("");
-    try{await call(`/cases/${care.id}/explanation?documentId=${encodeURIComponent(selected)}`,"POST",{},care.id);}
-    catch(e){setError((e as Error).message);}finally{setBusy(false);}
+    await run(()=>call(`/cases/${care.id}/explanation?documentId=${encodeURIComponent(selected)}`,"POST",{},care.id),{work:WORK.explain,retry:true});
   }
   useEffect(()=>{if(query.get("documentId"))setSelected(query.get("documentId")!);},[query]);
   const target=query.get("documentId");
   useEffect(()=>{
-    if(!target)return;
-    if(target===e?.documentId){setBusy(false);return;}
-    let active=true;setBusy(true);setError("");
-    call(`/cases/${care.id}/explanation?documentId=${encodeURIComponent(target)}`,"POST",{},care.id).catch(error=>{if(active)setError(error.message);}).finally(()=>{if(active)setBusy(false);});
-    return()=>{active=false;};
-  },[target,e?.documentId,care.id,call]);
-  const controls=<div className="space-y-3"><label className="block text-sm font-semibold text-ink-2">Bill to review<select aria-label="Bill to review" value={selected} onChange={event=>setSelected(event.target.value)} className="mt-2 block w-full rounded-xl border border-line bg-white p-3">{documents.filter(d=>d.type!=="estimate").map(d=><option key={d.id} value={d.id}>{d.title} · {d.status}</option>)}</select></label><button type="button" disabled={!selected||busy} onClick={refreshExplanation} className={SECONDARY}>{busy?"Reading and checking…":"Explain selected bill"}</button>{error && <p role="alert" className="text-danger-ink">{error}</p>}</div>;
+    if(!target||target===e?.documentId)return;
+    let active=true;setAuto(true);
+    const stop=startWork(WORK.explain);
+    call(`/cases/${care.id}/explanation?documentId=${encodeURIComponent(target)}`,"POST",{},care.id).catch(error=>{if(active)showError(error);}).finally(()=>{stop();if(active)setAuto(false);});
+    return()=>{active=false;stop();};
+  },[target,e?.documentId,care.id,call,showError,startWork]);
+  const working=busy||auto;
+  const bills=documents.filter(d=>d.type!=="estimate");
+  const controls=<div className="space-y-3"><label className="block text-sm font-semibold text-ink-2">Bill to review<select aria-label="Bill to review" value={selected} onChange={event=>setSelected(event.target.value)} disabled={!bills.length} className="mt-2 block w-full rounded-xl border border-line bg-white p-3">{!bills.length&&<option value="">No bills uploaded yet</option>}{bills.map(d=><option key={d.id} value={d.id}>{d.title} · {d.status==="needs_reupload"?"needs a clearer copy":d.status}</option>)}</select></label><button type="button" disabled={!selected||working} onClick={refreshExplanation} className={SECONDARY}>{working?<><Spinner />Reading and checking…</>:"Explain selected bill"}</button></div>;
   if (!e) return <Section title="Bill Review" agent="reader">{controls}<p className="mt-4">Upload an estimate and a bill to see the comparison.</p><Link href="upload" className="mt-4 inline-block font-semibold text-serpent-dark underline">Upload a bill</Link></Section>;
   const scale=Math.max(e.estimate.high,e.estimate.low,e.total,1)*1.1;
   const at=(value:number)=>Math.max(0,Math.min(100,share(value,scale)));

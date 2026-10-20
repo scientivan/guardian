@@ -8,6 +8,7 @@ import type { PublicHospital } from "@/lib/hospitals";
 import { EntryFrame, INPUT } from "./EntryFrame";
 import { PRIMARY, SECONDARY, Section } from "./ui";
 import { useWorkspace } from "./WorkspaceProvider";
+import { Spinner, useTask, WORK } from "./Feedback";
 import type { AgentId } from "@/components/landing/agents";
 
 const STEPS = ["You", "The patient", "The hospital", "First bill", "Check"];
@@ -30,16 +31,13 @@ export function NewProjectWizard({ initialStep = 0 }: { initialStep?: number }) 
   useEffect(()=>{let active=true;fetch("/api/hospitals",{cache:"no-store"}).then(async r=>{if(!r.ok)throw new Error("The hospital directory could not be loaded. You can enter a name and link a verified hospital later.");return r.json();}).then(value=>{if(!active)return;const list=(value.hospitals as PublicHospital[]).filter(h=>["listed","verified"].includes(h.profileStatus));setHospitals(list);const chosen=list.find(h=>h.id===params.get("hospitalId"));if(chosen){setDirectoryId(chosen.id);setHospitalName(chosen.profile.name);setCountry(chosen.profile.country);}}).catch(e=>{if(active)setDirectoryError(e.message);});return()=>{active=false;};},[mode,params]);
   const [currency, setCurrency] = useState("IDR");
   const [file, setFile] = useState<File | null>(null);
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState("");
+  const { busy, run } = useTask();
   const [createdId, setCreatedId] = useState<string | null>(null);
   const canContinue = step === 0 ? ownerName.trim() : step === 1 ? patientName.trim() : step === 2 ? hospitalName.trim() : true;
 
   async function next() {
-    setError("");
     if (step < 4) { setStep(s => s + 1); return; }
-    setBusy(true);
-    try {
+    await run(async () => {
       let id = createdId;
       if (!id) {
         const c = await createCase({ ownerName, patientName, country, hospitalName, currency, ...(mode==="google"&&directoryId?{hospitalDirectoryId:directoryId}:{}) });
@@ -48,8 +46,7 @@ export function NewProjectWizard({ initialStep = 0 }: { initialStep?: number }) 
       }
       if (file) { const form = new FormData(); form.set("file", file); form.set("type", "estimate"); await act(id, form); }
       router.push(`/case/${id}`);
-    } catch (e) { setError((e as Error).message); }
-    finally { setBusy(false); }
+    }, { work: file ? WORK.upload : WORK.create, retry: true });
   }
 
   return <EntryFrame title="Start a Care Case" working={[AGENTS[step]]} profile>
@@ -64,7 +61,6 @@ export function NewProjectWizard({ initialStep = 0 }: { initialStep?: number }) 
         {step === 4 && <dl className="divide-y divide-line">{[["You", ownerName], ["Patient", patientName], ["Hospital", `${hospitalName}, ${country}`], ["Your currency", currency], ["First bill", file?.name ?? "Upload later"]].map(([k,v]) => <div key={k} className="flex justify-between gap-4 py-3"><dt className="text-ink-2">{k}</dt><dd className="text-right font-semibold text-lead">{v}</dd></div>)}</dl>}
       </div>
     </Section>
-    {error && <p role="alert" className="text-danger-ink">{error}</p>}
-    <div className="flex justify-between gap-3"><button type="button" onClick={() => setStep(s => Math.max(0, s - 1))} disabled={busy || step === 0} className={SECONDARY}>Back</button><button type="button" onClick={next} disabled={busy || !canContinue} className={PRIMARY}>{busy ? "Saving your care case…" : step === 4 ? "Start care case" : "Next"}</button></div>
+    <div className="flex justify-between gap-3"><button type="button" onClick={() => setStep(s => Math.max(0, s - 1))} disabled={busy || step === 0} className={SECONDARY}>Back</button><button type="button" onClick={next} disabled={busy || !canContinue} className={PRIMARY}>{busy ? <><Spinner />Saving your care case…</> : step === 4 ? "Start care case" : "Next"}</button></div>
   </EntryFrame>;
 }

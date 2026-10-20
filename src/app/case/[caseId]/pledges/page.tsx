@@ -7,6 +7,7 @@ import { Chip, MoneyFigure, PRIMARY, SECONDARY, Section } from "@/components/app
 import { useCaseData, useWorkspace } from "@/components/app/WorkspaceProvider";
 import { money, share } from "@/lib/format";
 import type { Quote } from "@/server/fx";
+import { ClientError, explainError, Spinner, useFeedback, useTask, WORK } from "@/components/app/Feedback";
 
 export default function PledgesPage() {
   const { case: care, requests } = useCaseData();
@@ -18,21 +19,18 @@ export default function PledgesPage() {
   useEffect(()=>{if(requestedId)setSelected(requestedId);},[requestedId]);
   const [amount,setAmount]=useState("");
   const [purpose,setPurpose]=useState("Hospital deposit");
-  const [error,setError]=useState("");
-  const [busy,setBusy]=useState(false);
+  const {busy,run}=useTask();
   async function create() {
-    setBusy(true);setError("");
-    try{const result=await call(`/cases/${care.id}/payment-requests`,"POST",{payeeId:care.payees[0]?.id,amount:Math.round(Number(amount)*100),purpose,expiresInMinutes:120},care.id) as {id:string};setSelected(result.id);}
-    catch(e){setError((e as Error).message);}finally{setBusy(false);}
+    const result=await run(()=>call(`/cases/${care.id}/payment-requests`,"POST",{payeeId:care.payees[0]?.id,amount:Math.round(Number(amount)*100),purpose,expiresInMinutes:120},care.id) as Promise<{id:string}>);
+    if(result)setSelected(result.id);
   }
-  async function verify() {setBusy(true);setError("");try{await call(`/cases/${care.id}/payees/verify`,"POST",{},care.id);}catch(e){setError((e as Error).message);}finally{setBusy(false);}}
+  async function verify() {await run(()=>call(`/cases/${care.id}/payees/verify`,"POST",{},care.id),{work:WORK.verify,retry:true});}
   return <div className="space-y-10">
-    {error && <p role="alert" className="text-danger-ink">{error}</p>}
     {care.anomalies.filter(a=>!a.resolved).map(a=><p key={a.id} className="rounded-xl bg-danger-soft p-4 text-danger-ink">{a.detail}</p>)}
     {care.me.role==="owner" && <Section title="Payment Requests" agent="gate">
       <p className="mb-4 leading-relaxed text-ink-2">Payments go only to the hospital’s verified account. Each person approves their own share before you review and execute the request.</p>
       <Link href={`/hospitals?caseId=${care.id}`} className="mb-4 inline-flex min-h-11 items-center text-sm font-semibold text-serpent-dark underline">Find this institution in Hospital Directory</Link>
-      <div className="flex flex-wrap items-center gap-3"><button type="button" onClick={verify} disabled={busy} className={SECONDARY}>Verify hospital account</button>{care.payees.map(p=><span key={p.id} className="text-sm text-serpent-dark">{p.name} · {p.accountMasked}</span>)}</div>
+      <div className="flex flex-wrap items-center gap-3"><button type="button" onClick={verify} disabled={busy} className={SECONDARY}>{busy?<><Spinner/>Checking…</>:"Verify hospital account"}</button>{care.payees.map(p=><span key={p.id} className="text-sm text-serpent-dark">{p.name} · {p.accountMasked}</span>)}</div>
       {care.payees.length>0 && <div className="mt-5 grid gap-3 sm:grid-cols-[1fr_1fr_auto]"><input aria-label="Payment purpose" value={purpose} onChange={e=>setPurpose(e.target.value)} className="rounded-xl border border-line bg-white p-3" /><input aria-label="Requested amount" type="number" min="0.01" step="0.01" value={amount} onChange={e=>setAmount(e.target.value)} placeholder={`Amount in ${care.currency}`} className="rounded-xl border border-line bg-white p-3" /><button type="button" disabled={busy||!amount||Number(amount)<=0} onClick={create} className={PRIMARY}>Create request</button></div>}
     </Section>}
     {!requests.length ? <Section title="Pledges" agent="gate"><p>No payment request is waiting for approval. A hospital account must be verified before a request can be created.</p></Section> : <>
@@ -50,18 +48,24 @@ function PaymentForm({requestId}:{requestId:string}) {
   const hasMine=Boolean(mine);
   const [amount,setAmount]=useState(request.remaining);
   const [quote,setQuote]=useState<(Quote & {quoteId:string;fxRate:string})|null>(null);
-  const [error,setError]=useState("");
-  const [busy,setBusy]=useState(false);
+  const [quoteError,setQuoteError]=useState("");
+  const {busy,run}=useTask();
+  const {showError}=useFeedback();
   const [confirm,setConfirm]=useState(false);
   useEffect(()=>{
     let active=true;setQuote(null);
     if(hasMine || request.status!=="pending" || amount<=0 || amount>request.remaining || care.me.role==="companion")return;
-    const timer=setTimeout(()=>{call(`/payment-requests/${requestId}/fx-quote`,"POST",{amount},care.id).then(q=>{if(active){setQuote(q as Quote & {quoteId:string;fxRate:string});setError("");}}).catch(e=>{if(active)setError(e.message);});},350);
+    const timer=setTimeout(()=>{call(`/payment-requests/${requestId}/fx-quote`,"POST",{amount},care.id).then(q=>{if(active){setQuote(q as Quote & {quoteId:string;fxRate:string});setQuoteError("");}}).catch(e=>{if(active){const x=explainError(e);setQuoteError(`${x.title}. ${x.body}`);}});},350);
     return()=>{active=false;clearTimeout(timer);};
   },[amount,requestId,hasMine,request.status,request.remaining,care.id,care.me.id,care.me.role,call]);
-  async function action(path:string,body:object={},method="POST") {setBusy(true);setError("");try{const response=await call(path,method,body,care.id) as {ok?:boolean};if(response.ok===false)setError("Some shares could not be charged. Review the request and receipts.");setConfirm(false);}catch(e){setError((e as Error).message);}finally{setBusy(false);}}
+  async function action(path:string,body:object={},method="POST") {
+    const response=await run(()=>call(path,method,body,care.id) as Promise<{ok?:boolean}>,{work:path.endsWith("/execute")?WORK.execute:undefined});
+    if(!response)return;
+    setConfirm(false);
+    if(response.ok===false)showError(new ClientError("Some shares could not be charged. Review the request and each person’s receipt below.",409));
+  }
   return <div className="space-y-8">
-    {error && <p role="alert" className="text-danger-ink">{error}</p>}
+    {quoteError && <p role="alert" className="rounded-xl bg-warn-soft p-3 text-sm text-warn-ink">{quoteError}</p>}
     {request.status==="cancelled" && !care.payees.some(p=>p.id===request.payeeId) && <p role="status" className="rounded-xl bg-warn-soft p-4 text-sm leading-relaxed text-warn-ink">The hospital’s payment authority changed or was put on hold. This request’s approvals cannot be reused. Review the institution and create a new request after its account is verified again.</p>}
     <Section title={request.purpose} agent="gate" action={<Chip tone={request.status==="paid"?"ok":request.status==="pending"?"warn":"muted"}>{request.status==="pending"?(request.remaining?`${money(request.remaining,request.currency)} still missing`:"Covered"):request.status}</Chip>}>
       <MoneyFigure minor={request.approved} currency={request.currency} /><span className="ml-2 text-ink-2">of {money(request.amount,request.currency)}</span>
@@ -79,7 +83,7 @@ function PaymentForm({requestId}:{requestId:string}) {
     </Section>}
     {request.status==="pending" && care.me.role==="owner" && <Section title="Review and Pay" agent="gate">
       <p className="mb-4 leading-relaxed text-ink-2">The request must be fully covered. The gateway checks the recipient, permissions, approved amounts and open warnings again before executing.</p>
-      {confirm ? <div className="space-y-4"><p className="text-sm text-warn-ink">{mode === "demo" ? "This execution uses an isolated payment sandbox." : "This execution uses Stripe test mode."}</p><p className="font-semibold text-lead">Pay {money(request.amount,request.currency)} to {request.payeeName}, account {request.accountMasked}, using the approved shares above?</p><div className="flex flex-wrap gap-3"><button type="button" disabled={busy} onClick={()=>action(`/payment-requests/${request.id}/execute`)} className={PRIMARY}>{busy?"Executing…":"Confirm and pay approved shares"}</button><button type="button" onClick={()=>setConfirm(false)} disabled={busy} className={SECONDARY}>Back</button></div></div> : <div className="flex flex-wrap gap-3"><button type="button" onClick={()=>setConfirm(true)} disabled={busy||request.remaining>0} className={PRIMARY}>Review payment</button><button type="button" disabled={busy} onClick={()=>action(`/payment-requests/${request.id}/cancel`)} className={SECONDARY}>Cancel request</button></div>}
+      {confirm ? <div className="space-y-4"><p className="text-sm text-warn-ink">{mode === "demo" ? "This execution uses an isolated payment sandbox." : "This execution uses Stripe test mode."}</p><p className="font-semibold text-lead">Pay {money(request.amount,request.currency)} to {request.payeeName}, account {request.accountMasked}, using the approved shares above?</p><div className="flex flex-wrap gap-3"><button type="button" disabled={busy} onClick={()=>action(`/payment-requests/${request.id}/execute`)} className={PRIMARY}>{busy?<><Spinner/>Paying…</>:"Confirm and pay approved shares"}</button><button type="button" onClick={()=>setConfirm(false)} disabled={busy} className={SECONDARY}>Back</button></div></div> : <div className="flex flex-wrap gap-3"><button type="button" onClick={()=>setConfirm(true)} disabled={busy||request.remaining>0} className={PRIMARY}>Review payment</button><button type="button" disabled={busy} onClick={()=>action(`/payment-requests/${request.id}/cancel`)} className={SECONDARY}>Cancel request</button></div>}
     </Section>}
   </div>;
 }

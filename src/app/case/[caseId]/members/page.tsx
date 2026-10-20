@@ -4,6 +4,7 @@ import { useState, type FormEvent } from "react";
 import { CopyButton } from "@/components/app/CopyButton";
 import { MemberAvatar } from "@/components/app/people";
 import { Chip, PRIMARY, SECONDARY, Section, type Tone } from "@/components/app/ui";
+import { useTask } from "@/components/app/Feedback";
 import { useCaseData, useWorkspace } from "@/components/app/WorkspaceProvider";
 
 // Members and invites (brainstorm/17 §4–5). Every person is invited with a personal one-time
@@ -22,23 +23,19 @@ const FIELD = "w-full rounded-xl border border-line bg-white px-3 py-2.5 text-le
 export default function MembersPage() {
   const { case: CASE } = useCaseData();
   const { act,mode,selectMember } = useWorkspace();
-  const [error, setError] = useState("");
-  const [busy, setBusy] = useState(false);
+  const { busy, run } = useTask();
   const [open, setOpen] = useState(false);
   const [link, setLink] = useState<string | null>(null);
 
   async function create(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const fields = new FormData(e.currentTarget);
-    setBusy(true); setError("");
-    try { const r = await act(CASE.id, { action: "invite", name: fields.get("name"), role: fields.get("role"), currency: fields.get("currency"), email: String(fields.get("email")??"").trim() || undefined, shareLimit: Math.round(Number(fields.get("shareLimit")??0)*100) }) as { link: string }; setLink(r.link); }
-    catch(e) { setError((e as Error).message); }
-    finally { setBusy(false); }
+    const r = await run(() => act(CASE.id, { action: "invite", name: fields.get("name"), role: fields.get("role"), currency: fields.get("currency"), email: String(fields.get("email")??"").trim() || undefined, shareLimit: Math.round(Number(fields.get("shareLimit")??0)*100) }) as Promise<{ link: string }>);
+    if (r) setLink(r.link);
   }
 
   return (
     <div className="space-y-12">
-      {error && <p role="alert" className="text-danger-ink">{error}</p>}
       {open && (
         <Section title="Invite a Helper" agent="clerk">
           {link ? (

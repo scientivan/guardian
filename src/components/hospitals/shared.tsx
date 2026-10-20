@@ -1,13 +1,14 @@
 "use client";
 
 import { Children, cloneElement, isValidElement, useCallback, useEffect, useId, useState, type ReactElement, type ReactNode } from "react";
+import { readResponse, request, Spinner } from "@/components/app/Feedback";
 import type { HospitalRecord, HospitalSource, HospitalProfile } from "@/lib/hospitals";
 
 export const FIELD="mt-2 block min-h-11 w-full rounded-xl border border-line bg-white px-3 py-2.5 text-sm text-lead focus-visible:ring-2 focus-visible:ring-serpent";
 export const PANEL="rounded-2xl border border-line bg-white p-5 sm:p-6";
 export async function hospitalRequest<T=unknown>(path:string,body?:unknown):Promise<T> {
-  const response=await fetch(`/api${path}`,{method:body===undefined?"GET":"POST",cache:"no-store",...(body===undefined?{}:{headers:{"Content-Type":"application/json"},body:JSON.stringify(body)})});
-  const data=await response.json();if(!response.ok)throw new Error(data.error??"Could not complete the hospital operation. Try again.");return data;
+  const response=await request(`/api${path}`,{method:body===undefined?"GET":"POST",cache:"no-store",...(body===undefined?{}:{headers:{"Content-Type":"application/json"},body:JSON.stringify(body)})});
+  return readResponse<T>(response,"Could not complete the hospital operation. Try again.");
 }
 export function useHospitalResource<T>(path:string) {
   const [data,setData]=useState<T|null>(null);const [error,setError]=useState("");
@@ -23,7 +24,7 @@ export function Status({value,label}:{value:string;label?:string}) {
   const positive=["verified","active","approved"].includes(value);const warning=["suspended","revoked","rejected","conflict"].includes(value);
   return <span className={`inline-block rounded-lg px-2.5 py-1 text-xs font-bold ${positive?"bg-ok-soft text-ok-ink":warning?"bg-danger-soft text-danger-ink":"bg-mist text-ink-2"}`}>{label?`${label} · `:""}{value.replace(/_/g," ")}</span>;
 }
-export function Loading() {return <div role="status" className="space-y-4 py-6"><p className="text-sm text-ink-2">Opening hospital records…</p>{[1,2,3].map(i=><div key={i} className="h-24 rounded-2xl bg-mist motion-safe:animate-pulse"/>)}</div>;}
+export function Loading() {return <div role="status" className="space-y-4 py-6"><p className="flex items-center gap-3 text-sm text-ink-2"><Spinner className="h-4 w-4 text-serpent"/>Opening hospital records…</p>{[1,2,3].map(i=><div key={i} className="h-24 rounded-2xl bg-mist motion-safe:animate-pulse"/>)}</div>;}
 export function Notice({children,error=false}:{children:ReactNode;error?:boolean}) {return <p role={error?"alert":"status"} className={`rounded-xl p-4 text-sm leading-relaxed ${error?"bg-danger-soft text-danger-ink":"bg-firstlight text-serpent-dark"}`}>{children}</p>;}
 export const EMPTY_PROFILE:HospitalProfile={name:"",branch:"",country:"China",city:"",address:"",phone:"",website:"",billingEmail:"",billingPhone:""};
 export function ProfileFields({value,onChange}:{value:HospitalProfile;onChange:(profile:HospitalProfile)=>void}) {

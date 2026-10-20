@@ -1,5 +1,6 @@
 "use client";
 
+import { explainError, useFeedback, WORK } from "@/components/app/Feedback";
 import { useState, type FormEvent } from "react";
 import type { HospitalProfile, HospitalSource, HospitalReview } from "@/lib/hospitals";
 import { PRIMARY, SECONDARY } from "@/components/app/ui";
@@ -10,9 +11,10 @@ export function ProfileSubmission({initial,initialSources=[],hospitalId,reviewId
   const [sources,setSources]=useState<HospitalSource[]>(initialSources);const [sourceUrls,setSourceUrls]=useState(initialSources.map(s=>s.url).join("\n"));
   const [busy,setBusy]=useState("");const [error,setError]=useState("");const [uncertain,setUncertain]=useState<string[]>([]);
   const [discoveryId,setDiscoveryId]=useState<string>();
+  const {startWork}=useFeedback();
   async function search(event:FormEvent) {
-    event.preventDefault();setBusy("Searching official sources…");setError("");
-    try{const result=await hospitalRequest<{profile:Partial<HospitalProfile>;sources:HospitalSource[];uncertainties:string[];discoveryId:string}>("/hospitals/discover",{query});setDiscoveryId(result.discoveryId);setProfile({...EMPTY_PROFILE,...result.profile});setSources(result.sources);setSourceUrls(result.sources.map(s=>s.url).join("\n"));setUncertain(result.uncertainties);}catch(e){setError((e as Error).message);}finally{setBusy("");}
+    event.preventDefault();setBusy("Searching official sources…");setError("");const stop=startWork(WORK.search);
+    try{const result=await hospitalRequest<{profile:Partial<HospitalProfile>;sources:HospitalSource[];uncertainties:string[];discoveryId:string}>("/hospitals/discover",{query});setDiscoveryId(result.discoveryId);setProfile({...EMPTY_PROFILE,...result.profile});setSources(result.sources);setSourceUrls(result.sources.map(s=>s.url).join("\n"));setUncertain(result.uncertainties);}catch(e){const x=explainError(e);setError(`${x.title}. ${x.body} ${x.hint}`);}finally{stop();setBusy("");}
   }
   async function submit(event:FormEvent) {
     event.preventDefault();setBusy("Submitting for human review…");setError("");
@@ -22,7 +24,7 @@ export function ProfileSubmission({initial,initialSources=[],hospitalId,reviewId
       const evidence=urls.map(url=>sources.find(s=>s.url===url)??{url,title:new URL(url).hostname,retrievedAt:new Date().toISOString(),excerpt:"Submitted evidence link. Independent retrieval and human confirmation are required."});
       const path=reviewId?`/hospitals/proposals/${reviewId}/resubmit`:"/hospitals/proposals";
       const result=await hospitalRequest<HospitalReview>(path,{hospitalId,discoveryId,kind:"profile",payload:profile,sources:evidence});onSaved(result);
-    }catch(e){setError((e as Error).message);}finally{setBusy("");}
+    }catch(e){const x=explainError(e);setError(`${x.title}. ${x.body} ${x.hint}`);}finally{setBusy("");}
   }
   return <div className="space-y-7">
     <form onSubmit={search} className="space-y-3"><Field label="Find a hospital with AI" hint="Search by exact name, branch and country. Search results remain unverified drafts."><input className={FIELD} type="search" value={query} onChange={e=>setQuery(e.target.value)} required minLength={3} maxLength={300} placeholder="Hospital name, branch, city and country"/></Field><button disabled={!!busy} className={SECONDARY} type="submit">{busy.startsWith("Searching")?busy:"Find hospital details"}</button></form>
