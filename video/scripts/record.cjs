@@ -19,7 +19,7 @@ const lines = JSON.parse(fs.readFileSync(path.join(ROOT, "narration.json"), "utf
 const secs = JSON.parse(fs.readFileSync(path.join(ROOT, "public", "tts", "durations.json"), "utf8"));
 const LEAD = 0.35, GAP = 0.45; // same as src/timeline.ts
 const VIEW = { width: 1440, height: 900 };
-const ONLY = process.argv[2];
+const ONLY = process.argv[2] ? process.argv[2].split(",") : null;
 
 // A visible cursor and click ring, since headless recordings show no pointer.
 const CURSOR = `(() => {
@@ -135,7 +135,7 @@ const STARTS = { setup: async p => { await p.goto(`${BASE}/projects`); }, bill: 
 
   for (const scene of Object.keys(STARTS)) {
     const own = lines.filter(l => l.scene === scene);
-    if (ONLY && ONLY !== scene) continue;
+    if (ONLY && !ONLY.includes(scene)) continue;
     const ctx = await browser.newContext({ viewport: VIEW, storageState: state, recordVideo: { dir: OUT, size: VIEW } });
     await ctx.addInitScript(CURSOR);
     const p = await ctx.newPage();
@@ -170,6 +170,7 @@ const STARTS = { setup: async p => { await p.goto(`${BASE}/projects`); }, bill: 
     const file = path.join(OUT, `${scene}.webm`);
     fs.renameSync(await video.path(), file);
     console.log(`${scene}: ${file} (skip ${offsets[scene].toFixed(2)} s)`);
+    fs.writeFileSync(path.join(OUT, "offsets.json"), JSON.stringify(offsets, null, 2));
   }
   fs.writeFileSync(path.join(OUT, "offsets.json"), JSON.stringify(offsets, null, 2));
   await browser.close();
