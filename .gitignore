@@ -63,3 +63,6 @@ yarn-error.log*
 
 # Supabase CLI local cache
 /supabase/.temp/
+
+# Original screenshot containing a private invitation address. Keep local copies outside Git.
+/evidence/e2e-2026-10-20/dashboard-invites-validation/08-invite-sent.png
