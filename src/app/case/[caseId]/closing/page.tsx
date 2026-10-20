@@ -38,10 +38,10 @@ export default function ClosingPage() {
   const warnings = care.anomalies.filter(a => !a.resolved);
   const final = documents.some(d => d.type === "final" && d.status === "parsed");
   const checks: { ok: boolean; blocking?: boolean; text: string; href?: string }[] = [
-    { ok: !open.length, blocking: true, text: open.length ? `${open.length} payment request${open.length > 1 ? "s are" : " is"} still open. Pay or cancel ${open.length > 1 ? "them" : "it"} first.` : "No open payment requests.", href: "pledges" },
-    { ok: final, text: final ? "The final bill is uploaded." : "No final bill yet. Refunds can’t be worked out without it.", href: "upload" },
+    { ok: !open.length, blocking: true, text: open.length ? `${open.length} payment request${open.length > 1 ? "s are" : " is"} still open. Pay or cancel ${open.length > 1 ? "them" : "it"} first.` : "No open payment requests.", href: open[0] ? `pledges?requestId=${open[0].id}` : "pledges" },
+    { ok: final, blocking: true, text: final ? "The final bill is uploaded." : "No final bill yet. Upload it so deposits and refunds can be settled.", href: "upload" },
     { ok: !refundsOpen.length, text: refundsOpen.length ? `${refundsOpen.length} refund share${refundsOpen.length > 1 ? "s haven’t" : " hasn’t"} been received yet. Their records stay readable after closing.` : "No refunds waiting.", href: "refunds" },
-    { ok: !noInvoice.length, text: noInvoice.length ? `${noInvoice.length} paid request${noInvoice.length > 1 ? "s have" : " has"} no hospital invoice attached.` : "Every paid request has the hospital’s invoice.", href: "pledges" },
+    { ok: !noInvoice.length, blocking: true, text: noInvoice.length ? `${noInvoice.map(r => r.purpose).join(", ")} ${noInvoice.length > 1 ? "have" : "has"} no hospital invoice attached.` : "Every paid request has the hospital’s invoice.", href: noInvoice[0] ? `pledges?requestId=${noInvoice[0].id}#invoice` : "pledges" },
     { ok: !warnings.length, text: warnings.length ? "A payee warning is still open." : "No open warnings." },
   ];
   async function close() {
@@ -58,13 +58,13 @@ export default function ClosingPage() {
           <ul className="mb-5 space-y-2">{checks.map(c => (
             <li key={c.text} className="flex items-start gap-3 text-sm">
               <Chip tone={c.ok ? "ok" : c.blocking ? "danger" : "warn"}>{c.ok ? "Done" : c.blocking ? "Required" : "Check"}</Chip>
-              <span className="min-w-0 flex-1 leading-relaxed text-lead">{c.text}{!c.ok && c.href && <> <Link href={c.href} className="font-semibold text-serpent-dark underline">Open</Link></>}</span>
+              <span className="min-w-0 flex-1 leading-relaxed text-lead">{c.text}{!c.ok && c.href && <> <Link href={`/case/${care.id}/${c.href}`} className="font-semibold text-serpent-dark underline">Open</Link></>}</span>
             </li>
           ))}</ul>
           {confirm ? <div className="space-y-3 rounded-2xl bg-white p-5">
             <p className="font-semibold text-lead">Close {care.patient.name}’s care case for everyone?</p>
             <div className="flex flex-wrap gap-3"><button type="button" disabled={busy} onClick={() => void close()} className={PRIMARY}>{busy ? <><Spinner />Closing…</> : "Close care case"}</button><button type="button" disabled={busy} onClick={() => setConfirm(false)} className={SECONDARY}>Back</button></div>
-          </div> : <button type="button" disabled={Boolean(open.length)} onClick={() => setConfirm(true)} className={PRIMARY}>Close care case…</button>}
+          </div> : <button type="button" disabled={checks.some(c => c.blocking && !c.ok)} onClick={() => setConfirm(true)} className={PRIMARY}>Close care case…</button>}
         </Section>
       ) : (
         <p className="rounded-2xl bg-mist p-5 leading-relaxed text-ink-2">The case owner closes the case when treatment and payments are done. Your documents are below and stay available afterwards.</p>

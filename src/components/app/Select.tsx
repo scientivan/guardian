@@ -9,11 +9,13 @@ import { Check, Chevron } from "@/components/landing/icons";
 
 export type Option = { value: string; label: string; hint?: string; disabled?: boolean };
 
-export function Select({ value, onChange, options, id, label, className = "", disabled = false, invalid = false, placeholder = "Choose…", up = false }: {
+export function Select({ value, onChange, options, id, label, className = "", disabled = false, invalid = false, placeholder = "Choose…", up = false, strong = false }: {
   value: string; onChange: (value: string) => void; options: Option[]; id?: string; label?: string;
   className?: string; disabled?: boolean; invalid?: boolean; placeholder?: string;
   /** Open the list above the field (inside dialogs or near the bottom of a panel). */
   up?: boolean;
+  /** Filled serpent look, for a switcher that should stand out. */
+  strong?: boolean;
 }) {
   const generated = useId();
   const listId = `${id ?? generated}-list`;
@@ -65,10 +67,10 @@ export function Select({ value, onChange, options, id, label, className = "", di
         id={id} type="button" disabled={disabled} onClick={() => setOpen(o => !o)} onKeyDown={keys}
         role="combobox" aria-haspopup="listbox" aria-expanded={open} aria-controls={listId} aria-label={label} aria-invalid={invalid || undefined}
         aria-activedescendant={open ? `${listId}-${active}` : undefined}
-        className={`flex min-h-11 w-full items-center gap-3 rounded-xl border bg-white py-2.5 pl-3.5 pr-3 text-left text-sm text-lead outline-none transition-colors focus-visible:border-serpent disabled:cursor-not-allowed disabled:bg-mist disabled:text-ink-2 ${invalid ? "border-danger" : open ? "border-serpent" : "border-line hover:border-cerulean"}`}
+        className={`flex min-h-11 w-full items-center gap-3 rounded-xl border ${strong ? "" : "bg-white text-lead"} py-2.5 pl-3.5 pr-3 text-left text-sm outline-none transition-colors focus-visible:border-serpent disabled:cursor-not-allowed disabled:bg-mist disabled:text-ink-2 ${strong ? "border-serpent bg-serpent font-semibold text-white hover:bg-serpent-dark" : invalid ? "border-danger" : open ? "border-serpent" : "border-line hover:border-cerulean"}`}
       >
-        <span className={`min-w-0 flex-1 truncate ${selected ? "" : "text-ink-2"}`}>{selected ? selected.label : placeholder}</span>
-        <Chevron className={`h-4 w-4 shrink-0 text-serpent-dark transition-transform ${open ? "rotate-180" : ""}`} />
+        <span className={`min-w-0 flex-1 truncate ${selected || strong ? "" : "text-ink-2"}`}>{selected ? selected.label : placeholder}</span>
+        <Chevron className={`h-4 w-4 shrink-0 ${strong ? "text-white" : "text-serpent-dark"} transition-transform ${open ? "rotate-180" : ""}`} />
       </button>
       {open && (
         <ul ref={list} id={listId} role="listbox" aria-label={label} className={`pop absolute left-0 right-0 z-40 ${up ? "bottom-full mb-2" : "mt-2"} max-h-72 overflow-auto rounded-2xl border border-line bg-white p-1.5 shadow-[0_22px_34px_-20px_rgba(32,33,33,0.45)]`}>

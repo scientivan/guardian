@@ -186,6 +186,9 @@ export class Integration {
     if(this.closed())throw new ApiError("This care case is already closed.",409);
     const open=this.view().requests.filter(r=>r.status==="pending"||r.status==="executing");
     if(open.length)throw new ApiError(`Finish or cancel the open payment request${open.length>1?"s":""} (${open.map(r=>r.purpose).join(", ")}) before closing the case.`,409);
+    if(!this.view().documents.some(d=>d.type==="final"&&d.status==="parsed"))throw new ApiError("Upload the final bill before closing the case.",409);
+    const noInvoice=this.view().requests.filter(r=>r.status==="paid"&&!(r.invoices??[]).length);
+    if(noInvoice.length)throw new ApiError(`Attach the hospital’s invoice to ${noInvoice.map(r=>r.purpose).join(", ")} before closing the case.`,409);
     const at=now(this.c.db).toISOString();
     this.c.db.transaction(()=>{
       this.c.db.prepare("INSERT INTO case_closure (case_id,closed_at,closed_by) VALUES (?,?,?)").run(this.c.caseId,at,this.c.member.id);

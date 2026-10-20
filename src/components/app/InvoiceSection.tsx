@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { PaymentRequest } from "@/lib/demo";
 import { day } from "@/lib/format";
 import { documentFile } from "@/lib/validate";
@@ -18,6 +18,8 @@ export function InvoiceSection({ request }: { request: PaymentRequest }) {
   const { showError } = useFeedback();
   const [file, setFile] = useState<File | null>(null);
   const invoices = request.invoices ?? [];
+  // Arriving from "Close and Records → Open": bring this section into view.
+  useEffect(() => { if (window.location.hash === "#invoice") document.getElementById("invoice")?.scrollIntoView({ behavior: "smooth", block: "start" }); }, []);
   const canAttach = care.me.role !== "payer" && !care.closed;
   const fileError = documentFile(file);
   async function attach() {
@@ -36,7 +38,7 @@ export function InvoiceSection({ request }: { request: PaymentRequest }) {
     } catch (e) { showError(e instanceof ClientError ? e : new ClientError("The invoice couldn’t be downloaded.", 0)); }
   }
   return (
-    <Section title="Hospital Invoice" agent="auditor">
+    <div id="invoice" className="scroll-mt-24"><Section title="Hospital Invoice" agent="auditor">
       <p className="mb-4 leading-relaxed text-ink-2">The hospital’s own invoice or receipt for this payment, kept next to the payment receipts as proof the hospital received it.</p>
       {invoices.length > 0 ? <ul className="mb-4 divide-y divide-line rounded-2xl bg-white px-4">{invoices.map(i => (
         <li key={i.id} className="flex flex-wrap items-center gap-x-4 gap-y-1 py-3 text-sm">
@@ -52,6 +54,6 @@ export function InvoiceSection({ request }: { request: PaymentRequest }) {
         <button type="button" disabled={busy || !file || Boolean(fileError)} onClick={() => void attach()} className={PRIMARY}>{busy ? <><Spinner />Saving…</> : "Attach invoice"}</button>
         {file && fileError && <p role="alert" className="w-full text-sm text-danger-ink">{fileError}</p>}
       </div>}
-    </Section>
+    </Section></div>
   );
 }
