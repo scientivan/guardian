@@ -14,6 +14,7 @@ import { ClientError, explainError, Spinner, useFeedback, useTask, WORK } from "
 import { INVALID, useFieldErrors } from "@/components/app/FieldError";
 import { amount as amountRule, check, text } from "@/lib/validate";
 import { paymentPlan } from "@/lib/payment-plan";
+import { PaidReceipt, RequestStages, SandboxCheckout } from "@/components/app/PaymentSheet";
 
 export default function PledgesPage() {
   const { case: care, requests, documents } = useCaseData();
@@ -101,6 +102,13 @@ function PaymentForm({requestId}:{requestId:string}) {
   const [confirm,setConfirm]=useState(false);
   // The owner asks and pays; helpers pledge. An owner who also puts in their own money opts in here.
   const [ownShare,setOwnShare]=useState(false);
+  const [checkout,setCheckout]=useState(false);
+  // A helper whose share was charged sees the receipt once (remembered per browser).
+  const seenKey=`guardian:paid:${request.id}:${care.me.id}`;
+  const [receipt,setReceipt]=useState(false);
+  useEffect(()=>{if(mine?.status!=="charged"||!mine.chargeRef)return;try{if(!localStorage.getItem(seenKey))setReceipt(true);}catch{setReceipt(true);}},[mine?.status,mine?.chargeRef,seenKey]);
+  function closeReceipt(){setReceipt(false);try{localStorage.setItem(seenKey,"1");}catch{}}
+  const sandbox=mode==="demo"?"Payment sandbox":"Stripe test mode";
   useEffect(()=>{
     let active=true;setQuote(null);
     if(hasMine || request.status!=="pending" || amount<=0 || amount>request.remaining || care.me.role==="companion")return;
@@ -110,25 +118,30 @@ function PaymentForm({requestId}:{requestId:string}) {
   async function action(path:string,body:object={},method="POST") {
     const response=await run(()=>call(path,method,body,care.id) as Promise<{ok?:boolean}>,{work:path.endsWith("/execute")?WORK.execute:undefined});
     if(!response)return;
-    setConfirm(false);
+    setConfirm(false);setCheckout(false);
     if(response.ok===false)showError(new ClientError("Some shares could not be charged. Review the request and each person’s receipt below.",409));
   }
   return <div className="space-y-8">
+    {receipt&&mine?.chargeRef&&<PaidReceipt hospital={request.payeeName} receipt={mine.chargeRef} total={money(mine.payAmount+mine.fee,mine.payCurrency)} onClose={closeReceipt}
+      rows={[["Request",request.purpose],["Your share",converted(mine.payAmount,mine.payCurrency,mine.amount,request.currency)],...(mine.payCurrency!==request.currency?[["Rate",rateLine(mine.fxRate,request.currency,mine.payCurrency)] as [string,string]]:[]),["Fee",money(mine.fee,mine.payCurrency)],["Paid to",`${request.payeeName} ${request.accountMasked}`]]}/>}
     {quoteError && <p role="alert" className="rounded-xl bg-warn-soft p-3 text-sm text-warn-ink">{quoteError}</p>}
     {request.status==="cancelled" && !care.payees.some(p=>p.id===request.payeeId) && <p role="status" className="rounded-xl bg-warn-soft p-4 text-sm leading-relaxed text-warn-ink">The hospital’s payment authority changed or was put on hold. This request’s approvals cannot be reused. Review the institution and create a new request after its account is verified again.</p>}
     <Section title={request.purpose} agent="gate" action={<><AskButton question={`How does “${request.purpose}” work?`} context={{ kind: "request", requestId: request.id }} /><Chip tone={request.status==="paid"?"ok":request.status==="pending"?"warn":"muted"}>{request.status==="pending"?(request.remaining?`${money(request.remaining,request.currency)} still missing`:"Covered"):request.status}</Chip></>}>
-      {request.documentId && <p className="mb-3 text-sm text-ink-2">Pays the bill <b className="font-semibold text-lead">{documents.find(d=>d.id===request.documentId)?.title ?? "on file"}</b>.</p>}
+      <RequestStages status={request.status} approved={request.approved} amount={request.amount}/>
+      {request.documentId && <p className="mb-3 text-sm text-ink-2">{documents.find(d=>d.id===request.documentId)?.type==="estimate"?"Deposit based on the estimate":"Pays the bill"} <b className="font-semibold text-lead">{documents.find(d=>d.id===request.documentId)?.title ?? "on file"}</b>.</p>}
       <MoneyFigure minor={request.approved} currency={request.currency} /><span className="ml-2 text-ink-2">of {money(request.amount,request.currency)}</span>
       <div className="mt-5 h-5 overflow-hidden rounded-full bg-white"><div className="h-full bg-serpent transition-all" style={{width:`${share(request.approved,request.amount)}%`}} /></div>
       <p className="mt-3 text-xs text-ink-2">{request.status==="pending"?<>Expires in <Countdown to={request.expiresAt}/> · {new Date(request.expiresAt).toLocaleString()}. Nothing is charged if it isn’t covered by then.</>:`Expiry ${new Date(request.expiresAt).toLocaleString()}`}</p>
-      <ul className="mt-5 divide-y divide-line">{request.approvals.map(p=><li key={p.memberId} className="flex flex-wrap justify-between gap-2 py-3"><span className="font-semibold text-lead">{p.displayName}</span><span className="text-sm text-ink-2">{converted(p.payAmount,p.payCurrency,p.amount,request.currency)}{p.payCurrency!==request.currency&&<> at {rateLine(p.fxRate,request.currency,p.payCurrency)}</>} + {money(p.fee,p.payCurrency)} fee · {p.status==="charged"?"paid":p.status==="charge_failed"?"charge failed":p.status}</span>{p.chargeRef&&<span className="w-full text-xs text-ok-ink">Receipt {p.chargeRef} · paid straight to {request.payeeName} {request.accountMasked}</span>}</li>)}</ul>
+      <ul className="mt-5 divide-y divide-line">{request.approvals.map(p=><li key={p.memberId} className="flex flex-wrap justify-between gap-2 py-3"><span className="font-semibold text-lead">{p.displayName}</span><span className="text-sm text-ink-2">{converted(p.payAmount,p.payCurrency,p.amount,request.currency)}{p.payCurrency!==request.currency&&<> at {rateLine(p.fxRate,request.currency,p.payCurrency)}</>} + {money(p.fee,p.payCurrency)} fee · {p.status==="charged"?"paid":p.status==="charge_failed"?"charge failed":p.status==="approved"?"pledged, not charged yet":p.status}</span>{p.chargeRef&&<span className="w-full text-xs text-ok-ink">Receipt {p.chargeRef} · paid straight to {request.payeeName} {request.accountMasked}</span>}</li>)}</ul>
       {care.me.role==="payer" ? <p className="mt-4 text-xs text-ink-2">Other helpers’ pledges are private. The bar shows how much of the request is covered.</p> : care.me.role==="owner" && <Link href="members" className="mt-4 inline-block text-sm font-semibold text-serpent-dark underline">Invite more helpers</Link>}
     </Section>
     {request.status==="pending" && <Section title={care.me.role==="owner"?"Your Own Share":"Your Pledge"} agent="gate">
-      {care.me.role==="owner"&&!mine&&!ownShare ? <div className="space-y-3"><p className="leading-relaxed text-ink-2">Your helpers pledge their shares of this request. You don’t have to pledge: when it is covered, you review and pay it below.</p><button type="button" onClick={()=>setOwnShare(true)} className={SECONDARY}>I’m also paying part of this myself</button></div> : care.me.role==="companion" ? <p>Your companion role can upload documents and ask questions. It cannot approve payments.</p> : mine ? <div className="flex flex-wrap items-center gap-4"><p>You approved {money(mine.amount,request.currency)}.</p><button type="button" disabled={busy} onClick={()=>action(`/payment-requests/${request.id}/approvals/me`,{},"DELETE")} className={SECONDARY}>Withdraw</button></div> : <>
+      {care.me.role==="owner"&&!mine&&!ownShare ? <div className="space-y-3"><p className="leading-relaxed text-ink-2">Your helpers pledge their shares of this request. You don’t have to pledge: when it is covered, you review and pay it below.</p><button type="button" onClick={()=>setOwnShare(true)} className={SECONDARY}>I’m also paying part of this myself</button></div> : care.me.role==="companion" ? <p>Your companion role can upload documents and ask questions. It cannot approve payments.</p> : mine ? <div className="flex flex-wrap items-center gap-4"><p>You pledged {converted(mine.payAmount,mine.payCurrency,mine.amount,request.currency)}. Your card is charged only when the owner pays the hospital.</p><button type="button" disabled={busy} onClick={()=>action(`/payment-requests/${request.id}/approvals/me`,{},"DELETE")} className={SECONDARY}>Withdraw</button></div> : <>
         <label className="block text-sm font-semibold text-ink-2">Your share in {request.currency}<input id="pledge-amount" aria-label="Your pledge amount" inputMode="decimal" value={typed} onChange={e=>{setTyped(e.target.value);const ok=!pledgeError(e.target.value);setAmount(ok?Math.round(Number(e.target.value)*100):0);}} className={`mt-2 block w-full rounded-xl border border-line bg-white p-3 ${pv.invalid("amount")?INVALID:""}`} {...pv.field("amount")} /></label>{pv.error("amount")}
         {quote ? <div className="mt-4 space-y-1 text-lead"><p>You pay <b>{converted(quote.payAmount,quote.payCurrency,quote.amount,quote.currency)}</b> plus a {money(quote.fee,quote.payCurrency)} fee, so <b>{money(quote.payAmount+quote.fee,quote.payCurrency)}</b> in total.</p>{quote.payCurrency!==quote.currency&&<p className="text-sm text-ink-2">Demo reference rate {rateLine(quote.fxRate,quote.currency,quote.payCurrency)}. The hospital receives {money(quote.amount,quote.currency)}. Quote expires {new Date(quote.expiresAt).toLocaleTimeString()}.</p>}</div> : <p role="status" className="mt-4 text-sm text-ink-2">{amount>0 && amount<=request.remaining ? "Getting your exchange-rate quote…" : "Choose an amount within the remaining balance."}</p>}
-        <button type="button" disabled={busy||!quote||new Date(quote.expiresAt).getTime()<=Date.now()} onClick={()=>action(`/payment-requests/${request.id}/approvals`,{amount,quoteId:quote?.quoteId})} className={`${PRIMARY} mt-5`}>Pledge {money(amount,request.currency)}</button>
+        <button type="button" disabled={busy||!quote||new Date(quote.expiresAt).getTime()<=Date.now()} onClick={()=>setCheckout(true)} className={`${PRIMARY} mt-5`}>Pledge {money(amount,request.currency)}</button>
+        {checkout&&quote&&<SandboxCheckout sandbox={sandbox} hospital={request.payeeName} busy={busy} total={money(quote.payAmount+quote.fee,quote.payCurrency)} onClose={()=>setCheckout(false)} onConfirm={()=>action(`/payment-requests/${request.id}/approvals`,{amount,quoteId:quote.quoteId})}
+          rows={[["Request",request.purpose],["Your share",converted(quote.payAmount,quote.payCurrency,quote.amount,quote.currency)],...(quote.payCurrency!==quote.currency?[["Rate",rateLine(quote.fxRate,quote.currency,quote.payCurrency)] as [string,string]]:[]),["Fee",money(quote.fee,quote.payCurrency)],["Paid to",`${request.payeeName} ${request.accountMasked}`]]}/>}
       </>}
     </Section>}
     {request.status==="pending" && care.me.role==="owner" && <Section title="Review and Pay" agent="gate">
