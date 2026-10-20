@@ -209,3 +209,9 @@ Plus a member picker (sets `x-member-id`) to switch roles during the demo. The 1
 - FX quotes use the configured reference table, not a live-market rate feed. Quotes expire after 15 minutes.
 - Routes that call a model (document upload, explanation POST, chat POST, `/hospitals/discover`, `/admin/reviews/:id/ai`) are rate-limited per account and per client IP (`src/server/rate-limit.ts`). Over the limit: `429`, `Retry-After`, body `{ error, code: "RATE_LIMITED", retryAfter }`.
 - Web document reading has a 70-second model budget. Independent checking and explanation have separate bounded budgets and preserve deterministic arithmetic when AI is unavailable. Blockchain RPC is bounded and its provider is closed after every attempt.
+
+## v1.4 additions (20 Oct 2026)
+
+- `POST /cases/:id/second-check` `{documentId, itemIds}`: second model on lines a family member questions (F6). Owner/companion only; uses model quota. Returns `{checked, disagreements, unavailable, reason}`; audited as `document.second_check`.
+- `POST /cases/:id/members/:memberId` `{shareLimit, limitCurrency}`: owner changes a helper's share limit, converted to the case currency; audited as `member.limit`.
+- `POST /cases/:id/requests` with `documentId`: amount is checked against `paymentPlan` (`src/lib/payment-plan.ts`). A deposit must equal the estimate's lower or upper end; a bill request must use the latest bill (a final bill replaces interim bills) and stay within its balance (total − live requests). Only the emergency guarantee is typed.

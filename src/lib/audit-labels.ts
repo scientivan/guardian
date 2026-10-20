@@ -23,6 +23,7 @@ const ACTIONS: Record<string, string> = {
   "followup.request": "Asked for a refund follow-up",
   "member.invite": "Invited a helper",
   "member.join": "A helper joined the case",
+  "member.limit": "Changed a helper’s share limit",
   "permission.denied": "Tried something their role does not allow",
 };
 export function describeAction(action: string, check?: number) {

@@ -40,6 +40,14 @@ const FOCUS: Record<Exclude<NavId, "office">, { room: RoomId; agents: AgentId[] 
   guide: { room: "vault", agents: ["gate", "auditor"] },
 };
 
+/** Open warnings in plain words (PRD F11): every payment waits until they are cleared. */
+const WARNING: Record<string, string> = {
+  unverified_payee: "An account that is not the hospital’s verified account was mentioned in chat or a document.",
+  payee_name_mismatch: "An account name didn’t exactly match the hospital’s verified name.",
+  unofficial_channel: "A message claimed to come from hospital staff outside the official channel.",
+  document_instructions: "An uploaded document contained hidden instructions to the assistant. They were ignored.",
+};
+
 const TITLE: Record<NavId, string> = {
   office: "Agent Office",
   bill: "Bill Review",
@@ -63,6 +71,7 @@ export function AppShell({ caseId, children }: { caseId: string; children: React
   const lit = (id: NavId) => id === active || (id === "pledges" && active === "refunds");
   const focus = active === "office" ? null : FOCUS[active];
   const office = active === "office";
+  const warnings = CASE.anomalies.filter(a => !a.resolved);
 
   return (
     <AssistantProvider raised={office}>
@@ -82,6 +91,14 @@ export function AppShell({ caseId, children }: { caseId: string; children: React
         </div>
       </header>
 
+      {warnings.length > 0 && (
+        <div role="alert" className="z-20 shrink-0 border-b border-danger/30 bg-danger-soft px-4 py-3 text-sm text-danger-ink sm:px-6">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+            <p className="min-w-0 flex-1"><b>Payments are paused.</b> {[...new Set(warnings.map(w => WARNING[w.kind] ?? w.detail))].join(" ")} {CASE.me.role === "owner" ? "Confirm the hospital’s account through its official channel, then verify it again in Pledges." : "The case owner needs to confirm the account with the hospital."}</p>
+            {CASE.me.role === "owner" && !pathname.startsWith(`${base}/pledges`) && <Link href={`${base}/pledges`} className="shrink-0 rounded-full bg-danger px-4 py-2 text-xs font-semibold text-white hover:opacity-90">Go to Pledges</Link>}
+          </div>
+        </div>
+      )}
       <div className={office ? "flex min-h-0 flex-1 overflow-hidden" : "flex"}>
         <nav className={`${office ? "h-full min-h-0 overflow-y-auto" : "sticky top-16 h-[calc(100dvh-4rem)]"} hidden w-60 shrink-0 flex-col border-r border-line bg-white p-3 lg:flex`} aria-label="Case sections">
           {CASE.me.role !== "payer" && <Link

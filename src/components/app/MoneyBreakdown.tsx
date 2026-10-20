@@ -19,7 +19,8 @@ const GROUPS: { id: string; label: string; color: string; ink: string }[] = [
 
 const FLAG: Record<string, string> = { duplicate: "Billed twice?", basic_item_billed: "Basic item", above_reference: "Above reference" };
 
-export function MoneyBreakdown({ byCategory, total, currency, items }: { byCategory: Record<string, number>; total: number; currency: string; items: Item[] }) {
+/** `onQuestion`: lets a family member send a line to the independent second reader (PRD F6). */
+export function MoneyBreakdown({ byCategory, total, currency, items, checked = [], onQuestion, busy = false }: { byCategory: Record<string, number>; total: number; currency: string; items: Item[]; checked?: string[]; onQuestion?: (itemId: string) => void; busy?: boolean }) {
   const [hover, setHover] = useState<string | null>(null);
   const [open, setOpen] = useState<string | null>(null);
   const active = hover ?? open;
@@ -103,6 +104,8 @@ export function MoneyBreakdown({ byCategory, total, currency, items }: { byCateg
                   {l.qty} × {money(l.unitPrice, currency)}
                 </span>
                 <b className="w-24 text-right font-num tabular-nums text-serpent-dark">{money(l.lineTotal, currency)}</b>
+                {checked.includes(l.id) ? <Chip tone="ok" className="w-28 justify-end">Second check done</Chip>
+                  : onQuestion ? <button type="button" disabled={busy} onClick={() => onQuestion(l.id)} title="Ask an independent second AI reader to re-read this line" className="w-28 shrink-0 rounded-full border border-line px-2.5 py-1 text-xs font-semibold text-serpent-dark hover:border-cerulean hover:bg-mist disabled:opacity-50">Double-check</button> : null}
               </li>
             ))}
           </ul>

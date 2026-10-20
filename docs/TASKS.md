@@ -240,3 +240,6 @@ Video outline (4:45):
 
 - 20 Oct, Claude, ninth round. Audit of the helper (payer) view against PRD §2. Already right: no bill lines, no original files, only calculated reasons, own pledge and withdraw, own refund and recap, no request, verify or pay controls. Fixed: the Upload button and form are hidden for helpers. Other helpers' pledges, share limits and activity rows are removed from the helper's projection on the server. The empty question and document-reason folders are hidden, and "Invite more helpers" is owner-only. Payment requests can now pay an uploaded bill: the owner picks a read interim or final bill, and the amount is capped on the server at its open balance (bill total less live requests for it). The request stores `documentId`, and the payee still comes only from the registry. Tests 114/114.
 
+
+### Progress 20 Oct (docs verification)
+Request amounts now come from documents (deposit from the estimate, bill balance from the latest/final bill). Docs-vs-product gaps fixed: F6 family-questioned second check, F7 reference note, F9 payee source badge, F11 case-wide warning banner and warnings that could not be cleared, F12 countdown, F14 receipts per share, F19 in-app payment record, owner edits share limits. Full table in `docs/VERIFICATION.md`.

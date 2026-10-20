@@ -43,11 +43,10 @@ export default function PledgesPage() {
   async function verify() {await run(()=>call(`/cases/${care.id}/payees/verify`,"POST",{},care.id),{work:WORK.verify,retry:true});}
   return <div className="space-y-10">
     <div className="flex flex-wrap items-center justify-between gap-3"><p className="text-sm text-ink-2">Requests, pledges and payments to the hospital. Refunds of unused deposits are tracked on their own page.</p><Link href={`/case/${care.id}/refunds`} className={SECONDARY}><Refund className="h-4 w-4" />Refund Tracking<Arrow className="h-4 w-4" /></Link></div>
-    {care.anomalies.filter(a=>!a.resolved).map(a=><p key={a.id} className="rounded-xl bg-danger-soft p-4 text-danger-ink">{a.detail}</p>)}
     {care.me.role==="owner" && <Section title="Payment Requests" agent="gate">
       <p className="mb-4 leading-relaxed text-ink-2">Payments go only to the hospital’s verified account. Each person approves their own share before you review and execute the request.</p>
       <Link href={`/hospitals?caseId=${care.id}`} className="mb-4 inline-flex min-h-11 items-center text-sm font-semibold text-serpent-dark underline">Find this institution in Hospital Directory</Link>
-      <div className="flex flex-wrap items-center gap-3"><button type="button" onClick={verify} disabled={busy} className={SECONDARY}>{busy?<><Spinner/>Checking…</>:"Verify hospital account"}</button>{care.payees.map(p=><span key={p.id} className="text-sm text-serpent-dark">{p.name} · {p.accountMasked}</span>)}</div>
+      <div className="flex flex-wrap items-center gap-3"><button type="button" onClick={verify} disabled={busy} className={SECONDARY}>{busy?<><Spinner/>Checking…</>:"Verify hospital account"}</button>{care.payees.map(p=><span key={p.id} className="inline-flex flex-wrap items-center gap-2 text-sm text-serpent-dark">{p.name} · {p.accountMasked}<Chip tone="ok">{p.source==="official_registry"?"Official registry":p.source}</Chip></span>)}{!care.payees.length&&<span className="text-sm text-ink-2">No verified account yet. Payments can’t be requested until the hospital’s account is verified.</span>}</div>
       {care.payees.length>0 && <form noValidate onSubmit={e=>{e.preventDefault();void create();}} className="mt-6 space-y-4 rounded-2xl bg-white p-5">
         <div className="grid gap-1 rounded-xl bg-mist p-1 text-sm font-semibold sm:grid-cols-3" role="radiogroup" aria-label="What is this request for">
           {([["deposit","Initial deposit","from the estimate"],["bill","Bill balance","from the latest bill"],["guarantee","Emergency guarantee","amount the hospital asked"]] as const).map(([value,label,hint])=><button key={value} type="button" role="radio" aria-checked={kind===value} onClick={()=>setKind(value)} className={`rounded-lg px-3 py-2 text-left ${kind===value?"bg-serpent text-white":"text-ink-2 hover:text-lead"}`}><span className="block">{label}</span><span className={`block text-xs font-normal ${kind===value?"text-cerulean":"text-ink-2"}`}>{hint}</span></button>)}
@@ -117,8 +116,8 @@ function PaymentForm({requestId}:{requestId:string}) {
       {request.documentId && <p className="mb-3 text-sm text-ink-2">Pays the bill <b className="font-semibold text-lead">{documents.find(d=>d.id===request.documentId)?.title ?? "on file"}</b>.</p>}
       <MoneyFigure minor={request.approved} currency={request.currency} /><span className="ml-2 text-ink-2">of {money(request.amount,request.currency)}</span>
       <div className="mt-5 h-5 overflow-hidden rounded-full bg-white"><div className="h-full bg-serpent transition-all" style={{width:`${share(request.approved,request.amount)}%`}} /></div>
-      <p className="mt-3 text-xs text-ink-2">Expires {new Date(request.expiresAt).toLocaleString()}</p>
-      <ul className="mt-5 divide-y divide-line">{request.approvals.map(p=><li key={p.memberId} className="flex flex-wrap justify-between gap-2 py-3"><span className="font-semibold text-lead">{p.displayName}</span><span className="text-sm text-ink-2">{money(p.amount,request.currency)} · {money(p.payAmount,p.payCurrency)} + {money(p.fee,p.payCurrency)} fee · {p.status}</span></li>)}</ul>
+      <p className="mt-3 text-xs text-ink-2">{request.status==="pending"?<>Expires in <Countdown to={request.expiresAt}/> · {new Date(request.expiresAt).toLocaleString()}. Nothing is charged if it isn’t covered by then.</>:`Expiry ${new Date(request.expiresAt).toLocaleString()}`}</p>
+      <ul className="mt-5 divide-y divide-line">{request.approvals.map(p=><li key={p.memberId} className="flex flex-wrap justify-between gap-2 py-3"><span className="font-semibold text-lead">{p.displayName}</span><span className="text-sm text-ink-2">{money(p.amount,request.currency)} · {money(p.payAmount,p.payCurrency)} + {money(p.fee,p.payCurrency)} fee · {p.status==="charged"?"paid":p.status==="charge_failed"?"charge failed":p.status}</span>{p.chargeRef&&<span className="w-full text-xs text-ok-ink">Receipt {p.chargeRef} · paid straight to {request.payeeName} {request.accountMasked}</span>}</li>)}</ul>
       {care.me.role==="payer" ? <p className="mt-4 text-xs text-ink-2">Other helpers’ pledges are private. The bar shows how much of the request is covered.</p> : care.me.role==="owner" && <Link href="members" className="mt-4 inline-block text-sm font-semibold text-serpent-dark underline">Invite more helpers</Link>}
     </Section>
     {request.status==="pending" && <Section title="Your Pledge" agent="gate">
@@ -134,3 +133,13 @@ function PaymentForm({requestId}:{requestId:string}) {
     </Section>}
   </div>;
 }
+
+/** Time left until a pledge request expires, updated every 30 seconds. */
+function Countdown({ to }: { to: string }) {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => { const t = setInterval(() => setNow(Date.now()), 30_000); return () => clearInterval(t); }, []);
+  const left = Math.max(0, new Date(to).getTime() - now);
+  const h = Math.floor(left / 3_600_000), m = Math.floor((left % 3_600_000) / 60_000);
+  return <b className="font-semibold text-lead">{left === 0 ? "now" : h ? `${h} h ${m} min` : `${m} min`}</b>;
+}
+

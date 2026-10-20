@@ -166,6 +166,8 @@ export type Pledge = {
   fee: number;
   status: "approved" | "withdrawn" | "charged" | "charge_failed";
   ts: string;
+  /** Payment provider receipt once this share was charged. */
+  chargeRef?: string | null;
   /** Proposed in brainstorm/17 §6: "send my part even if the full amount isn't reached". Not in the API yet. */
   sendIfShort?: boolean;
 };

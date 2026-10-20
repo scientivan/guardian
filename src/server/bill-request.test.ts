@@ -5,6 +5,7 @@ import { join } from "node:path";
 import type { Session } from "next-auth";
 import { caseAccess } from "./access";
 import { Integration } from "./integration";
+import { openAnomaly } from "./gateway";
 
 let dir: string;
 const demo: Session = { user: { id: "demo:bill-request", name: "Rina", mode: "demo" }, expires: "2099-01-01" };
@@ -27,4 +28,27 @@ describe("payment request for an uploaded bill", () => {
       expect(api.view().requests.find(r => r.id === deposit.id)?.documentId).toBe(estimate.id);
     } finally { c.close(); }
   });
+
+  it("confirming the official account list clears a warning from a document with hidden instructions (F11)", async () => {
+    const c = caseAccess(demo, "C1", "M_OWNER");
+    try {
+      openAnomaly(c.db, "C1", "document_instructions", "document contains instruction-like text addressed to the assistant");
+      const api = new Integration(c);
+      expect(api.view().case.anomalies.some(a => !a.resolved)).toBe(true);
+      expect((await api.verifyPayees()).resolvedAnomalies).toBeGreaterThan(0);
+      expect(api.view().case.anomalies.some(a => !a.resolved)).toBe(false);
+    } finally { c.close(); }
+  });
+
+  it("the owner changes a helper's limit in their own currency; others cannot", () => {
+    const owner = caseAccess(demo, "C1", "M_OWNER");
+    try {
+      const r = new Integration(owner).setShareLimit("M_JKT", { shareLimit: 459_000_000, limitCurrency: "IDR" }); // IDR 4,590,000
+      expect(r.shareLimit).toBe(200_000); // CNY 2,000
+      expect(() => new Integration(owner).setShareLimit("M_COMP", { shareLimit: 100 })).toThrow("Only helpers");
+    } finally { owner.close(); }
+    const helper = caseAccess(demo, "C1", "M_KL");
+    try { expect(() => new Integration(helper).setShareLimit("M_JKT", { shareLimit: 1 })).toThrow(); } finally { helper.close(); }
+  });
 });
+

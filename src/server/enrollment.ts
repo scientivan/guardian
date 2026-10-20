@@ -48,12 +48,21 @@ export function enrollFromSignedList(db: DB, caseId: string, actor: string, list
     for (const p of list.payees) upsert.run(p.id, c.hospital_id, p.account, normalizeName(p.name), now.toISOString());
     // The family checked with the official channel; payee anomalies are closed.
     // A disputed account that is not on the list stays outside the registry.
-    return db
-      .prepare("UPDATE anomalies SET resolved = 1 WHERE case_id = ? AND resolved = 0 AND kind IN ('unverified_payee','payee_name_mismatch','unofficial_channel')")
-      .run(caseId).changes;
+    return resolvePayeeAnomalies(db, caseId);
   });
   const resolvedAnomalies = tx();
   const enrolled = list.payees.map((p) => p.id);
   appendAudit(db, { caseId, actor, action: "payee.enroll", inputSources: ["official_registry"], decision: "allow", result: { enrolled, issuedAt: list.issuedAt, resolvedAnomalies } }, now);
   return { ok: true, enrolled, resolvedAnomalies };
 }
+
+/**
+ * Warnings that confirming the hospital's official account list settles (PRD F11): an account
+ * claimed in chat or a document, a name mismatch, a message from an unofficial channel, and a
+ * document that tried to instruct the assistant (its injected account is still outside the registry).
+ */
+export const PAYEE_ANOMALIES = ["unverified_payee", "payee_name_mismatch", "unofficial_channel", "document_instructions"];
+export function resolvePayeeAnomalies(db: DB, caseId: string): number {
+  return db.prepare(`UPDATE anomalies SET resolved = 1 WHERE case_id = ? AND resolved = 0 AND kind IN (${PAYEE_ANOMALIES.map(() => "?").join(",")})`).run(caseId, ...PAYEE_ANOMALIES).changes;
+}
+

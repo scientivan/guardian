@@ -4,7 +4,7 @@ import { Select } from "@/components/app/Select";
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useCaseData, useWorkspace } from "@/components/app/WorkspaceProvider";
-import { Spinner, useFeedback, useTask, WORK } from "@/components/app/Feedback";
+import { ClientError, Spinner, useFeedback, useTask, WORK } from "@/components/app/Feedback";
 
 import Link from "next/link";
 import { CopyButton } from "@/components/app/CopyButton";
@@ -48,6 +48,13 @@ export default function BillPage() {
   const bills=documents.filter(d=>d.type!=="estimate");
   const controls=<div className="space-y-3"><div className="block text-sm font-semibold text-ink-2">Bill to review<Select label="Bill to review" className="mt-2" value={selected} onChange={setSelected} disabled={!bills.length} placeholder="No bills uploaded yet" options={bills.map(d=>({value:d.id,label:d.title,hint:`${d.type==="final"?"Final bill":"Interim bill"} · ${d.status==="needs_reupload"?"needs a clearer copy":d.status==="parsed"?"read":d.status}`}))}/></div><button type="button" disabled={!selected||working} onClick={refreshExplanation} className={SECONDARY}>{working?<><Spinner />Reading and checking…</>:"Explain selected bill"}</button></div>;
   const helper=care.me.role==="payer";
+  const {busy:checking,run:runCheck}=useTask();
+  const {showError:notify}=useFeedback();
+  async function questionItem(itemId:string) {
+    if(!e)return;
+    const r=await runCheck(()=>call(`/cases/${care.id}/second-check`,"POST",{documentId:e.documentId,itemIds:[itemId]},care.id) as Promise<{checked:string[];disagreements:unknown[];unavailable:boolean;reason:string|null}>,{work:{title:"Getting a second opinion",steps:[{agent:"second",text:`Re-reading ${itemId} with a different AI provider`},{agent:"calculator",text:"Comparing both readings"}]}});
+    if(r?.unavailable)notify(new ClientError("The independent second reader is not available right now. Nothing changed; you can ask the hospital about this line directly.",503));
+  }
   const upload=helper?undefined:<Link href={`/case/${care.id}/upload`} className={PRIMARY}><Upload className="h-4 w-4" />Upload a bill</Link>;
   if (!e) return <Section title="Bill Review" agent="reader" action={upload}>{controls}<p className="mt-4 text-ink-2">Upload the hospital’s estimate and a bill to see the comparison.</p></Section>;
   const scale=Math.max(e.estimate.high,e.estimate.low,e.total,1)*1.1;
@@ -80,10 +87,12 @@ export default function BillPage() {
       </Section>
 
       <Section title="Cost Breakdown" agent="reader" action={<AskButton question="What is the bill made of?" context={{ kind: "breakdown" }} label="Explain the breakdown" />}>
-        <MoneyBreakdown byCategory={e.byCategory} total={e.total} currency={e.currency} items={Object.values(ITEMS)} />
+        <MoneyBreakdown byCategory={e.byCategory} total={e.total} currency={e.currency} items={Object.values(ITEMS)} checked={e.secondModelChecked} busy={checking} onQuestion={helper ? undefined : questionItem} />
+        {!helper && <p className="mt-3 text-xs leading-relaxed text-ink-2">Open a group to see its lines. “Double-check” asks a second AI from a different provider to re-read a line you’re unsure about; if it reads it differently, it becomes a question for the hospital.</p>}
       </Section>
 
       {helper && <p className="text-sm leading-relaxed text-ink-2">As a helper you see the bill summary and the calculated reasons. Bill lines, documents and the questions for the hospital stay with the case owner.</p>}
+      {e.referenceNote && !helper && <p className="text-xs leading-relaxed text-ink-2">{e.referenceNote}</p>}
       {e.questions.length > 0 && <FoldSection title={`Questions for the Hospital (${e.questions.length})`} agent="planner">
         <ol className="space-y-3">
           {e.questions.map((q, i) => (

@@ -10,13 +10,14 @@ import { secondCheck } from "./secondcheck";
 import { handleMessage } from "./agent";
 import { AskContext, answerAbout } from "./case-answers";
 import { paymentPlan } from "@/lib/payment-plan";
+import { toCaseCurrency } from "@/lib/fx-rates";
 import { createQuote, formatRate } from "./fx";
 import { recordApproval, withdrawApproval, resolvePayee } from "./gateway";
 import { createPaymentRequest, cancelRequest, executeRequest, type Charger } from "./payments";
 import { openRefunds, setRefundStatus, type RefundStatus } from "./refunds";
 import { anchorHash } from "./anchor";
 import { appendAudit } from "./audit";
-import { enrollFromSignedList } from "./enrollment";
+import { enrollFromSignedList, resolvePayeeAnomalies } from "./enrollment";
 import { fetchSignedPayeeList, type SignedPayeeList } from "./portal";
 import { PORTAL_PAYEES } from "./seed";
 import { stripeCharger } from "./stripe";
@@ -60,6 +61,31 @@ export class Integration {
     this.c.store.save(data);
     appendAudit(this.c.db,{caseId:this.c.caseId,actor:this.c.member.id,action:"bill.explain",inputSources:["hospital_doc","system"],decision:"allow",result:{documentId,lines:explanation.lines.length,secondModelChecked:reading.checked}});
     return this.presentExplanation(explanation);
+  }
+  /**
+   * PRD F6 / ARCHITECTURE §3.5: a family member questions bill items, and a second model from a
+   * different provider re-reads just those. A disagreement becomes a question for the hospital.
+   */
+  async questionItems(documentId:string,itemIds:unknown) {
+    if(this.c.member.role==="payer")denyAccess(this.c,"Only the owner or companion can ask for a second check.");
+    const ids=z.array(z.string().max(20)).min(1).max(10).parse(itemIds);
+    this.document(documentId);
+    const analysis=analyse(this.c.db,this.c.caseId,documentId,this.c.session.user.mode==="google"?[]:undefined);
+    if("error" in analysis)throw new ApiError(analysis.error,409);
+    const known=new Set(analysis.items.map(i=>i.code));
+    const asked=ids.filter(id=>known.has(id));
+    if(!asked.length)throw new ApiError("Those lines are not on this bill.",404);
+    const reading=await secondCheck(this.c.db,analysis,asked,{...this.dependencies,waitForCooldownMs:0,totalTimeoutMs:20_000});
+    const data=this.c.store.get(this.c.caseId);
+    if(data.explanation?.documentId===documentId) {
+      const have=new Set(data.explanation.questions.map(q=>q.text));
+      data.explanation={...data.explanation,secondModelChecked:[...new Set([...data.explanation.secondModelChecked,...reading.checked])],questions:[...data.explanation.questions,...reading.disagreements.filter(q=>!have.has(q.text))]};
+      this.c.db.prepare("INSERT INTO web_explanations VALUES (?,?) ON CONFLICT(document_id) DO UPDATE SET payload=excluded.payload").run(documentId,JSON.stringify(data.explanation));
+    }
+    data.secondCheckStatus=reading.skipped??`${reading.checked.length} items independently checked`;
+    this.c.store.save(data);
+    appendAudit(this.c.db,{caseId:this.c.caseId,actor:this.c.member.id,action:"document.second_check",inputSources:["user","hospital_doc"],decision:"info",result:{documentId,questioned:asked,checked:reading.checked,disagreements:reading.disagreements.length,skipped:reading.skipped??null}});
+    return {checked:reading.checked,disagreements:reading.disagreements,unavailable:Boolean(reading.skipped)&&!reading.checked.length,reason:reading.skipped??null};
   }
   private presentExplanation(explanation:NonNullable<CareCase["explanation"]>) {
     return this.c.member.role==="payer" ? {...explanation,lines:explanation.lines.filter(l=>l.type==="arithmetic_fact"),questions:[]}:explanation;
@@ -134,7 +160,10 @@ export class Integration {
       syncDirectoryHospital(this.c.db,data.case.hospital.id);
       const payees=this.view().case.payees;
       if(!payees.length)throw new ApiError("The hospital profile or payment authority is not active. Ask the verification team to review it.",409,1);
-      return {ok:true,enrolled:payees.map(p=>p.id),resolvedAnomalies:0};
+      // The directory's reviewed account list is the official channel for linked hospitals.
+      const resolvedAnomalies=resolvePayeeAnomalies(this.c.db,this.c.caseId);
+      appendAudit(this.c.db,{caseId:this.c.caseId,actor:this.c.member.id,action:"payee.enroll",inputSources:["official_registry"],decision:"allow",result:{enrolled:payees.map(p=>p.id),source:"hospital_directory",resolvedAnomalies}});
+      return {ok:true,enrolled:payees.map(p=>p.id),resolvedAnomalies};
     }
     if(this.c.session.user.mode==="demo" && data.case.hospital.id==="H1") list=fetchSignedPayeeList("H1",PORTAL_PAYEES,now(this.c.db).toISOString());
     else {
@@ -164,6 +193,20 @@ export class Integration {
     return result;
   }
   messages() {return this.c.db.prepare("SELECT question,reply,actions,ts FROM web_messages WHERE case_id=? AND member_id=? ORDER BY rowid").all(this.c.caseId,this.c.member.id);}
+  /** PRD §2: the owner sets each helper's share limit; given in the owner's currency, stored in the hospital's. */
+  setShareLimit(memberId:string,input:unknown) {
+    requireOwner(this.c);
+    const v=z.object({shareLimit:z.number().int().nonnegative().max(100_000_000_00),limitCurrency:z.string().max(5).optional()}).parse(input);
+    const m=this.c.db.prepare("SELECT role FROM members WHERE id=? AND case_id=?").get(memberId,this.c.caseId) as {role:string}|undefined;
+    if(!m)throw new ApiError("Member not found.",404);
+    if(m.role!=="payer")throw new ApiError("Only helpers have a share limit.",409);
+    const caseCurrency=this.view().case.currency;
+    const limit=toCaseCurrency(v.shareLimit,v.limitCurrency??caseCurrency,caseCurrency);
+    if(limit===null)throw new ApiError(`There is no reference rate from ${v.limitCurrency} to ${caseCurrency}.`,409);
+    this.c.db.prepare("UPDATE members SET share_limit=? WHERE id=? AND case_id=?").run(limit,memberId,this.c.caseId);
+    appendAudit(this.c.db,{caseId:this.c.caseId,actor:this.c.member.id,action:"member.limit",inputSources:["user"],decision:"allow",result:{memberId,shareLimit:limit}});
+    return {ok:true,shareLimit:limit};
+  }
   reconcile(documentId:string) {requireOwner(this.c);this.document(documentId);const r=openRefunds(this.c.db,this.c.caseId,documentId,now(this.c.db));if(!r.ok)throw new ApiError(r.reason,409);return r;}
   setRefund(memberId:string,status:RefundStatus) {requireOwner(this.c);if(this.c.session.user.mode!=="demo")throw new ApiError("Only an authenticated hospital integration can update refund settlement.",403);return gate(setRefundStatus(this.c.db,this.c.caseId,memberId,status,now(this.c.db)));}
   remind(memberId?:string) {

@@ -27,7 +27,7 @@ const FIELD = "w-full rounded-xl border border-line bg-white px-3 py-2.5 text-le
 
 export default function MembersPage() {
   const { case: CASE } = useCaseData();
-  const { act,mode,selectMember } = useWorkspace();
+  const { act,mode,selectMember,call } = useWorkspace();
   const { busy, run } = useTask();
   const [open, setOpen] = useState(false);
   const [sent, setSent] = useState<{ delivery: "email" | "link"; link: string; email: string; name: string } | null>(null);
@@ -43,6 +43,16 @@ export default function MembersPage() {
     ...(form.role === "payer" ? { shareLimit: amount("a maximum share", { min: 0 }) } : {}),
   });
   const v = useFieldErrors(errors, "invite");
+  // Changing a helper's limit later (PRD §2: the owner sets share limits).
+  const [editing, setEditing] = useState<string | null>(null);
+  const [newLimit, setNewLimit] = useState("");
+  const lv = useFieldErrors(check({ value: newLimit }, { value: amount("the new limit", { min: 0 }) }), "limit");
+  const { busy: saving, run: runLimit } = useTask();
+  async function saveLimit(memberId: string) {
+    if (!lv.submit()) return;
+    const done = await runLimit(() => call(`/cases/${CASE.id}/members/${memberId}`, "POST", { shareLimit: Math.round(Number(newLimit) * 100), limitCurrency }, CASE.id));
+    if (done) setEditing(null);
+  }
   const typedLimit = !errors.shareLimit && form.shareLimit ? Math.round(Number(form.shareLimit) * 100) : null;
   const caseLimit = typedLimit === null ? null : toCaseCurrency(typedLimit, limitCurrency, CASE.currency);
 
@@ -135,10 +145,16 @@ export default function MembersPage() {
                 <div className="min-w-0 flex-1">
                   <p className="font-semibold text-lead">{m.displayName}</p>
                   <p className="text-xs text-ink-2">
-                    {r.can}. Pays in {m.currency}.
+                    {r.can}. Pays in {m.currency}.{CASE.me.role === "owner" && m.role === "payer" && <> Limit {money(m.shareLimit, CASE.currency)} per request.</>}
                   </p>
+                  {editing === m.id && <form noValidate onSubmit={e => { e.preventDefault(); void saveLimit(m.id); }} className="mt-2 flex flex-wrap items-start gap-2">
+                    <div><input id="limit-value" inputMode="decimal" aria-label={`New limit in ${limitCurrency}`} value={newLimit} onChange={e => setNewLimit(e.target.value)} placeholder={`Limit in ${limitCurrency}`} className={`${FIELD} w-44 ${lv.invalid("value") ? INVALID : ""}`} {...lv.field("value")} />{lv.error("value")}</div>
+                    <button type="submit" disabled={saving} className={PRIMARY}>{saving ? <Spinner /> : "Save"}</button>
+                    <button type="button" className={SECONDARY} onClick={() => setEditing(null)}>Cancel</button>
+                  </form>}
                 </div>
 
+                {CASE.me.role === "owner" && m.role === "payer" && editing !== m.id && <button type="button" className="text-xs font-semibold text-serpent-dark hover:underline" onClick={() => { setEditing(m.id); setNewLimit(""); lv.reset(); }}>Change limit</button>}
                 <Chip tone={r.tone}>{r.label}</Chip>
               </li>
             );
