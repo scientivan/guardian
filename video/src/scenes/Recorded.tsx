@@ -12,6 +12,8 @@ import type { Scene, TimedLine } from "../timeline";
 const STRIP = 72;
 const REC = { x: STAGE.x, y: STAGE.y + STRIP + 14, w: STAGE.w, h: Math.round((STAGE.w * 900) / 1440) };
 type Mark = { start: number; end: number };
+/** Playwright writes frames about 2 s after they happen on the page (measured on bill.webm). */
+const LAG = 2.0;
 const OFF = offsets as unknown as Record<string, number | Record<string, Mark>>;
 
 const ROLE_LOOK: Record<string, { look: { skin: string; hair: string; hijab?: boolean; shirt: string } | null; name: string }> = {
@@ -31,7 +33,7 @@ function segments(scene: Scene) {
     const m = marks[l.id];
     const lead = i === 0 ? l.from / FPS : 0;
     // Show the result of the line's actions: start at the action, or later if the action ran long.
-    const start = m ? Math.max(m.start - lead, m.end + 0.9 - frames / FPS) : (OFF[scene.id] as number) + l.from / FPS;
+    const start = m ? Math.max(m.start + LAG - lead, m.end + LAG + 0.9 - frames / FPS) : (OFF[scene.id] as number) + l.from / FPS;
     return { line: l, from, frames, startFrom: Math.max(0, Math.round(start * FPS)) };
   });
 }
