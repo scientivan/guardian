@@ -1,0 +1,22 @@
+{
+  "at": "2026-10-20T08:55:31.640Z",
+  "cache": "disabled",
+  "firstModel": "groq:openai/gpt-oss-120b",
+  "pass": true,
+  "scope": "Live independent re-reading of the same PDF, compared to the verified live first-reader fields. Typed items reconstructed from matching fixture after the temporary first-reader DB was removed.",
+  "checked": [
+    "I01",
+    "I04",
+    "I05",
+    "I06",
+    "I10",
+    "I22",
+    "I23",
+    "I35",
+    "I36",
+    "I37",
+    "I40"
+  ],
+  "disagreements": [],
+  "model": "openrouter:openrouter/free"
+}

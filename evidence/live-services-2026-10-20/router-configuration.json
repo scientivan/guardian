@@ -1,0 +1,7 @@
+{
+  "scope": "Local ignored .env only. No API keys exported or changed.",
+  "LLM_CHAIN": "groq:openai/gpt-oss-120b,openrouter:openrouter/free,gemini:gemini-3-flash-preview,groq:openai/gpt-oss-20b",
+  "reason": "Keep proven Groq reader and an OpenRouter free route for an independent provider. Retain Gemini preview and smaller Groq as fallbacks.",
+  "responseCache": "Disabled during verification",
+  "limitation": "OpenRouter free routes may select an underlying model dynamically. Different API providers do not prove independent model weights."
+}

@@ -1,0 +1,14 @@
+{
+  "runId": "guardian-live-430ea653-ec82-4b11-981f-ab1f8f23ee2c",
+  "at": "2026-10-20T08:48:54.760Z",
+  "scope": "One actual product notification sent to configured Gmail sender (self). Temporary synthetic case and Google session fixtures, not a live OAuth exchange.",
+  "invitationAccepted": true,
+  "requestId": "R_8e875bb2",
+  "result": {
+    "sent": 1,
+    "skipped": null
+  },
+  "auditAction": "notify.email",
+  "recipient": "configured Gmail sender (self)",
+  "subjectSearchToken": "guardian-live-430ea653-ec82-4b11-981f-ab1f8f23ee2c"
+}

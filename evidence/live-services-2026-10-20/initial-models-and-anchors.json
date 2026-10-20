@@ -1,0 +1,163 @@
+{
+  "runId": "4d6bd821-2a00-4f5e-851a-ff8e28a8e668",
+  "at": "2026-10-20T08:51:55.620Z",
+  "cache": "disabled",
+  "results": [
+    {
+      "stage": "live_reader",
+      "pass": false,
+      "detail": {
+        "error": "Expected values to be strictly deep-equal:\n+ actual - expected\n... Skipped lines\n\n  [\n    {\n      amount: 300000,\n+     category: 'room',\n-     extraDays: 2,\n-     kind: 'longer_stay'\n-   },\n-   {\n-     amount: 45000,\n-     category: 'procedure',\n      kind: 'category_over'\n    },\n    {\n      amount: 20200,\n      category: 'drug',\n...\n    {\n+     amount: 45000,\n+     category: 'procedure',\n+     kind: 'category_over'\n-     amount: 35000,\n-     category: 'other',\n-     kind: 'not_in_estimate'\n   "
+      }
+    },
+    {
+      "stage": "live_independent_second_model",
+      "pass": false,
+      "detail": {
+        "error": "second model unavailable: No LLM available: gemini:gemini-3.8-flash (cooldown); gemini:gemini-3.7-flash (cooldown); gemini:gemini-3.5-flash (http 503); openrouter:nvidia/nemotron-3-super-120b-a12b:free (http 404)"
+      }
+    },
+    {
+      "stage": "live_explanation",
+      "pass": true,
+      "detail": {
+        "model": {
+          "provider": "groq",
+          "model": "openai/gpt-oss-120b"
+        },
+        "total": 3678200,
+        "arithmeticCauses": 5,
+        "citedLines": 12,
+        "noForbiddenClinicalClaim": true
+      }
+    },
+    {
+      "stage": "live_chat_clarification",
+      "pass": true,
+      "detail": {
+        "reply": "Ada beberapa tagihan yang belum lunas. Yang mana yang dimaksud?",
+        "actions": [
+          {
+            "type": "ask_clarification",
+            "question": "which_bill",
+            "options": [
+              {
+                "label": "Interim bill 2026-10-20 · CNY 36,782",
+                "value": "D_45478129"
+              },
+              {
+                "label": "Final bill 2026-10-20 · CNY 71,000",
+                "value": "D_466e7c02"
+              }
+            ]
+          }
+        ],
+        "auditSeq": 5,
+        "model": {
+          "provider": "groq",
+          "model": "openai/gpt-oss-120b"
+        }
+      }
+    },
+    {
+      "stage": "document_anchors",
+      "pass": true,
+      "detail": {
+        "chainId": "20200",
+        "network": "Configured local FISCO BCOS, not a public explorer",
+        "verified": [
+          {
+            "hash": "d5e920b25518563888e1d0f0c031b17f8b94e29f2b4c24a58c094097cd1c4faf",
+            "tx": "0x645e0a44ab44d66b40d56d30b5e8a9df535f624aa2eea2433bb1622120906745",
+            "kind": "document:estimate",
+            "status": 1,
+            "blockNumber": 21,
+            "anchoredAt": "1792486265129",
+            "eventMatches": true
+          },
+          {
+            "hash": "7ff9422355620f0d9b9812ed8c6e058ccee75e9cc8c40c3b72e14ccae2eb2acd",
+            "tx": "0x4347b8cc73eeedf312018f3c6385518e1272f4105c1831fc16fd921c9d1f64c1",
+            "kind": "document:interim",
+            "status": 1,
+            "blockNumber": 22,
+            "anchoredAt": "1792486275477",
+            "eventMatches": true
+          },
+          {
+            "hash": "3844de1fffe9928ebc64290387c96ff614d8dce7ffabfac6d39031bd507e75bd",
+            "tx": "0xa0686f8d49fd6f474ae3b8923685f5f16888ab5eb7b2775247d113fd633b94bb",
+            "kind": "document:final",
+            "status": 1,
+            "blockNumber": 23,
+            "anchoredAt": "1792486281492",
+            "eventMatches": true
+          }
+        ]
+      }
+    },
+    {
+      "stage": "invoice_payment_and_closing_anchors",
+      "pass": true,
+      "detail": {
+        "paymentAdapter": "demo sandbox, no Stripe network charge",
+        "closed": true,
+        "localAuditIntact": true,
+        "verified": [
+          {
+            "hash": "ca387ac4123f88ed81734f9fab9a17827d4931f50659e56f457d19ed7dff7c88",
+            "tx": "0x51cf0ae174791ba9b6df1182d4059d3b7d15718b292bcd46b8b0cf1353c44301",
+            "kind": "audit:C1",
+            "status": 1,
+            "blockNumber": 24,
+            "anchoredAt": "1792486290613",
+            "eventMatches": true
+          },
+          {
+            "hash": "b2d34100461e3c8bf880c9aabcb2f4f7fe395f42c961350181247d0ce2599015",
+            "tx": "0xba707ccc8d032c4c76ee5adc90596285f8c68eb432b12db04a921ade25e276d8",
+            "kind": "invoice:R1",
+            "status": 1,
+            "blockNumber": 25,
+            "anchoredAt": "1792486294793",
+            "eventMatches": true
+          },
+          {
+            "hash": "604ec534d9832db0c6fc2211ae154893656d1c958adaf7ad157da9ea85a14e0a",
+            "tx": "0x41dc61831f2d7e3d5c319d85910eb3d4d93d22c6635c62a5baa380471af2f17f",
+            "kind": "invoice:R2",
+            "status": 1,
+            "blockNumber": 26,
+            "anchoredAt": "1792486299013",
+            "eventMatches": true
+          },
+          {
+            "hash": "83d07bec0dde92cca10c9bbab759f48d3e1d37014ea9e4929aa84f4d8af4f697",
+            "tx": "0xd8e1b594157571a7627a502a17346a209d0f9119552da58384cedb7aa05810e0",
+            "kind": "closing:C1",
+            "status": 1,
+            "blockNumber": 27,
+            "anchoredAt": "1792486303182",
+            "eventMatches": true
+          },
+          {
+            "hash": "e80fbd28a0e72abeb8bf5940aa24621ba24292d3f00ce78a267a1285d585affb",
+            "tx": "0x6d7c57a702650f9c6b0f7c84d4b27adf0c2185307709e4bcf2fd6effbfbe7973",
+            "kind": "audit:C1",
+            "status": 1,
+            "blockNumber": 28,
+            "anchoredAt": "1792486307362",
+            "eventMatches": true
+          }
+        ]
+      }
+    },
+    {
+      "stage": "directory_verification_anchor",
+      "pass": false,
+      "detail": {
+        "error": "Matching hash and kind must appear in the contract event"
+      }
+    }
+  ]
+}

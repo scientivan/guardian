@@ -1,0 +1,360 @@
+{
+  "currency": "CNY",
+  "total": 3678200,
+  "estimate": {
+    "low": 3000000,
+    "high": 3400000,
+    "assumedStayDays": 3
+  },
+  "actualStayDays": 5,
+  "byCategory": {
+    "room": 750000,
+    "drug": 170200,
+    "procedure": 2545000,
+    "lab": 115000,
+    "consumable": 63000,
+    "other": 35000
+  },
+  "lines": [
+    {
+      "type": "arithmetic_fact",
+      "text": "The stay is 2 days longer than the estimate assumed, adding CNY 3,000 in daily room and care charges.",
+      "itemIds": [
+        "I01",
+        "I02",
+        "I03"
+      ],
+      "amount": 300000
+    },
+    {
+      "type": "arithmetic_fact",
+      "text": "Drug charges are CNY 202 above the estimate.",
+      "itemIds": [
+        "I10",
+        "I11",
+        "I12",
+        "I13",
+        "I14",
+        "I15",
+        "I16",
+        "I17",
+        "I18",
+        "I19",
+        "I20",
+        "I21"
+      ],
+      "amount": 20200
+    },
+    {
+      "type": "arithmetic_fact",
+      "text": "Procedure charges are CNY 450 above the estimate.",
+      "itemIds": [
+        "I04",
+        "I05",
+        "I06",
+        "I07"
+      ],
+      "amount": 45000
+    },
+    {
+      "type": "arithmetic_fact",
+      "text": "Consumable charges of CNY 630 were not part of the estimate.",
+      "itemIds": [
+        "I31",
+        "I32",
+        "I33",
+        "I34",
+        "I35",
+        "I36",
+        "I37",
+        "I38",
+        "I39",
+        "I40"
+      ],
+      "amount": 63000
+    },
+    {
+      "type": "arithmetic_fact",
+      "text": "Other charges of CNY 350 were not part of the estimate.",
+      "itemIds": [
+        "I08",
+        "I09"
+      ],
+      "amount": 35000
+    },
+    {
+      "type": "stated_in_document",
+      "text": "Extracted document statement (not clinically verified). “Attending physician note: antibiotic course extended to 5 days.”",
+      "itemIds": [
+        "I01",
+        "I02",
+        "I03",
+        "I04",
+        "I05",
+        "I06",
+        "I07",
+        "I08",
+        "I09",
+        "I10",
+        "I11",
+        "I12",
+        "I13",
+        "I14",
+        "I15",
+        "I16",
+        "I17",
+        "I18",
+        "I19",
+        "I20",
+        "I21",
+        "I22",
+        "I23",
+        "I24",
+        "I25",
+        "I26",
+        "I27",
+        "I28",
+        "I29",
+        "I30",
+        "I31",
+        "I32",
+        "I33",
+        "I34",
+        "I35",
+        "I36",
+        "I37",
+        "I38",
+        "I39",
+        "I40"
+      ]
+    },
+    {
+      "type": "unknown_ask_hospital",
+      "text": "Ask the hospital to explain bill items I22, I23.",
+      "itemIds": [
+        "I22",
+        "I23"
+      ]
+    },
+    {
+      "type": "unknown_ask_hospital",
+      "text": "Ask the hospital to explain bill items I10.",
+      "itemIds": [
+        "I10"
+      ]
+    },
+    {
+      "type": "unknown_ask_hospital",
+      "text": "Ask the hospital to explain bill items I35.",
+      "itemIds": [
+        "I35"
+      ]
+    },
+    {
+      "type": "unknown_ask_hospital",
+      "text": "Ask the hospital to explain bill items I36.",
+      "itemIds": [
+        "I36"
+      ]
+    },
+    {
+      "type": "unknown_ask_hospital",
+      "text": "Ask the hospital to explain bill items I37.",
+      "itemIds": [
+        "I37"
+      ]
+    },
+    {
+      "type": "unknown_ask_hospital",
+      "text": "Ask the hospital to explain bill items I40.",
+      "itemIds": [
+        "I40"
+      ]
+    }
+  ],
+  "questions": [
+    {
+      "kind": "duplicate",
+      "itemIds": [
+        "I22",
+        "I23"
+      ],
+      "text": "\"Complete blood count\" appears twice at the same price. Was it done twice, or billed twice?"
+    },
+    {
+      "kind": "above_reference",
+      "itemIds": [
+        "I10"
+      ],
+      "text": "\"Ceftriaxone 1g injection\" is billed at 45 per unit, above the indicative reference of 30. Can the hospital explain the price?"
+    },
+    {
+      "kind": "basic_item_billed",
+      "itemIds": [
+        "I35"
+      ],
+      "text": "Why is \"Pillow case\" billed separately instead of being part of the room or nursing charge?"
+    },
+    {
+      "kind": "basic_item_billed",
+      "itemIds": [
+        "I36"
+      ],
+      "text": "Why is \"Alcohol swab\" billed separately instead of being part of the room or nursing charge?"
+    },
+    {
+      "kind": "basic_item_billed",
+      "itemIds": [
+        "I37"
+      ],
+      "text": "Why is \"Disposable gloves (pair)\" billed separately instead of being part of the room or nursing charge?"
+    },
+    {
+      "kind": "basic_item_billed",
+      "itemIds": [
+        "I40"
+      ],
+      "text": "Why is \"Bed sheet change\" billed separately instead of being part of the room or nursing charge?"
+    }
+  ],
+  "dropped": [
+    {
+      "line": {
+        "type": "arithmetic_fact",
+        "causeRef": "C1",
+        "itemIds": [
+          "I01",
+          "I02",
+          "I03"
+        ],
+        "text": "The stay was 2 days longer than estimated, adding CNY 3,000 for room, nursing and doctor rounds (items I01‑I03)."
+      },
+      "reason": "planner prose replaced by source-bound display text"
+    },
+    {
+      "line": {
+        "type": "arithmetic_fact",
+        "causeRef": "C2",
+        "itemIds": [
+          "I10",
+          "I11",
+          "I12",
+          "I13",
+          "I14",
+          "I15",
+          "I16",
+          "I17",
+          "I18",
+          "I19",
+          "I20",
+          "I21"
+        ],
+        "text": "Drug charges exceed the estimate by CNY 202 covering items I10‑I21."
+      },
+      "reason": "planner prose replaced by source-bound display text"
+    },
+    {
+      "line": {
+        "type": "arithmetic_fact",
+        "causeRef": "C3",
+        "itemIds": [
+          "I04",
+          "I05",
+          "I06",
+          "I07"
+        ],
+        "text": "Procedure costs are CNY 450 higher than expected (items I04‑I07)."
+      },
+      "reason": "planner prose replaced by source-bound display text"
+    },
+    {
+      "line": {
+        "type": "arithmetic_fact",
+        "causeRef": "C4",
+        "itemIds": [
+          "I31",
+          "I32",
+          "I33",
+          "I34",
+          "I35",
+          "I36",
+          "I37",
+          "I38",
+          "I39",
+          "I40"
+        ],
+        "text": "Consumables not in the estimate add CNY 630 (items I31‑I40)."
+      },
+      "reason": "planner prose replaced by source-bound display text"
+    },
+    {
+      "line": {
+        "type": "arithmetic_fact",
+        "causeRef": "C5",
+        "itemIds": [
+          "I08",
+          "I09"
+        ],
+        "text": "Other items not estimated add CNY 350 (items I08‑I09)."
+      },
+      "reason": "planner prose replaced by source-bound display text"
+    },
+    {
+      "line": {
+        "type": "stated_in_document",
+        "statedRef": "S1",
+        "itemIds": [
+          "I10"
+        ],
+        "text": "The document notes the antibiotic course was extended to 5 days (item I10)."
+      },
+      "reason": "planner prose replaced by source-bound display text"
+    },
+    {
+      "line": {
+        "type": "unknown_ask_hospital",
+        "itemIds": [
+          "I22",
+          "I23"
+        ],
+        "text": "Ask why the same blood count test appears twice (items I22, I23)."
+      },
+      "reason": "planner prose replaced by source-bound display text"
+    },
+    {
+      "line": {
+        "type": "unknown_ask_hospital",
+        "itemIds": [
+          "I10"
+        ],
+        "text": "Ask why item I10 is billed above the reference price."
+      },
+      "reason": "planner prose replaced by source-bound display text"
+    },
+    {
+      "line": {
+        "type": "unknown_ask_hospital",
+        "itemIds": [
+          "I35"
+        ],
+        "text": "Ask for clarification of the charge for pillow case (item I35)."
+      },
+      "reason": "planner prose replaced by source-bound display text"
+    },
+    {
+      "line": {
+        "type": "unknown_ask_hospital",
+        "itemIds": [
+          "I36"
+        ],
+        "text": "Ask for clarification of the charge for alcohol swabs (item I36)."
+      },
+      "reason": "planner prose replaced by source-bound display text"
+    }
+  ],
+  "model": {
+    "provider": "groq",
+    "model": "openai/gpt-oss-120b"
+  },
+  "referenceNote": "Reference prices are indicative demo values, not regulated prices. A price above reference is a question, not proof of overcharging."
+}

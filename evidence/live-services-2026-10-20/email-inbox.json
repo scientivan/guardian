@@ -1,0 +1,9 @@
+{
+  "runId": "guardian-live-430ea653-ec82-4b11-981f-ab1f8f23ee2c",
+  "mailbox": "INBOX",
+  "received": true,
+  "uid": "50386",
+  "messageIdSha256": "3dbfb7a6f645148fc23aefaf3fcf6fd2b96f97bd0ca83c3c3ec04b077343c229",
+  "date": "Tue, 20 Oct 2026 08:48:49 +0000",
+  "method": "Authenticated IMAP search for the unique run token, followed by read-only headers"
+}

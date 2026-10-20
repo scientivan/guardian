@@ -1,0 +1,21 @@
+{
+  "runId": "ac76a7dd-b1ec-4e7f-9747-d987d0b9f7ce",
+  "at": "2026-10-20T08:52:49.983Z",
+  "cache": "disabled",
+  "results": [
+    {
+      "stage": "directory_verification_anchor",
+      "pass": true,
+      "detail": {
+        "scope": "Synthetic institution in temporary directory, no real human confirmation",
+        "hash": "0b5ed4f18bb406afd1fc15e56037c1cffb6b454e4ed1b968cd211c6735479230",
+        "tx": "0x0373335c9524696ec31a663e5bd423af833b71f6993e60dbb8c9a25d43cdbd1c",
+        "kind": "hospital.verification",
+        "status": 1,
+        "blockNumber": 30,
+        "anchoredAt": "1792486365893",
+        "eventMatches": true
+      }
+    }
+  ]
+}

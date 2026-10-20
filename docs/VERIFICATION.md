@@ -16,7 +16,7 @@ Current verification is the audit-remediation pass on 20 October 2026. Earlier r
 
 Invoice attachments remain shared raw files, with a receipt-only privacy warning. There is no automatic file redaction or issuer authentication. Original medical bills remain restricted to owner/companion. AI views retain PII tokens rather than restoring raw identifiers. Unusual PII formats and extraction errors remain possible.
 
-Live Gmail delivery, real Google consent with two accounts, real hospital confirmation and the new invoice/closing anchors remain unverified in this pass. No real payment or external message is sent for these regressions. Historical live evidence and baseline numbers are not a fresh evaluation of the revised renderer.
+At the audit-remediation checkpoint these live services had not been tested. The later live-services section below supersedes Gmail and anchoring status. Real Google consent with two accounts and real hospital confirmation remain unverified. No real payment or external message is sent for these regressions. Historical live evidence and baseline numbers are not a fresh evaluation of the revised renderer.
 
 ## Historical build mapping, corrected by the current section
 
@@ -127,3 +127,10 @@ PRD §12 lists these scope changes. Each is in the product and covered by `src/s
 | Gmail sending and the new anchoring paths against live services | Not run in the build environment (no Gmail credentials, no FISCO node); code paths are tested with fakes or skip cleanly |
 | A2 through the UI, live models | Needs LLM keys in the environment (covered by the live evidence run of 18 Oct). |
 | Real hospital confirmation, public deployment, video, two real Google accounts | — operational (TASKS 6.8, 7–10) |
+
+
+## Subsequent live services pass, 20 October 2026
+
+See `evidence/live-services-2026-10-20/README.md`. Gmail self-delivery is now confirmed in INBOX. New local-chain document, invoice, payment-log, closing-pack/log and directory snapshot anchors have matching successful receipts, events and stored mappings. Model reading/explanation/clarification and a background independent re-read have fresh uncached evidence.
+
+The live status is partial rather than all green. The initial cause reading mismatched the key, while an uncached rerun matched it. The independent second provider timed out at the actual 15-second web budget, despite succeeding with a background budget. Real Google OAuth consent, real hospital onboarding and real bank settlement remain outside these tests.

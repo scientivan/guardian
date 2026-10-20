@@ -1,0 +1,84 @@
+[
+  {
+    "type": "estimate",
+    "model": "groq:openai/gpt-oss-120b",
+    "documentId": "D_e7faa019",
+    "status": "parsed",
+    "meta": {
+      "extraction": "pdf_text",
+      "reader": "groq:openai/gpt-oss-120b",
+      "currency": "CNY",
+      "statedTotal": null,
+      "assumedStayDays": 3,
+      "actualStayDays": null,
+      "estimateLow": 3000000,
+      "estimateHigh": 3400000,
+      "estimateByCategory": [
+        {
+          "category": "room",
+          "amount": 450000
+        },
+        {
+          "category": "procedure",
+          "amount": 2500000
+        },
+        {
+          "category": "drug",
+          "amount": 150000
+        },
+        {
+          "category": "lab",
+          "amount": 120000
+        }
+      ],
+      "exclusions": [
+        "Complications and extra days are not included",
+        "Consumables are billed as used"
+      ],
+      "statedReasons": [],
+      "suspiciousInstructions": false
+    }
+  },
+  {
+    "type": "interim",
+    "model": "groq:openai/gpt-oss-120b",
+    "documentId": "D_ffe1e48f",
+    "status": "parsed",
+    "meta": {
+      "extraction": "pdf_text",
+      "reader": "groq:openai/gpt-oss-120b",
+      "currency": "CNY",
+      "statedTotal": 3678200,
+      "assumedStayDays": null,
+      "actualStayDays": 5,
+      "estimateLow": null,
+      "estimateHigh": null,
+      "estimateByCategory": [],
+      "exclusions": [],
+      "statedReasons": [
+        "Attending physician note: antibiotic course extended to 5 days."
+      ],
+      "suspiciousInstructions": false
+    }
+  },
+  {
+    "type": "final",
+    "model": "groq:openai/gpt-oss-120b",
+    "documentId": "D_ba12fcd6",
+    "status": "parsed",
+    "meta": {
+      "extraction": "pdf_text",
+      "reader": "groq:openai/gpt-oss-120b",
+      "currency": "CNY",
+      "statedTotal": 7100000,
+      "assumedStayDays": null,
+      "actualStayDays": null,
+      "estimateLow": null,
+      "estimateHigh": null,
+      "estimateByCategory": [],
+      "exclusions": [],
+      "statedReasons": [],
+      "suspiciousInstructions": false
+    }
+  }
+]

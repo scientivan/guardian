@@ -1,0 +1,14 @@
+{
+  "interactiveBudgetMs": 15000,
+  "elapsedMs": 15014,
+  "responseModelIds": [],
+  "at": "2026-10-20T08:56:31.500Z",
+  "cache": "disabled",
+  "firstModel": "groq:openai/gpt-oss-120b",
+  "pass": false,
+  "scope": "Live independent re-reading of the same PDF, compared to the verified live first-reader fields. Typed items reconstructed from matching fixture after the temporary first-reader DB was removed.",
+  "checked": [],
+  "disagreements": [],
+  "model": null,
+  "skipped": "second model unavailable: No LLM available: openrouter:openrouter/free (timeout); gemini:gemini-3-flash-preview (request time budget exhausted)"
+}

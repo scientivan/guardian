@@ -1,0 +1,36 @@
+{
+  "cache": "disabled",
+  "initialProbe": {
+    "provider": "groq",
+    "model": "openai/gpt-oss-120b",
+    "reply": "OK",
+    "skipped": [
+      {
+        "provider": "gemini",
+        "model": "gemini-3.8-flash",
+        "status": 503
+      },
+      {
+        "provider": "gemini",
+        "model": "gemini-3.7-flash",
+        "status": 503
+      }
+    ]
+  },
+  "independentProbe": {
+    "provider": "gemini",
+    "model": "gemini-3-flash-preview",
+    "reply": {
+      "status": "OK"
+    },
+    "skipped": [
+      {
+        "provider": "gemini",
+        "model": "gemini-2.5-flash",
+        "status": 404
+      }
+    ]
+  },
+  "configuredKeys": "Existing local credentials, no keys exported",
+  "discovery": "Official Gemini and OpenRouter model-list APIs returned 200"
+}
