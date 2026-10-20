@@ -1,0 +1,23 @@
+{
+  "url": "https://guardian.scientivan.dev",
+  "sourceCommit": "2c98f9a",
+  "unauthenticatedApiStatus": 401,
+  "demoLogin": true,
+  "concurrentColdWorkspace": [
+    {
+      "status": 200,
+      "cases": 1,
+      "seconds": 1.74,
+      "region": "sin1::bom1::lqzw9-1792490162196-28c3260b2723"
+    },
+    {
+      "status": 200,
+      "cases": 1,
+      "seconds": 1.54,
+      "region": "sin1::bom1::r7pvh-1792490162146-86b1b11201fd"
+    }
+  ],
+  "googleRedirectCorrect": true,
+  "googleConsentAutomated": false,
+  "productionAnchoringEnabled": false
+}

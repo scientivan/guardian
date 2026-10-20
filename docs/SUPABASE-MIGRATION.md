@@ -68,3 +68,5 @@ npm run build
 The probe scripts create synthetic verification data. The browser runner in evidence/supabase-deployment-2026-10-20 uses an external Playwright installation and Chrome. Never expose .env, database dumps or original uploads in public evidence.
 
 The Next.js 15 release line was patched from 15.5.4 to 15.5.28 for deployment. Existing dependency audit findings, including development-tool findings, are not claimed resolved by this persistence migration. The user's Nodemailer 10 choice is retained and install commands use legacy peer resolution.
+
+[Fact] Final source commit 2c98f9a was automatically deployed from main and reached READY. The final production check passed demo login, unauthenticated HTTP 401, two simultaneous cold workspace reads with HTTP 200 in 1.54/1.74 seconds, Mumbai function placement and the correct Google redirect URI. Real Google consent was not automated. Final evidence is in evidence/supabase-deployment-2026-10-20/final-health.json. All 125 offline tests, lint, TypeScript and an isolated production build passed before the source push.
