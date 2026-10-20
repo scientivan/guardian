@@ -178,6 +178,8 @@ export type PaymentRequest = {
   approved: number;
   remaining: number;
   purpose: string;
+  /** The uploaded bill this request pays, when it was created from one. */
+  documentId?: string | null;
   status: "pending" | "executing" | "paid" | "expired" | "cancelled" | "failed";
   createdAt: string;
   expiresAt: string;

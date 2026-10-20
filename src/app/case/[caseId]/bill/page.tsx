@@ -47,7 +47,8 @@ export default function BillPage() {
   const working=busy||auto;
   const bills=documents.filter(d=>d.type!=="estimate");
   const controls=<div className="space-y-3"><div className="block text-sm font-semibold text-ink-2">Bill to review<Select label="Bill to review" className="mt-2" value={selected} onChange={setSelected} disabled={!bills.length} placeholder="No bills uploaded yet" options={bills.map(d=>({value:d.id,label:d.title,hint:`${d.type==="final"?"Final bill":"Interim bill"} · ${d.status==="needs_reupload"?"needs a clearer copy":d.status==="parsed"?"read":d.status}`}))}/></div><button type="button" disabled={!selected||working} onClick={refreshExplanation} className={SECONDARY}>{working?<><Spinner />Reading and checking…</>:"Explain selected bill"}</button></div>;
-  const upload=<Link href={`/case/${care.id}/upload`} className={PRIMARY}><Upload className="h-4 w-4" />Upload a bill</Link>;
+  const helper=care.me.role==="payer";
+  const upload=helper?undefined:<Link href={`/case/${care.id}/upload`} className={PRIMARY}><Upload className="h-4 w-4" />Upload a bill</Link>;
   if (!e) return <Section title="Bill Review" agent="reader" action={upload}>{controls}<p className="mt-4 text-ink-2">Upload the hospital’s estimate and a bill to see the comparison.</p></Section>;
   const scale=Math.max(e.estimate.high,e.estimate.low,e.total,1)*1.1;
   const at=(value:number)=>Math.max(0,Math.min(100,share(value,scale)));
@@ -82,7 +83,8 @@ export default function BillPage() {
         <MoneyBreakdown byCategory={e.byCategory} total={e.total} currency={e.currency} items={Object.values(ITEMS)} />
       </Section>
 
-      <FoldSection title={`Questions for the Hospital (${e.questions.length})`} agent="planner">
+      {helper && <p className="text-sm leading-relaxed text-ink-2">As a helper you see the bill summary and the calculated reasons. Bill lines, documents and the questions for the hospital stay with the case owner.</p>}
+      {e.questions.length > 0 && <FoldSection title={`Questions for the Hospital (${e.questions.length})`} agent="planner">
         <ol className="space-y-3">
           {e.questions.map((q, i) => (
             <li key={q.text} className="flex flex-wrap items-start gap-x-4 gap-y-1">
@@ -96,10 +98,11 @@ export default function BillPage() {
           <CopyButton text={questionsText} label="Copy questions" />
 
         </div>
-      </FoldSection>
+      </FoldSection>}
 
       {REASONS.map((r) => {
         const lines = e.lines.filter((l) => l.type === r.type);
+        if (!lines.length) return null;
         return (
           <FoldSection key={r.type} title={`${r.title} (${lines.length})`} agent={r.agent}>
             <ul className="space-y-3">

@@ -55,6 +55,7 @@ export default function UploadPage() {
         </div>
       )}
 
+      {care.me.role === "payer" ? <p className="rounded-2xl bg-firstlight p-5 leading-relaxed text-serpent-dark">Estimates and bills are uploaded by the case owner or the companion at the hospital. As a helper you see the bill summary in Bill Review.</p> : <>
       <Section title="New Upload" agent="clerk">
         <label className="flex cursor-pointer flex-col items-center gap-3 rounded-[1.75rem] border-2 border-dashed border-cerulean px-6 py-12 text-center transition-colors hover:bg-white/60">
           <span className="grid h-14 w-14 place-items-center rounded-2xl bg-white text-serpent">
@@ -78,6 +79,7 @@ export default function UploadPage() {
         </div>
         <FieldError id="upload-file-error" message={fileError} />
       </Section>
+      </>}
 
       {feedback && <p role="status" className={`rounded-2xl px-5 py-4 text-sm ${feedback.ok ? "bg-ok-soft text-ok-ink" : "bg-warn-soft text-warn-ink"}`}>{feedback.text}</p>}
       <Section title="Documents on File" agent="reader"><ul className="divide-y divide-line">{DOCUMENTS.map(d=><li key={d.id} className="flex flex-wrap items-center justify-between gap-3 py-3"><div><p className="font-semibold text-lead">{d.title}</p><p className="text-xs text-ink-2">{d.type} · {d.status} · {d.items} items</p>{d.reason&&<p className="mt-1 text-sm text-warn-ink">{d.reason}</p>}</div>{care.me.role!=="payer"&&<a href={`/api/documents/${d.id}/file`} className="text-sm font-semibold text-serpent-dark underline">Download original</a>}</li>)}</ul>{!DOCUMENTS.length&&<p className="text-ink-2">No documents yet. Upload the hospital’s estimate first, then each bill as it arrives.</p>}</Section>

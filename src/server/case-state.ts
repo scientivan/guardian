@@ -74,12 +74,12 @@ export function projectCase(db: DB, source: CareCase, memberId: string): CareCas
     const replaced=new Set((db.prepare("SELECT old_id FROM web_replacements").all() as {old_id:string}[]).map(r=>r.old_id));
     data.documents=data.documents.filter(d=>!replaced.has(d.id));
   }
-  type RequestRow = { id: string; payee_id: string; amount: number; purpose: string; status: PaymentRequest["status"]; created_at: string; expires_at: string };
+  type RequestRow = { id: string; payee_id: string; document_id: string | null; amount: number; purpose: string; status: PaymentRequest["status"]; created_at: string; expires_at: string };
   data.requests = (db.prepare("SELECT * FROM payment_requests WHERE case_id=? ORDER BY created_at DESC,rowid DESC").all(id) as RequestRow[]).map(r => {
     const approvals = db.prepare(`SELECT a.member_id memberId,m.display_name displayName,a.amount,a.status,a.ts,a.charge_ref chargeRef,q.pay_currency payCurrency,q.pay_amount payAmount,q.rate_e4 rateE4,q.fee,q.expires_at quoteExpiresAt
       FROM approvals a JOIN members m ON m.id=a.member_id LEFT JOIN fx_quotes q ON q.id=a.quote_id WHERE a.request_id=? AND a.status!='withdrawn'`).all(r.id) as (Pledge & { rateE4: number; quoteExpiresAt: string; chargeRef: string | null })[];
     const approved = approvals.filter(a => a.status === "approved" || a.status === "charged").reduce((s,a) => s+a.amount,0);
-    return { id: r.id, payeeId: r.payee_id, payeeName: data.case.hospital.name, accountMasked: data.case.payees.find(p => p.id === r.payee_id)?.accountMasked ?? "Unverified account", amount: r.amount, currency: data.case.currency, approved, remaining: Math.max(0,r.amount-approved), purpose: r.purpose, status: r.status, createdAt: r.created_at, expiresAt: r.expires_at, approvals: approvals.map(a => ({ ...a, fxRate: formatRate(a.rateE4 ?? 10000) })) };
+    return { id: r.id, payeeId: r.payee_id, payeeName: data.case.hospital.name, accountMasked: data.case.payees.find(p => p.id === r.payee_id)?.accountMasked ?? "Unverified account", amount: r.amount, documentId: r.document_id, currency: data.case.currency, approved, remaining: Math.max(0,r.amount-approved), purpose: r.purpose, status: r.status, createdAt: r.created_at, expiresAt: r.expires_at, approvals: approvals.map(a => ({ ...a, fxRate: formatRate(a.rateE4 ?? 10000) })) };
   });
   const paid = paidByMember(db,id);
   const lastBill = [...data.documents].reverse().find(d => d.type !== "estimate" && d.status === "parsed");
@@ -106,6 +106,11 @@ export function projectCase(db: DB, source: CareCase, memberId: string): CareCas
     data.documents=data.documents.map(d=>({...d,title:`${d.type} bill`}));
     if (data.explanation) data.explanation = { ...data.explanation, lines: data.explanation.lines.filter(l => l.type === "arithmetic_fact"), questions: [] };
     if (data.refunds) data.refunds.items = data.refunds.items.filter(r => r.memberId === me.id);
+    // PRD §2: a helper sees the bill summary and their own share, not other helpers' money.
+    data.requests = data.requests.map(r => ({ ...r, approvals: r.approvals.filter(a => a.memberId === me.id) }));
+    data.case.members = data.case.members.map(m => (m.id === me.id || m.role === "owner" ? m : { ...m, shareLimit: 0 }));
+    const others = data.case.members.filter(m => m.id !== me.id && m.role !== "owner").flatMap(m => [m.displayName, m.displayName.split(" (")[0]]);
+    data.audit = { ...data.audit, rows: data.audit.rows.filter(r => !others.includes(r.actor)) };
   }
   return data;
 }

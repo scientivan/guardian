@@ -84,7 +84,7 @@ export function AppShell({ caseId, children }: { caseId: string; children: React
 
       <div className={office ? "flex min-h-0 flex-1 overflow-hidden" : "flex"}>
         <nav className={`${office ? "h-full min-h-0 overflow-y-auto" : "sticky top-16 h-[calc(100dvh-4rem)]"} hidden w-60 shrink-0 flex-col border-r border-line bg-white p-3 lg:flex`} aria-label="Case sections">
-          <Link
+          {CASE.me.role !== "payer" && <Link
             href={`${base}/upload`}
             aria-current={active === "upload" ? "page" : undefined}
             className={`mb-4 flex items-center justify-center gap-2 rounded-2xl px-4 py-3 text-sm font-semibold transition-colors ${
@@ -93,7 +93,7 @@ export function AppShell({ caseId, children }: { caseId: string; children: React
           >
             <Upload className="h-5 w-5" />
             Upload a bill
-          </Link>
+          </Link>}
           <ul className="space-y-1">
             {NAV.map((n) => {
               const on = lit(n.id);
