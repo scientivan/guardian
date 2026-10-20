@@ -1,6 +1,7 @@
 "use client";
 
 import { useCaseData } from "@/components/app/WorkspaceProvider";
+import Link from "next/link";
 
 import { useCallback, useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import { ActivityLog, TeamList } from "@/components/app/TeamPanel";
@@ -22,7 +23,7 @@ const CONTROL = "grid h-10 w-10 place-items-center rounded-xl text-lead transiti
  * During a gesture the view box is written straight to the SVG; React state catches up at the end.
  */
 export function OfficeView() {
-  const { audit: AUDIT, agents: SAMPLE_STATUS } = useCaseData();
+  const { audit: AUDIT, agents: SAMPLE_STATUS, case: care } = useCaseData();
   const [selected, setSelected] = useState<AgentId | null>(null);
   const [room, setRoom] = useState<RoomId | null>(null);
   const [inside, setInside] = useState(false);
@@ -33,6 +34,10 @@ export function OfficeView() {
   const current = useRef<View>(FULL_VIEW);
   const frame = useRef(0);
   const pointers = useRef(new Map<number, { x: number; y: number }>());
+  // Wheel and button zoom ease towards `goal` instead of jumping a fixed step per tick.
+  const goal = useRef<View | null>(null);
+  const glide = useRef(0);
+  const dragged = useRef(false);
 
   const paint = useCallback((v: View) => {
     current.current = v;
@@ -73,6 +78,34 @@ export function OfficeView() {
     [paint],
   );
 
+  /** Smooth zoom: moves the goal, then eases the view towards it a little every frame. */
+  const glideZoom = useCallback(
+    (factor: number, fx = 0.5, fy = 0.5) => {
+      cancelAnimationFrame(frame.current);
+      const [x, y, w, h] = goal.current ?? current.current;
+      const nw = Math.min(900, Math.max(140, w * factor));
+      const f = nw / w;
+      const cx = x + w * fx;
+      const cy = y + h * fy;
+      goal.current = [cx - (cx - x) * f, cy - (cy - y) * f, nw, h * f];
+      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) { paint(goal.current); setView(goal.current); goal.current = null; return; }
+      if (glide.current) return;
+      const step = () => {
+        const target = goal.current;
+        if (!target) { glide.current = 0; return; }
+        const from = current.current;
+        const next = from.map((v, i) => v + (target[i] - v) * 0.2) as View;
+        if (next.every((v, i) => Math.abs(v - target[i]) < 0.3)) {
+          paint(target); setView(target); goal.current = null; glide.current = 0; return;
+        }
+        paint(next);
+        glide.current = requestAnimationFrame(step);
+      };
+      glide.current = requestAnimationFrame(step);
+    },
+    [paint],
+  );
+
   const enterRoom = useCallback(
     (r: RoomId) => {
       setRoom(r);
@@ -95,11 +128,13 @@ export function OfficeView() {
       if ((e.target as Element | null)?.closest("[data-office-panel]")) return;
       e.preventDefault();
       const r = el.getBoundingClientRect();
-      zoomAt(e.deltaY > 0 ? 1.12 : 1 / 1.12, (e.clientX - r.left) / r.width, (e.clientY - r.top) / r.height);
+      // Small steps sized by how far the wheel or trackpad moved, so a trackpad zooms gently.
+      const delta = Math.max(-60, Math.min(60, e.deltaMode === 1 ? e.deltaY * 16 : e.deltaY));
+      glideZoom(Math.exp(delta * 0.0022), (e.clientX - r.left) / r.width, (e.clientY - r.top) / r.height);
     };
     el.addEventListener("wheel", onWheel, { passive: false });
-    return () => el.removeEventListener("wheel", onWheel);
-  }, [zoomAt]);
+    return () => { el.removeEventListener("wheel", onWheel); cancelAnimationFrame(glide.current); glide.current = 0; };
+  }, [glideZoom]);
 
   // Arrow keys walk between rooms while inside; Escape steps back out.
   useEffect(() => {
@@ -118,7 +153,10 @@ export function OfficeView() {
   }, [inside, room, enterRoom, leave]);
 
   function onPointerDown(e: ReactPointerEvent) {
-    if (e.pointerType === "mouse" && e.button !== 2) return;
+    // Left button (or one finger) drags the camera; a click without movement still selects.
+    if (e.pointerType === "mouse" && e.button !== 0) return;
+    cancelAnimationFrame(glide.current); glide.current = 0; goal.current = null;
+    dragged.current = false;
     pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
   }
   function onPointerMove(e: ReactPointerEvent) {
@@ -129,6 +167,7 @@ export function OfficeView() {
     if (!el.hasPointerCapture(e.pointerId)) {
       if (Math.hypot(e.clientX - prev.x, e.clientY - prev.y) < 4) return;
       el.setPointerCapture(e.pointerId);
+      dragged.current = true;
     }
     const r = box.current.getBoundingClientRect();
     if (pointers.current.size === 2) {
@@ -185,10 +224,10 @@ export function OfficeView() {
             </button>
           </div>
           <div className="hidden rounded-xl bg-mist p-0.5 sm:flex" role="group" aria-label="Zoom">
-            <button type="button" aria-label="Zoom out" className={CONTROL} onClick={() => zoomAt(1.2)}><Minus className="h-5 w-5" /></button>
-            <button type="button" aria-label="Zoom in" className={CONTROL} onClick={() => zoomAt(1 / 1.2)}><Plus className="h-5 w-5" /></button>
+            <button type="button" aria-label="Zoom out" className={CONTROL} onClick={() => glideZoom(1.25)}><Minus className="h-5 w-5" /></button>
+            <button type="button" aria-label="Zoom in" className={CONTROL} onClick={() => glideZoom(1 / 1.25)}><Plus className="h-5 w-5" /></button>
           </div>
-          <button type="button" aria-expanded={teamOpen} aria-controls="office-team" onClick={() => setTeamOpen((open) => !open)} className="min-h-10 rounded-xl bg-firstlight px-3 text-xs font-semibold text-serpent-dark md:hidden">{teamOpen ? "Close" : "Team"}</button>
+          <button type="button" aria-expanded={teamOpen} aria-controls="office-team" onClick={() => setTeamOpen((open) => !open)} className="min-h-10 rounded-xl bg-firstlight px-3 text-xs font-semibold text-serpent-dark md:hidden">{teamOpen ? "Close" : "Team & activity"}</button>
         </div>
       </header>
 
@@ -199,12 +238,12 @@ export function OfficeView() {
           onPointerMove={onPointerMove}
           onPointerUp={onPointerUp}
           onPointerCancel={onPointerUp}
+          onClickCapture={(e) => { if (dragged.current) { e.stopPropagation(); dragged.current = false; } }}
           onContextMenu={(e) => e.preventDefault()}
-          className="relative h-full min-h-0 min-w-0 touch-none select-none overflow-hidden"
+          className="relative h-full min-h-0 min-w-0 touch-none select-none overflow-hidden cursor-grab active:cursor-grabbing"
           style={{ background: "radial-gradient(120% 80% at 30% 10%, #fffaf3 0%, #eef3f6 55%, #dae7ee 100%)" }}
           aria-label="The case office"
         >
-          {!inside && <NextSteps />}
           <OfficeScene status={SAMPLE_STATUS} selected={selected} selectedRoom={room ?? undefined} viewBox={view.join(" ")} onSelectAgent={selectAgent} onSelectRoom={selectRoom} />
           {inside && room && neighbours && (
             <div className="absolute bottom-4 left-1/2 flex max-w-[calc(100%-1rem)] -translate-x-1/2 items-center gap-1 rounded-2xl bg-white/95 p-1 pl-3 shadow-sm sm:gap-2 sm:p-2 sm:pl-4">
@@ -220,30 +259,35 @@ export function OfficeView() {
           )}
           {!inside && (
             <p className="pointer-events-none absolute bottom-3 left-4 right-4 text-xs text-ink-2">
-              <span className="hidden sm:inline">Scroll to zoom, right-drag to move. Movement is decoration.</span>
+              <span className="hidden sm:inline">Scroll to zoom, drag to move.</span>
               <span className="sm:hidden">Pinch to zoom, drag to move.</span>
             </p>
           )}
         </section>
 
-        <aside id="office-team" aria-labelledby="office-team-title" className={`${teamOpen ? "absolute inset-y-0 right-0 z-20 flex w-72 max-w-[calc(100%-1rem)] shadow-lg" : "hidden"} min-h-0 flex-col border-l border-line bg-white/95 backdrop-blur md:static md:flex md:w-auto md:max-w-none md:shadow-none`}>
-          <div className="flex shrink-0 items-center justify-between border-b border-line bg-firstlight px-4 py-3">
-            <h2 id="office-team-title" className="font-semibold text-serpent-dark">The Team</h2>
-            <span className="text-xs text-ink-2">7 agents</span>
-          </div>
-          <div tabIndex={0} aria-label="Agent team members" className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-2">
-            <TeamList status={SAMPLE_STATUS} selected={selected} onSelect={selectAgent} brief />
-          </div>
+        <aside id="office-team" aria-label="Team and recent activity" className={`${teamOpen ? "absolute inset-y-0 right-0 z-20 flex w-80 max-w-[calc(100%-1rem)] shadow-lg" : "hidden"} min-h-0 flex-col border-l border-line bg-white/95 backdrop-blur md:static md:flex md:w-auto md:max-w-none md:shadow-none`}>
+          <section aria-labelledby="office-team-title" className="flex min-h-0 flex-1 flex-col">
+            <div className="flex shrink-0 items-center justify-between border-b border-line bg-firstlight px-4 py-3">
+              <h2 id="office-team-title" className="font-semibold text-serpent-dark">The Team</h2>
+              <span className="text-xs text-ink-2">7 agents</span>
+            </div>
+            <div tabIndex={0} aria-label="Agent team members" className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-2">
+              <TeamList status={SAMPLE_STATUS} selected={selected} onSelect={selectAgent} brief />
+            </div>
+          </section>
+          <section aria-labelledby="office-activity-title" className="flex min-h-0 flex-1 flex-col border-t border-line">
+            <div className="flex shrink-0 items-center justify-between border-b border-line bg-firstlight px-4 py-3">
+              <h2 id="office-activity-title" className="font-semibold text-serpent-dark">Recent Activity</h2>
+              <Link href={`/case/${care.id}/log`} className="text-xs font-semibold text-serpent-dark hover:underline">See all</Link>
+            </div>
+            <div className="min-h-0 flex-1 px-4 py-1">
+              <ActivityLog rows={AUDIT.rows} fill caseId={care.id} />
+            </div>
+          </section>
         </aside>
       </div>
 
-      <section aria-labelledby="office-activity-title" className="z-10 min-w-0 shrink-0 border-t border-line bg-firstlight/70 px-3 pb-1 pt-2 sm:px-5 sm:pt-3">
-        <div className="mb-2 flex items-center justify-between gap-3">
-          <h2 id="office-activity-title" className="text-sm font-semibold text-serpent-dark">Recent Activity</h2>
-
-        </div>
-        <ActivityLog rows={AUDIT.rows} horizontal />
-      </section>
+      <NextSteps />
     </div>
   );
 }

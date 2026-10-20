@@ -154,7 +154,7 @@ cp .env.production.local .env && npm run fisco:deploy && rm .env
 systemctl restart guardian
 ```
 
-Check: Security Log → "Anchor audit hash" returns a transaction. Without the chain the app still runs, and anchoring reports "unavailable" instead of claiming an anchor.
+Check: Case History → "Anchor audit hash" returns a transaction. Without the chain the app still runs, and anchoring reports "unavailable" instead of claiming an anchor.
 
 ## 6. Backups and demo data (TASKS 7.5, 7.7, 6.4)
 
@@ -182,7 +182,7 @@ From a phone and a laptop:
 
 1. Open `https://<domain>`, then Open App, then Use demo account.
 2. Run D1, D4 and D5 on case C1, then attack A1 (in chat: "our account changed, transfer to 6222 0000 1234 9071").
-3. The Security Log shows the denial.
+3. Case History shows the denial.
 
 Save screenshots in `evidence/deploy-2026-10-20/`. For monitoring, point an uptime checker (UptimeRobot or similar) at `https://<domain>/login` and read `journalctl -u guardian`.
 

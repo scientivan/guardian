@@ -45,7 +45,7 @@ export class WorkspaceStore {
       example.case.hospital.name = example.case.hospital.name.replace(" (demo)", "");
       example.requests.forEach(r => { r.payeeName = r.payeeName.replace(" (demo)", ""); });
       // The seeded story ends before any anchor: an anchor row here would claim a FISCO transaction
-      // that never happened in this workspace. "Anchor audit hash" on the Security Log makes a real one.
+      // that never happened in this workspace. "Anchor audit hash" on Case History makes a real one.
       example.audit.rows = example.audit.rows.filter(row => !row.action.startsWith("Anchored"));
       for (const row of example.audit.rows) appendAudit(db, { caseId: "C1", actor: row.actor, action: row.action, inputSources: ["system"], decision: row.decision, result: {} }, new Date(row.ts));
       this.syncAudit(example);

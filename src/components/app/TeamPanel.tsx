@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { AGENTS, type AgentId } from "@/components/landing/agents";
 import { Minifig } from "@/components/landing/Minifig";
 import type { AgentState, AgentStatus } from "@/components/office/model";
@@ -67,22 +68,31 @@ export function TeamList({
   );
 }
 
-/** The latest entries of the case log, newest first, in a small scrolling box. */
-export function ActivityLog({ rows, horizontal = false }: { rows: AuditRow[]; horizontal?: boolean }) {
+/**
+ * The latest entries of the case log, newest first. `fill` lets the list take its box's height and
+ * scroll inside it. With `caseId`, each entry opens that step in Case History.
+ */
+export function ActivityLog({ rows, horizontal = false, fill = false, caseId, limit }: { rows: AuditRow[]; horizontal?: boolean; fill?: boolean; caseId?: string; limit?: number }) {
+  const list = [...rows].reverse().slice(0, limit);
+  const body = (r: AuditRow) => <>
+    <span className="pt-0.5 text-xs tabular-nums text-ink-2">{clock(r.ts)}</span>
+    <span className="min-w-0 text-sm leading-snug text-lead">
+      <b className="font-semibold">{actorLabel(r.actor)}</b>
+      {r.decision === "deny" && <Chip tone="danger" className="ml-2">Blocked</Chip>}
+      <span className={horizontal ? "line-clamp-2 text-ink-2 [@media(max-height:600px)]:hidden" : "block text-ink-2"}>{describeAction(r.action, r.check)}</span>
+    </span>
+  </>;
+  const item = horizontal ? "grid w-64 shrink-0 grid-cols-[2.75rem_1fr] gap-2 rounded-xl bg-white/80 px-3 py-2.5" : "grid grid-cols-[2.75rem_1fr] gap-2 py-2.5";
   return (
-    <div>
-      <ol aria-label="Recent case activity" tabIndex={0} className={horizontal ? "flex gap-3 overflow-x-auto overscroll-x-contain pb-2" : "max-h-64 divide-y divide-line overflow-y-auto pr-1"}>
-        {[...rows].reverse().map((r) => (
-          <li key={r.seq} className={horizontal ? "grid w-64 shrink-0 grid-cols-[2.75rem_1fr] gap-2 rounded-xl bg-white/80 px-3 py-2.5" : "grid grid-cols-[2.75rem_1fr] gap-2 py-2.5"}>
-            <span className="pt-0.5 text-xs tabular-nums text-ink-2">{clock(r.ts)}</span>
-            <span className="min-w-0 text-sm leading-snug text-lead">
-              <b className="font-semibold">{actorLabel(r.actor)}</b>
-              {r.decision === "deny" && <Chip tone="danger" className="ml-2">Blocked</Chip>}
-              <span className={horizontal ? "line-clamp-2 text-ink-2 [@media(max-height:600px)]:hidden" : "block text-ink-2"}>{describeAction(r.action, r.check)}</span>
-            </span>
-          </li>
-        ))}
-      </ol>
-    </div>
+    <ol aria-label="Recent case activity" tabIndex={0} className={horizontal ? "flex gap-3 overflow-x-auto overscroll-x-contain pb-2" : `${fill ? "h-full" : "max-h-64"} divide-y divide-line overflow-y-auto overscroll-contain pr-1`}>
+      {list.map((r) => (
+        <li key={r.seq}>
+          {caseId
+            ? <Link href={`/case/${caseId}/log#step-${r.seq}`} className={`${item} ${horizontal ? "" : "-mx-2 rounded-xl px-2"} transition-colors hover:bg-firstlight/70`}>{body(r)}</Link>
+            : <div className={item}>{body(r)}</div>}
+        </li>
+      ))}
+      {!list.length && <li className="py-2.5 text-sm text-ink-2">No activity yet.</li>}
+    </ol>
   );
 }

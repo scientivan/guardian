@@ -2,15 +2,17 @@
 
 import { useCaseData, useWorkspace } from "@/components/app/WorkspaceProvider";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { ActivityLog } from "@/components/app/TeamPanel";
 import { Chip, Section } from "@/components/app/ui";
 import { clock } from "@/lib/format";
 import { CHECKS } from "@/lib/demo";
 import { actorLabel, describeAction } from "@/lib/audit-labels";
 import { Spinner, useTask, WORK } from "@/components/app/Feedback";
 
-// Security log (TASKS 2.9), mainly for the judges: every step in order, whether the gateway
-// allowed it, and the chain status with its FISCO BCOS anchor.
+// Case History (was "Security log", TASKS 2.9): what happened lately in plain words, then every
+// step in order with whether the gateway allowed it, the tamper check and its FISCO BCOS anchor.
+// Recent Activity entries elsewhere link here as #step-<seq>.
 
 export default function LogPage() {
   const { audit: AUDIT,case:care } = useCaseData();
@@ -21,13 +23,23 @@ export default function LogPage() {
   const [onlyBlocked, setOnlyBlocked] = useState(false);
   const rows = onlyBlocked ? AUDIT.rows.filter((r) => r.decision === "deny") : AUDIT.rows;
   const blocked = AUDIT.rows.filter((r) => r.decision === "deny").length;
+  // Opening a linked step (#step-12): show all rows, then bring that row into view.
+  const [target, setTarget] = useState<string>("");
+  useEffect(() => {
+    const read = () => { const id = window.location.hash.slice(1); if (id.startsWith("step-")) { setOnlyBlocked(false); setTarget(id); setTimeout(() => document.getElementById(id)?.scrollIntoView({ block: "center", behavior: "smooth" }), 50); } };
+    read(); window.addEventListener("hashchange", read); return () => window.removeEventListener("hashchange", read);
+  }, []);
 
   return (
     <div className="space-y-12">
       {feedback&&<p role="status" className="rounded-xl bg-ok-soft p-4 text-sm text-ok-ink">{feedback}</p>}
+      <Section title="Recent Activity" agent="auditor">
+        <ActivityLog rows={AUDIT.rows} caseId={care.id} limit={8} />
+        <p className="mt-3 text-xs text-ink-2">Select an entry to see it in the full record below.</p>
+      </Section>
       {care.me.role==="owner"&&<button type="button" disabled={busy} onClick={anchor} className="inline-flex items-center gap-2 rounded-full border border-line px-5 py-3 font-semibold text-serpent-dark">{busy?<><Spinner/>Anchoring…</>:"Anchor audit hash"}</button>}
       <Section
-        title="All Steps"
+        title="Full Record"
         agent="auditor"
         action={
           <>
@@ -57,7 +69,7 @@ export default function LogPage() {
             </thead>
             <tbody className="divide-y divide-line border-t border-line">
               {rows.map((r) => (
-                <tr key={r.seq} className={r.decision === "deny" ? "bg-danger-soft/40" : undefined}>
+                <tr key={r.seq} id={`step-${r.seq}`} className={`scroll-mt-24 transition-colors ${target === `step-${r.seq}` ? "bg-firstlight ring-2 ring-inset ring-serpent" : r.decision === "deny" ? "bg-danger-soft/40" : ""}`}>
                   <td className="py-3 pr-3 tabular-nums text-ink-2">#{r.seq}</td>
                   <td className="px-3 py-3 tabular-nums text-ink-2">{clock(r.ts)}</td>
                   <td className="px-3 py-3 font-semibold text-lead">{actorLabel(r.actor)}</td>
@@ -76,7 +88,7 @@ export default function LogPage() {
         </p>
       </Section>
 
-      <Section title="The Five Checks" agent="gate">
+      <Section title="How Payments Are Protected" agent="gate">
         <ol className="grid gap-x-8 gap-y-3 sm:grid-cols-2">
           {Object.entries(CHECKS).map(([n, t]) => (
             <li key={n} className="flex gap-3">

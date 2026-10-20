@@ -17,12 +17,12 @@ import { TabBand } from "./TabBand";
 
 export type NavId = "office" | "bill" | "pledges" | "chat" | "upload" | "refunds" | "log" | "members";
 
-const NAV: { id: NavId; path: string; label: string; icon: ReactNode; phone?: boolean }[] = [
+const NAV: { id: NavId; path: string; label: string; short?: string; icon: ReactNode; phone?: boolean }[] = [
   { id: "office", path: "", label: "Agent Office", icon: <Building className="h-5 w-5" />, phone: true },
   { id: "bill", path: "/bill", label: "Bill Review", icon: <Doc className="h-5 w-5" />, phone: true },
   { id: "pledges", path: "/pledges", label: "Pledges", icon: <Coins className="h-5 w-5" />, phone: true },
   { id: "chat", path: "/chat", label: "Case Assistant", icon: <ChatBubble className="h-5 w-5" />, phone: true },
-  { id: "log", path: "/log", label: "Security Log", icon: <Chain className="h-5 w-5" />, phone: true },
+  { id: "log", path: "/log", label: "Case History", short: "History", icon: <Chain className="h-5 w-5" />, phone: true },
   { id: "members", path: "/members", label: "Case Members", icon: <People className="h-5 w-5" /> },
 ];
 
@@ -44,7 +44,7 @@ const TITLE: Record<NavId, string> = {
   chat: "Case Assistant",
   upload: "Bill Upload",
   refunds: "Refund Tracking",
-  log: "Security Log",
+  log: "Case History",
   members: "Case Members",
 };
 
@@ -124,15 +124,21 @@ export function AppShell({ caseId, children }: { caseId: string; children: React
           </Link>}
         </nav>
 
-        <div className={`min-w-0 flex-1 ${office ? "flex min-h-0 flex-col overflow-hidden" : ""}`}>
-          {!office && <TabBand title={TITLE[active]} working={focus ? focus.agents : []} />}
-          <div className={office ? "min-h-0 flex-1" : "p-4 sm:p-6 lg:p-8"}>
-            <div className={office ? "h-full min-h-0" : focus ? "grid gap-8 xl:grid-cols-[minmax(0,1fr)_21rem]" : ""}>
-              <main className={`min-w-0 ${office ? "h-full min-h-0" : ""}`}>{children}</main>
-              {focus && <AgentDock caseId={caseId} room={focus.room} agents={focus.agents} />}
-            </div>
+        {office ? (
+          <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+            <main className="h-full min-h-0 min-w-0">{children}</main>
           </div>
-        </div>
+        ) : (
+          // The title band belongs to the main column and stops at the divider; the agents column
+          // starts at the top beside it and stays in view while the page scrolls.
+          <div className={`min-w-0 flex-1 ${focus ? "xl:grid xl:grid-cols-[minmax(0,1fr)_22rem]" : ""}`}>
+            <div className="min-w-0">
+              <TabBand title={TITLE[active]} working={focus ? focus.agents : []} />
+              <main className="min-w-0 p-4 sm:p-6 lg:p-8">{children}</main>
+            </div>
+            {focus && <AgentDock caseId={caseId} room={focus.room} agents={focus.agents} activity={active !== "log"} />}
+          </div>
+        )}
       </div>
 
       <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-white pb-[env(safe-area-inset-bottom)] lg:hidden" aria-label="Case sections">
@@ -147,7 +153,7 @@ export function AppShell({ caseId, children }: { caseId: string; children: React
                   className={`flex flex-col items-center gap-1 py-2.5 text-[11px] font-semibold ${on ? "text-serpent-dark" : "text-ink-2"}`}
                 >
                   {n.icon}
-                  {n.label.split(" ").pop()}
+                  {n.short ?? n.label.split(" ").pop()}
                 </Link>
               </li>
             );
