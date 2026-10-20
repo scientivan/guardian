@@ -23,6 +23,8 @@ const ONLY = process.argv[2];
 
 // A visible cursor and click ring, since headless recordings show no pointer.
 const CURSOR = `(() => {
+  // The one-time "Your share was paid" receipt would cover the screen; mark every receipt as seen.
+  try { const get = Storage.prototype.getItem; Storage.prototype.getItem = function (k) { return String(k).startsWith("guardian:paid:") ? "1" : get.call(this, k); }; } catch {}
   const add = () => {
     if (document.getElementById("__cursor")) return;
     const c = document.createElement("div"); c.id = "__cursor";
