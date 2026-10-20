@@ -5,7 +5,7 @@ An AI agent on the patient family's side that reads a foreign hospital's bills, 
 - **Track:** 2026 Shenzhen International FinTech Competition (FinTechathon), International Track (AI)
 - **Topic:** C, Cross-border & Student Finance
 - **Team:** Dien (backend, agent, services), Aurel (UI/FE)
-- **Status:** backend, agent and frontend work end to end. Google accounts have private care-case data. A separate demo account opens a seeded workspace without Google login. Hospital Directory and the human Verification Desk support proposals, AI evidence checks, separate profile/account approval, holds and verification-hash anchoring. Institutional confirmation still requires human work and hospital cooperation. Payments remain sandbox or Stripe test mode.
+- **Status:** backend, agent and frontend work end to end. Google accounts have private care-case data. A separate demo account opens a seeded workspace without Google login. Hospital Directory and the human Verification Desk support proposals, AI evidence checks, separate profile/account approval, holds and verification-hash anchoring. Institutional confirmation still requires human work and hospital cooperation. Payments remain sandbox or Stripe test mode. Request amounts come from the uploaded documents, paid requests carry the hospital's invoice, and the owner closes a case into a read-only state with printable closing documents (see §1 and `docs/TASKS.md` → "Current state").
 
 > Fixture patients, hospitals and account numbers are synthetic. Directory proposals require human verification. Payments use the isolated demo sandbox or Stripe **test mode** only.
 
@@ -13,11 +13,11 @@ An AI agent on the patient family's side that reads a foreign hospital's bills, 
 
 1. **Estimate in.** A family member uploads the hospital's estimate (PDF or photo).
 2. **Payee check.** Payments can only go to accounts from the hospital's signed payee list.
-3. **Initial deposit.** FX quote per payer, owner approval, Stripe test charge.
+3. **Initial deposit.** The amount is the estimate's lower or upper end (not typed). FX quote per payer, each payer pledges, owner pays, Stripe test charge.
 4. **Bill explainer (core).** A 40-line interim bill is compared with the estimate; each difference is explained by cause and cited to bill lines. Duplicates, basic items billed separately and prices above an indicative reference become questions for the hospital, not accusations.
-5. **Emergency guarantee.** Helpers in other countries (IDR, MYR, AED) each approve their own share; nothing is charged until the approved shares cover the amount; each share is a separate charge to the hospital.
-6. **Final bill and refund.** The refund is split in proportion to what each person paid and tracked with reminders.
-7. **Recap.** Each payer gets their own record with receipts and document hashes.
+5. **Emergency guarantee.** Payers in other countries (IDR, MYR, AED) each approve their own share; nothing is charged until the approved shares cover the amount; each share is a separate charge to the hospital.
+6. **Final bill and refund.** "Bill balance" requests use the latest bill (a final bill replaces interim bills) minus everything already requested. The refund is split in proportion to what each person paid and tracked with reminders. The owner or companion attaches the hospital's invoice to each paid request.
+7. **Recap and closing.** Each payer gets their own record with receipts and document hashes. The owner closes the case once requests are settled, the final bill is in and every paid request has an invoice; the case becomes read-only and the "Close and Records" tab offers printable closing documents per role.
 
 ## 2. Architecture
 
@@ -36,7 +36,7 @@ An AI agent on the patient family's side that reads a foreign hospital's bills, 
 - **Instructions and data are separated** (CaMeL pattern). The reader that sees documents has no tools; the planner never sees raw document text.
 - **Money math is code only.** The LLM writes words; totals, causes, FX and refunds come from code.
 - **PII is replaced by tokens before any LLM call** and restored by role for display.
-- **Every action is in a hash-chained audit log**; document hashes and the log head are anchored on FISCO BCOS.
+- **Every action is in a hash-chained audit log**; FISCO BCOS anchors the hashes of every bill and hospital invoice, the log head (on demand, after each payment, at closing) and the closing pack. Full list: `docs/API.md` v1.6.
 
 Details: `docs/ARCHITECTURE.md`, `docs/PRD.md`, `docs/API.md`, `docs/TEST-PLAN.md`.
 
@@ -48,6 +48,10 @@ Details: `docs/ARCHITECTURE.md`, `docs/PRD.md`, `docs/API.md`, `docs/TEST-PLAN.m
 | `src/server/compare.ts`, `analysis.ts`, `explain.ts`, `secondcheck.ts` | Comparator, cited explanation with guards, second-model check |
 | `src/server/agent.ts` | Chat planner: intents, clarification, chat attack checks |
 | `src/server/refunds.ts`, `recap.ts`, `clock.ts` | Refund split and reminders, per-member recap, demo clock |
+| `src/lib/payment-plan.ts` | Request amounts from documents (deposit from the estimate, bill balance from the latest bill), shared by form and server |
+| `src/server/integration.ts` | Web API engine: requests, invoices, second check, share limits, case closing, notifications |
+| `src/server/notify.ts` | Gmail emails to payers when a payment request opens (optional) |
+| `src/server/case-answers.ts` | Code-written answers for the "Ask" buttons (Case Assistant) |
 | `src/server/audit.ts`, `anchor.ts`, `contracts/Anchor.sol` | Hash-chained audit log, FISCO BCOS anchoring |
 | `src/server/llm.ts` | Router over free-tier LLM providers with rate-limit fallback |
 | `src/server/fixtures/`, `fixtures/pdf/` | Synthetic documents and hand-written answer keys |
@@ -79,6 +83,7 @@ Environment variables (`.env`, never committed; template in `.env.example`):
 | `HOSPITAL_SEARCH_MODEL` | optional: Gemini model for hospital search | |
 | `NEXTAUTH_URL`, `NEXTAUTH_SECRET` | app URL and session signing | `.env.local`, see [Google sign-in setup](docs/GOOGLE-OAUTH.md) |
 | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | Google sign-in | Google Console, Web application OAuth client |
+| `GMAIL_USER`, `GMAIL_APP_PASSWORD` | optional: email payers when a payment request opens | a Gmail address and an app password (myaccount.google.com/apppasswords) |
 
 The router uses whichever LLM keys are present and skips a model that is rate-limited, so one key is enough to run.
 
@@ -90,7 +95,7 @@ The router uses whichever LLM keys are present and skips a model that is rate-li
 git clone https://github.com/scientivan/guardian.git
 cd guardian
 npm ci
-npm test            # 95 tests covering the core, authentication, isolation, hospital verification and rate limits
+npm test            # 118 tests covering the core, authentication, isolation, hospital verification, rate limits, document-based requests, invoices and case closing
 npm run fixtures    # regenerates the demo PDFs in fixtures/pdf/
 ```
 
@@ -143,7 +148,7 @@ Hospital profiles are available at `/hospitals`. Human administrators enter `/ad
 
 | Command | Covers | Last result |
 |---|---|---|
-| `npm test` | Unit and scenario tests with fakes | 95 passing |
+| `npm test` | Unit and scenario tests with fakes | 118 passing (20 Oct) |
 | `npm run evidence` | D1–D6, D4b, A1–A9 live | 16/16 from a fresh clone (`evidence/run-2026-10-18-clean-clone/summary.md`) |
 | `npm run eval:reader` | 40-item bill reading vs answer key | 40/40 items, total and causes match |
 | `npm run eval:chat` | Clarification, colloquial input, chat attacks | 10/10 |
@@ -156,7 +161,9 @@ Known limitations:
 
 - Free-tier LLMs are rate-limited (e.g. Groq 8,000 tokens per minute per model; OpenRouter free models 50 requests per day). Long prompts can hit 429 or 503; the router falls back, document reading waits once for a cooldown, and the cache avoids repeat calls. Two full uncached `evidence` runs a few minutes apart can still exhaust the free quotas; wait about a minute between runs.
 - Photo OCR is a secondary path; the demo uses text-layer PDFs.
-- FX rates and the 1% fee are a demo table, not market rates. Stripe test mode does not simulate cross-border settlement.
+- FX rates and the 1% fee are a demo table (one CNY row, other pairs are cross rates through CNY), not market rates. Stripe test mode does not simulate cross-border settlement.
+- Payment-request emails need `GMAIL_USER` and `GMAIL_APP_PASSWORD`, and reach only payers who accepted their invitation with a Google account after 20 Oct (their address is stored from then on). Demo accounts have no email.
+- The emergency guarantee amount is still typed by the owner (no document type for the hospital's guarantee letter yet).
 - The hospital portal is a mock: its signing key is in the code (`src/server/portal.ts`), so anyone reading the repo could sign a payee list. In real use only the hospital holds that key.
 - The FISCO BCOS chain is local; tx hashes are not on a public explorer.
 - PII detection is pattern- and name-based and can miss unusual formats; role masking is the second layer.
@@ -167,11 +174,11 @@ Known limitations:
 - **Live demo:** not deployed yet.
 - **Deployment:** local by default (SQLite files, local chain). VPS steps with HTTPS, backups and AI rate limits are in [`docs/DEPLOY.md`](docs/DEPLOY.md). No real accounts or money.
 - **Demo reset:** `npm run demo:reset` removes demo workspaces so the next demo sign-in starts from the seeded case.
-- **Demo payments for directory hospitals:** `npm run hospitals:demo-verify` marks the listed directory hospitals as verified, with synthetic signed "DEMO" accounts, so Pledges can be tried with a Google case. It is for testing only: there is no real hospital confirmation, and it refuses to run with `NODE_ENV=production`. Exchange quotes exist only for CNY cases (China hospitals).
+- **Demo payments for directory hospitals:** `npm run hospitals:demo-verify` marks the listed directory hospitals as verified, with synthetic signed "DEMO" accounts, so Pledges can be tried with a Google case. It is for testing only: there is no real hospital confirmation, and it refuses to run with `NODE_ENV=production`.
 
 ## 7. Security notes
 
-- **Roles:** owner (creates and cancels payment requests, approves), payer/helper (approves or withdraws only their own share, within a limit), companion (uploads, asks; cannot approve), agent (reads, explains, prepares; cannot approve or execute).
+- **Roles** (names from PRD §2, shown in the UI as Owner, Payer, Companion; the word "helper" is no longer used): owner (creates, pays and cancels payment requests, attaches invoices, closes the case), payer (approves or withdraws only their own share, within a limit), companion (uploads, asks; cannot approve), agent (reads, explains, prepares; cannot approve or execute).
 - **Confirmation:** the agent can only prepare a payment. Creating, approving and executing are explicit user actions. Each payer approves an FX quote for their own share; quotes expire after 15 minutes and requests expire on their own timer.
 - **Payee trust:** accounts come only from the hospital's signed list. Accounts in invoices or chat are matched against the registry and never enrolled; a new or changed account opens an anomaly that pauses all payments until the family checks with the hospital's official channel.
 - **Prompt injection:** the reader has no tools and a fixed schema; the planner sees typed facts only; explanation lines with numbers not in the facts, uncited lines, or clinical causes the document does not state are dropped.

@@ -4,6 +4,30 @@ Internal deadline: **20 Oct 2026 12:00 WIB**. Official deadline: 20 Oct 2026 23:
 
 Owners: **Dien** (backend, agent, API, services) and **Aurel** (UI/FE). FE ↔ BE contract: `docs/API.md`. Status: `todo`, `doing`, `done`, `blocked`.
 
+## Current state (read this first, updated 20 Oct evening)
+
+For an agent or person picking this up. Details per area are in the linked docs; `docs/VERIFICATION.md` maps every PRD/ARCHITECTURE/API/TEST-PLAN requirement to where it lives.
+
+**Product, as built on `main`:**
+
+- **Roles** (PRD §2): Owner, Payer, Companion. The UI and docs say "Payer", never "helper". The role shows as a chip in the header and next to each pledge (`ROLE_LABEL` in `src/components/app/AppShell.tsx`).
+- **Case tabs:** Agent Office, Bill Review, Pledges (with Refund Tracking behind a button), Case History, Case Members, Close and Records, How It Works. Upload is the button above the tabs. The Case Assistant is a window docked at the bottom of the sidebar; "Ask" buttons open it with a code-written answer (`src/server/case-answers.ts`). The status card of the latest pending request sits right under the tab list.
+- **Upload:** a confirmation dialog shows file, format, chosen type (estimate / interim / final) and what it is used for, and warns when the file name suggests another type or when a newer document of that type will replace an older one.
+- **Bill Review:** "Ask about this bill" (Case Assistant, context `{kind:"bill",documentId}`) replaced "Explain selected bill"; the page no longer re-runs the explanation on its own. Each line has "Double-check" (second model on that line, F6).
+- **Payment requests** (`src/lib/payment-plan.ts`, enforced in `Integration.createRequest`): three kinds. Initial deposit = estimate's lower or upper end. Bill balance = latest bill (final replaces interim) minus all live requests. Emergency guarantee = typed amount (only manual one). One live request per document. New requests email payers through Gmail when configured (`src/server/notify.ts`).
+- **Request card** (Pledges): a filled switcher next to the title replaces the old dropdown; stage strip Requested → Pledging → Covered → Paid; total with the viewer's own currency beside it (≈); the owner's pay and cancel buttons sit right of the total ("Pay when covered" until 100%). Each pledge row shows `IDR 73,031,490 (CNY 31,822)`; clicking shows rate, fee and status. The owner does not pledge by default ("I'm also paying part of this myself"). Payers confirm a pledge in a sandbox checkout dialog; once their share is charged they see a one-time receipt dialog.
+- **Paid requests:** Hospital Invoice section. Owner or companion attaches the hospital's invoice (PDF/PNG/JPEG); every member can view or download it; its hash is anchored.
+- **Hospital:** the hospital name with its verified account is one button; its menu has "Verify hospital account" and "View in Hospital Directory".
+- **Closing** (`/case/:id/closing`, `Integration.closeCase`): blocked until no request is pending/executing, the final bill is read, and every paid request has an invoice. Then the case is read-only for everyone (every non-GET case route except chat returns 409) and a banner shows on every page. Closing documents per role: Case Closing Summary (owner), Payment Record (each payer; owner for anyone), Questions for Hospital Billing and Document and Audit Proof (owner, companion). Each prints on its own.
+- **Blockchain** (FISCO BCOS, hash only, best effort): bills and invoices on upload, log head on demand / after each payment / at closing, closing-pack hash at closing, hospital verification snapshots by admins. Table in `docs/API.md` v1.6.
+- **FX:** demo table with one CNY row; every other pair is a cross rate, so MYR, SGD, THB, AED, USD and IDR hospitals get quotes. Conversions are written "payer amount (hospital amount)".
+
+**Checks on `main`:** `npm test` 118/118, `npm run lint`, `npx tsc --noEmit`, `npm run build` all pass (20 Oct).
+
+**Open items:** guarantee amount still typed (no "hospital guarantee letter" document type); Gmail sending not yet tried with real credentials; FISCO anchoring of the new invoice / closing-pack paths not yet run against a live chain; sections 6.5, 6.7, 6.8 and 7–10 below (deployment, video, submission) unchanged.
+
+**Working conventions in this repo:** follow the existing design (Tailwind tokens in `src/app/globals.css`, `Section` / `Chip` / `PRIMARY` / `SECONDARY` from `src/components/app/ui.tsx`, the custom `Select`, no native `<select>`); keep `/mockup/titles` untouched; new SQLite columns are added in `openDb` (`src/server/db.ts`) with `ALTER TABLE … ADD COLUMN` guards because existing account databases must keep working; record attacks and evidence under `evidence/`; Dien asked for changes to be pushed straight to `main`.
+
 ## 0. Decisions and admin
 
 | # | Task | Owner | Status |
@@ -118,7 +142,7 @@ Integration is already in place (tasks 1.17, 2.10, `evidence/integration-2026-10
 | 6.6 | Run the attacks through the UI (not only scripts): A1 changed account in chat, A2 PDF with hidden instruction, A5 data extraction request, A7 owner forcing a transfer | Dien | P0 | Each attack is rejected on screen with a clear reason, and appears in the audit log | done for A1, A4, A5, A7, A9 (`evidence/e2e-2026-10-20/attacks/ATTACKS.md`); A2 in the UI needs LLM keys |
 | 6.7 | Dialogue counts for 3.3: user and agent turns for D1–D6 through the UI | Dien | P1 | Numbers recorded in `docs/TEST-PLAN.md` §3 | todo |
 | 6.8 | Second account via Google invitation (owner invites helper, helper approves own share) | Dien | P1 | Passes with two real Google accounts, not only signed synthetic sessions | todo |
-| 6.9 | Final checks: `npm test`, `npm run lint`, `npx tsc --noEmit`, `npm run build` | Dien | P0 | All green, results in the progress notes | done 20 Oct: 95 tests, lint, `tsc --noEmit`, build all pass |
+| 6.9 | Final checks: `npm test`, `npm run lint`, `npx tsc --noEmit`, `npm run build` | Dien | P0 | All green, results in the progress notes | done 20 Oct: 118 tests, lint, `tsc --noEmit`, build all pass (last run evening) |
 | 6.10 | Commit and push the E2E result to `main` | Dien | P0 | Tagged commit `v-submission-rc1` | todo |
 
 ### 6.1 Inventory: UI showing static, demo or misleading data (20 Oct)
@@ -241,5 +265,9 @@ Video outline (4:45):
 - 20 Oct, Claude, ninth round. Audit of the helper (payer) view against PRD §2. Already right: no bill lines, no original files, only calculated reasons, own pledge and withdraw, own refund and recap, no request, verify or pay controls. Fixed: the Upload button and form are hidden for helpers. Other helpers' pledges, share limits and activity rows are removed from the helper's projection on the server. The empty question and document-reason folders are hidden, and "Invite more helpers" is owner-only. Payment requests can now pay an uploaded bill: the owner picks a read interim or final bill, and the amount is capped on the server at its open balance (bill total less live requests for it). The request stores `documentId`, and the payee still comes only from the registry. Tests 114/114.
 
 
-### Progress 20 Oct (docs verification)
-Request amounts now come from documents (deposit from the estimate, bill balance from the latest/final bill). Docs-vs-product gaps fixed: F6 family-questioned second check, F7 reference note, F9 payee source badge, F11 case-wide warning banner and warnings that could not be cleared, F12 countdown, F14 receipts per share, F19 in-app payment record, owner edits share limits. Full table in `docs/VERIFICATION.md`.
+- 20 Oct, Claude, tenth round (docs verification). Request amounts now come from documents (deposit from the estimate, bill balance from the latest/final bill). Docs-vs-product gaps fixed: F6 family-questioned second check, F7 reference note, F9 payee source badge, F11 case-wide warning banner and warnings that could not be cleared, F12 countdown, F14 receipts per share, F19 in-app payment record, owner edits share limits. Full table in `docs/VERIFICATION.md`.
+
+- 20 Oct, Claude, eleventh round. One live request per document (server and form); the owner's pledge box became opt-in; every conversion reads "payer amount (hospital amount)" with "1 CNY = … IDR"; FX cross rates through CNY (THB added). Stage strip on request cards, sandbox checkout dialog on pledge, one-time "Your share was paid" receipt.
+- 20 Oct, Claude, twelfth round. Hospital Invoice section on paid requests (`request_invoices` table, `POST/GET /payment-requests/:id/invoices`). Case closing (`case_closure` table, `POST /cases/:id/close`, read-only guard in `src/server/api.ts`) with the Close and Records tab and printable closing documents. Hospital name merged into one menu button. "Helper" renamed "Payer" in UI, server messages and docs; role chips added. Status chips removed from card corners; request form text condensed.
+- 20 Oct, Claude, thirteenth round. Bill Review "Ask about this bill". Invoices viewable by every member. Gmail emails on new requests (`nodemailer`, `memberships.email` stored when an invitation is accepted). Review and Pay moved into the request card, request switcher in the card header (filled `Select strong`), invite link hidden once covered. Upload confirmation dialog. Request status card under the tab list.
+- 20 Oct, Claude, fourteenth round. Closing also requires the final bill and an invoice on every paid request; checklist "Open" links go to the exact request (`?requestId=…#invoice`). Blockchain: invoices anchored on upload, log head anchored after each executed payment and at closing, closing-pack SHA-256 written into the `case.closed` row and anchored (`case_closure.pack_sha256/pack_tx/audit_hash/audit_tx`). All docs updated for handoff. Tests 118/118.

@@ -123,7 +123,7 @@ Request `status`: `pending`, `executing`, `paid`, `expired`, `cancelled`, `faile
 { "demo": true, "amount": 2000000, "currency": "CNY", "payCurrency": "IDR", "payAmount": 4590000000, "fxRate": "2295.0000", "fee": 45900000, "quoteId": "Q9", "expiresAt": "…" }
 ```
 
-The helper is charged `payAmount + fee` in `payCurrency`. Quotes expire after 15 minutes; an approval must use the member's own unexpired quote for the same amount (else error with `check: 4`). Rates and the 1% fee are demo values.
+The payer is charged `payAmount + fee` in `payCurrency`. Quotes expire after 15 minutes; an approval must use the member's own unexpired quote for the same amount (else error with `check: 4`). Rates and the 1% fee are demo values.
 
 `POST /api/payment-requests/:requestId/approvals` body `{ "amount": 2000000, "quoteId": "Q9" }`
 
@@ -186,7 +186,7 @@ Fetches the signed payee list from the hospital's official channel and enrolls v
 1. **Case overview:** members and roles, payees with source badge, open anomalies (prominent), totals.
 2. **Upload:** estimate or bill; shows `needs_reupload` reason.
 3. **Bill explanation (core):** estimate range vs total, lines grouped by type (fact / stated / ask hospital), each linked to its items, questions list.
-4. **Payment request:** progress bar approved vs remaining, per-helper rows with currency and FX quote, approve / withdraw, expiry countdown.
+4. **Payment request:** progress bar approved vs remaining, per-payer rows with currency and FX quote, approve / withdraw, expiry countdown.
 5. **Chat:** agent replies with action buttons and clarification options.
 6. **Refunds:** per-member share, status, overdue reminder.
 7. **Audit log:** rows, chain status, anchor tx (for judges).
@@ -199,7 +199,7 @@ Plus a member picker (sets `x-member-id`) to switch roles during the demo. The 1
 - `GET /api/documents/:id/file` downloads the stored original for owner or companion. Upload accepts optional `replacementDocumentId` for an unreadable document.
 - `POST /api/cases/:id/explanation?documentId=...` explicitly recomputes a selected bill.
 - `GET /api/cases/:id/chat` returns the acting member’s stored chat history.
-- `POST /api/cases/:id/invitations` accepts `name`, `delivery` (`email` or `link`), `email` (required for `email`), `role`, `shareLimit` and `limitCurrency`. `shareLimit` is in `limitCurrency` (the owner's own currency) and is stored in the hospital currency at the reference rate, rounded down. The owner no longer chooses the helper's payment currency. The helper picks it on acceptance: `currency` in the accept body must be one with a reference rate for the case, and every invitation preview lists the options in `currencies`. Names and emails are checked with the same rules as the forms (`src/lib/validate.ts`); a failed rule returns `400 INVALID_INPUT` with its message. An `email` invite is bound to that Google address. A `link` invite has no email and can be accepted once by the first Google account that opens it, within 72 hours.
+- `POST /api/cases/:id/invitations` accepts `name`, `delivery` (`email` or `link`), `email` (required for `email`), `role`, `shareLimit` and `limitCurrency`. `shareLimit` is in `limitCurrency` (the owner's own currency) and is stored in the hospital currency at the reference rate, rounded down. The owner no longer chooses the payer's payment currency. The payer picks it on acceptance: `currency` in the accept body must be one with a reference rate for the case, and every invitation preview lists the options in `currencies`. Names and emails are checked with the same rules as the forms (`src/lib/validate.ts`); a failed rule returns `400 INVALID_INPUT` with its message. An `email` invite is bound to that Google address. A `link` invite has no email and can be accepted once by the first Google account that opens it, within 72 hours.
 - `POST /api/hospitals/request` (Google accounts) takes `{ name, country, city }`, has AI draft the remaining profile fields with source citations, and files a pending profile proposal. It returns `{ review: { id, hospitalId, status }, profile, uncertainties }`. A second request for the same name and city returns the existing pending review. An incomplete AI draft returns `422`. Google care cases must name `hospitalDirectoryId` (a listed or verified directory hospital). Free text is refused.
 - `POST /api/cases/:id/payment-requests` accepts an optional `documentId` of a read interim or final bill. The amount must be at most the bill's open balance (its line total less pending, executing or paid requests for it), else `409` with `check: 4`. Requests carry `documentId` in the case view. The payee is always the registry `payeeId`, never an account from the bill.
 - `GET /api/invitations` lists pending email invitations addressed to the signed-in account (Dashboard → Invitation Requests). `GET /api/invitations/id/:id` shows one; `POST` with `{ action: "accept" | "decline" }` answers it.
@@ -213,14 +213,14 @@ Plus a member picker (sets `x-member-id`) to switch roles during the demo. The 1
 ## v1.4 additions (20 Oct 2026)
 
 - `POST /cases/:id/second-check` `{documentId, itemIds}`: second model on lines a family member questions (F6). Owner/companion only; uses model quota. Returns `{checked, disagreements, unavailable, reason}`; audited as `document.second_check`.
-- `POST /cases/:id/members/:memberId` `{shareLimit, limitCurrency}`: owner changes a helper's share limit, converted to the case currency; audited as `member.limit`.
+- `POST /cases/:id/members/:memberId` `{shareLimit, limitCurrency}`: owner changes a payer's share limit, converted to the case currency; audited as `member.limit`.
 - `POST /cases/:id/requests` with `documentId`: amount is checked against `paymentPlan` (`src/lib/payment-plan.ts`). A deposit must equal the estimate's lower or upper end; a bill request must use the latest bill (a final bill replaces interim bills) and stay within its balance (total − live requests). Only the emergency guarantee is typed.
 
 ## v1.5 additions (20 Oct 2026)
 
-- `POST /payment-requests/:id/invoices` (multipart `file`, PDF/PNG/JPEG ≤ 10 MB): owner or companion attaches the hospital's invoice to a **paid** request; stored with its SHA-256, audited as `request.invoice`. `GET /payment-requests/:id/invoices/:invoiceId` downloads it (not for helpers, who see the filename and fingerprint only).
+- `POST /payment-requests/:id/invoices` (multipart `file`, PDF/PNG/JPEG ≤ 10 MB): owner or companion attaches the hospital's invoice to a **paid** request; stored with its SHA-256, audited as `request.invoice`. `GET /payment-requests/:id/invoices/:invoiceId` downloads it (not for payers, who see the filename and fingerprint only).
 - `POST /cases/:id/close`: owner closes the case. Refused while a request is pending or executing. Afterwards every non-GET case route except chat returns 409; `case.closed` is `{at, by}` in the case view. Audited as `case.closed`.
-- Closing documents (Close and Records tab), printable per document: Case Closing Summary (owner), Payment Record (each helper; the owner for anyone), Questions for Hospital Billing (owner, companion), Document and Audit Proof (owner, companion).
+- Closing documents (Close and Records tab), printable per document: Case Closing Summary (owner), Payment Record (each payer; the owner for anyone), Questions for Hospital Billing (owner, companion), Document and Audit Proof (owner, companion).
 - `POST /cases/:id/payment-requests` now also emails every payer who joined with a Google account (Gmail SMTP, `GMAIL_USER` + `GMAIL_APP_PASSWORD`; skipped and audited as `notify.email` when not configured). The response carries `notified: {sent, skipped}`. Emails hold no patient name or document content.
 - Invoices on paid requests can be viewed and downloaded by every member.
 - Bill Review's "Explain selected bill" is replaced by "Ask about this bill", answered by the Case Assistant (`context: {kind: "bill", documentId}`).

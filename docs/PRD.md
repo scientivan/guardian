@@ -18,11 +18,11 @@ An AI agent on the patient family's side that reads a foreign hospital's bills, 
 | Role | Who | Can | Cannot |
 |---|---|---|---|
 | Owner | Patient or main family member | Add members, set share limits, approve payments, request payee verification | Pay to an account outside the official registry, override the gateway |
-| Payer / helper | Relative, friend, community or mosque fund | See a bill summary and their own share, approve or withdraw their own share | See full medical documents, approve for someone else, change payees |
+| Payer | Relative, friend, community or mosque fund | See a bill summary and their own share, approve or withdraw their own share | See full medical documents, approve for someone else, change payees |
 | Companion | Family member at the hospital | Upload estimates and bills, ask questions | Approve payments |
 | Agent | System | Read, explain, ask, prepare a payment request | Execute without approval, write a payee account, give medical advice |
 
-Demo persona: an Indonesian family whose father is treated at a fictional international hospital in Shenzhen. Helpers are in Jakarta, Kuala Lumpur and Dubai, plus a mosque community fund. The demo scenario is China; the product is not China-only.
+Demo persona: an Indonesian family whose father is treated at a fictional international hospital in Shenzhen. Payers are in Jakarta, Kuala Lumpur and Dubai, plus a mosque community fund. The demo scenario is China; the product is not China-only.
 
 ## 3. Problem
 
@@ -33,7 +33,7 @@ Parent problem: families of patients treated abroad must manage medical money (p
 | M1 | Hard to pay a hospital in the destination country | Partial | 3 |
 | M2 | Bills are hard to understand and change from the estimate | Partial (hospital and regulator level) | 4, 6 (core) |
 | M3 | Payee fraud (fake facilitator, "changed account") | Not established; built as a security defence | 2 |
-| M4 | Emergency payment guarantee gathered fast from many helpers | Partial (real cases) | 5, 8 |
+| M4 | Emergency payment guarantee gathered fast from many payers | Partial (real cases) | 5, 8 |
 | M5 | Refund of unused deposit | Weak; tracking only, not pitched as a problem | 7 |
 
 Key evidence (details in the internal research notes):
@@ -51,7 +51,7 @@ Key evidence (details in the internal research notes):
 2. **Payee check.** Account must be in the hospital's official registry (§6.2).
 3. **Initial deposit.** FX quote, fee, method; owner approves; payment in sandbox.
 4. **Bill explainer (core).** Group items, explain each difference by cause, flag duplicates, basic items billed separately, and prices above reference as questions for the hospital.
-5. **Guarantee or top-up.** Request sent to payers and helpers; each approves their own share; payment runs only when approved shares cover the amount (§6.3).
+5. **Guarantee or top-up.** Request sent to payers and payers; each approves their own share; payment runs only when approved shares cover the amount (§6.3).
 6. **Final bill reconciliation.** Final bill vs deposits and interim bills; list of questions for hospital billing.
 7. **Refund tracking.** Each payer sees their share of any refund, its status and due date; agent reminds when overdue.
 8. **Recap.** Per-payer record (how much, for what, receipts, hashes).
@@ -65,7 +65,7 @@ Approved by Dien on 17 Oct 2026.
 | D1 | Estimate in, initial deposit paid to the official account | Full |
 | D2 | Interim bill, 40 items, stay 2 days longer than assumed; differences explained by cause | Full (core) |
 | D3 | Basic items billed separately ("pillow case", "alcohol swab") become questions, not auto-paid | Full |
-| D4 | Emergency guarantee: hospital asks for a guarantee, several helpers approve their shares in different currencies, payment runs once covered | Full |
+| D4 | Emergency guarantee: hospital asks for a guarantee, several payers approve their shares in different currencies, payment runs once covered | Full |
 | D5 | Final bill below deposit; refund split per contributor and tracked; reminder after due date | Light (status and simulated clock) |
 | D6 | Colloquial message ("bayarin aja yg kemarin dong"); agent asks which bill and how much | Full |
 
@@ -100,9 +100,9 @@ Security tests A1–A7 are in `docs/TEST-PLAN.md`.
 |---|---|
 | F12 | Payment request states payee, amount (hospital currency), purpose, and an expiry time. |
 | F13 | Each payer approves only their own share, within their share limit. Approved total can never exceed the requested amount. |
-| F14 | **State machine:** `pending` → (`approvals cover amount`) → `executing` → `paid`; or `pending` → `expired` / `cancelled`. Nothing is charged while `pending`. When covered, each approved share is charged separately and sent to the hospital's registry account, so every helper pays the hospital directly and gets their own receipt. |
+| F14 | **State machine:** `pending` → (`approvals cover amount`) → `executing` → `paid`; or `pending` → `expired` / `cancelled`. Nothing is charged while `pending`. When covered, each approved share is charged separately and sent to the hospital's registry account, so every payer pays the hospital directly and gets their own receipt. |
 | F15 | A payer can withdraw their approval while the request is `pending`. A mistaken approval after `paid` can only be fixed through a hospital refund. |
-| F16 | Cross-currency: each helper sees an FX quote from their currency (IDR, MYR, AED) to the hospital currency (CNY) with fee and quote expiry. Rates come from a demo table labelled as demo. |
+| F16 | Cross-currency: each payer sees an FX quote from their currency (IDR, MYR, AED) to the hospital currency (CNY) with fee and quote expiry. Rates come from a demo table labelled as demo. |
 | F17 | The agent can only prepare a request. Approval and execution are explicit user actions in the UI. |
 
 ### 6.4 Refund, recap, audit
@@ -128,7 +128,7 @@ Security tests A1–A7 are in `docs/TEST-PLAN.md`.
 - A document hash proves the file was not changed after anchoring. It does not prove the hospital issued it or that the bill is correct.
 - Two agreeing models can share the same blind spot when they read the same incomplete document.
 - PII detection can miss unusual formats. Drug and procedure names stay visible, so a diagnosis can still be guessed; role masking is the second layer.
-- Adjacent products exist: Lethe (AI bill audit with redaction and 2-of-3 models, no payment), Tiba (provider-side billing), HealthChain Nigeria (USDC held until the hospital confirms), Bumrungrad split payment. No checked product combines a bill explainer with verified cross-border deposit payment and per-helper approval. The search was not exhaustive.
+- Adjacent products exist: Lethe (AI bill audit with redaction and 2-of-3 models, no payment), Tiba (provider-side billing), HealthChain Nigeria (USDC held until the hospital confirms), Bumrungrad split payment. No checked product combines a bill explainer with verified cross-border deposit payment and per-payer approval. The search was not exhaustive.
 
 ## 9. Success criteria
 
@@ -157,3 +157,15 @@ All submission materials are in English. Deadline: 20 Oct 2026 23:59 Beijing tim
 1. FISCO BCOS: local Docker node (default) or public testnet.
 2. Second-model provider and model name.
 3. China 预交金 and refund process stays simulated unless verified.
+
+## 12. Changes after v1.1 (20 Oct 2026, agreed with Dien during build)
+
+These refine the scope above; where they differ, they take precedence.
+
+1. **Role name.** The contributing family member is called **Payer** everywhere (UI, server messages, docs). "Helper" is not used.
+2. **Amounts from documents.** A payment request is one of: initial deposit (the estimate's lower or upper end), bill balance (latest bill, a final bill replacing interim bills, minus every live request), or emergency guarantee (typed, the only manual amount). One live request per document.
+3. **Owner pays, payers pledge.** The owner creates and executes; pledging their own money is opt-in. A pledge is confirmed in a sandbox checkout dialog and charged only at execution.
+4. **Hospital invoice.** Each paid request gets the hospital's invoice (owner or companion uploads; every member can view it). Its hash is anchored like a bill.
+5. **Notifications.** New payment requests email the payers through Gmail when configured.
+6. **Closing.** The owner closes the case once no request is open, the final bill is read and every paid request has an invoice. The case then becomes read-only for everyone. Closing documents per role: Case Closing Summary (owner), Payment Record (each payer, F19), Questions for Hospital Billing and Document and Audit Proof (owner, companion).
+7. **Anchoring scope (F20).** Bills, invoices, the log head (on demand, after each payment, at closing) and a closing-pack hash. See `docs/API.md` v1.6.

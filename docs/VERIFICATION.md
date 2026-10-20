@@ -1,6 +1,6 @@
 # Requirements verification
 
-Checked on 20 October 2026: every requirement in `PRD.md`, `ARCHITECTURE.md`, `API.md`, `TEST-PLAN.md`, `HOSPITAL-DIRECTORY.md` and `GOOGLE-OAUTH.md` against the code and the running app. The roles were checked as owner, helper (Adi) and companion (Dewi) in the demo account. A Google case linked to a directory hospital was also checked.
+Checked on 20 October 2026: every requirement in `PRD.md`, `ARCHITECTURE.md`, `API.md`, `TEST-PLAN.md`, `HOSPITAL-DIRECTORY.md` and `GOOGLE-OAUTH.md` against the code and the running app. The roles were checked as owner, payer (Adi) and companion (Dewi) in the demo account. A Google case linked to a directory hospital was also checked.
 
 Status: **✅** in the product · **✅ new** gap found in this check and fixed · **⚠️** partly, with the limit stated · **—** not a product feature (process, deployment or people).
 
@@ -12,7 +12,7 @@ Status: **✅** in the product · **✅ new** gap found in this check and fixed 
 | 2 Payee check | Pledges → Verify hospital account; signed list (demo) or reviewed directory account (Google) | ✅ |
 | 3 Initial deposit | Pledges → "Initial deposit", amount from the estimate's lower or upper end | ✅ new (amount used to be typed) |
 | 4 Bill explainer | Bill Review: cited lines in three kinds, breakdown, hospital questions, Ask buttons | ✅ |
-| 5 Guarantee / top-up | Pledges → "Emergency guarantee"; per-helper FX quote, approve or withdraw, pay at 100% | ✅ (amount typed, see open items) |
+| 5 Guarantee / top-up | Pledges → "Emergency guarantee"; per-payer FX quote, approve or withdraw, pay at 100% | ✅ (amount typed, see open items) |
 | 6 Final bill reconciliation | Refund Tracking → Reconcile; Bill Review of the final bill; "Bill balance" uses the final bill and replaces interim bills | ✅ new (final bill can be paid; interim bills no longer payable once replaced) |
 | 7 Refund tracking | Refund Tracking: own share, status, due date, overdue chip, follow-up, demo clock | ✅ |
 | 8 Recap | Refund Tracking → Your Payment Record, shown in the app and downloadable | ✅ new (was download only) |
@@ -21,11 +21,11 @@ Status: **✅** in the product · **✅ new** gap found in this check and fixed 
 
 | Rule | Status |
 |---|---|
-| Owner adds members, sets share limits | ✅ new: "Change limit" per helper on Case Members (`POST /cases/:id/members/:memberId`), audited as `member.limit` |
+| Owner adds members, sets share limits | ✅ new: "Change limit" per payer on Case Members (`POST /cases/:id/members/:memberId`), audited as `member.limit` |
 | Owner requests payee verification | ✅ |
 | No one pays outside the registry or overrides the gateway | ✅ (attack run A1, A7) |
-| Helper sees bill summary and own share only | ✅ new: other helpers' pledges, limits and activity are removed server-side, and empty folders are hidden |
-| Helper can't see full documents, approve for others, change payees | ✅ (no originals, no items, check 3) |
+| Payer sees bill summary and own share only | ✅ new: other payers' pledges, limits and activity are removed server-side, and empty folders are hidden |
+| Payer can't see full documents, approve for others, change payees | ✅ (no originals, no items, check 3) |
 | Companion uploads and asks, can't approve | ✅ |
 | Agent only prepares | ✅ |
 
@@ -52,7 +52,7 @@ Status: **✅** in the product · **✅ new** gap found in this check and fixed 
 | F17 | Agent only prepares | chat "Prepare payment request" | ✅ |
 | F18 | Refund split by share paid, statuses, due date, reminder | Refund Tracking | ✅ |
 | F19 | Recap per payer with receipts and hashes | Your Payment Record | ✅ new (in-app view) |
-| F20 | Hash-chained audit, document and log anchoring | Case History, Anchor audit hash | ✅ |
+| F20 | Hash-chained audit, document and log anchoring | Case History, Anchor audit hash; automatic head anchor after each payment and at closing; invoices and the closing pack anchored too | ✅ (extended 20 Oct) |
 | F21 | Clarifying question on ambiguous requests | Case Assistant | ✅ |
 
 ## ARCHITECTURE
@@ -90,10 +90,24 @@ Status: **✅** in the product · **✅ new** gap found in this check and fixed 
 
 All described flows are present: suggestions, AI search with sources, separate profile and payment reviews, holds, key rotation, verification-hash anchoring, admin allowlist, email-bound and link invitations, an eight-hour session and the Dashboard. ✅
 
+## Added after this check (20 Oct, later rounds)
+
+PRD §12 lists these scope changes. Each is in the product and covered by `src/server/bill-request.test.ts` where it has server logic.
+
+| Item | Where |
+|---|---|
+| Payer role name and role chips | UI everywhere, `ROLE_LABEL` |
+| One live request per document | `payment-plan.ts`, `Integration.createRequest` |
+| Hospital invoice on paid requests (view and download for all members, anchored) | Pledges → Hospital Invoice |
+| Case closing, read-only guard, closing documents, closing-pack hash | Close and Records tab, `Integration.closeCase`, `api.ts` |
+| Gmail notification on new requests | `notify.ts` (needs `GMAIL_USER`, `GMAIL_APP_PASSWORD`) |
+| Upload type confirmation | Upload → confirmation dialog |
+
 ## Open items (not changed in this pass)
 
 | Item | Why |
 |---|---|
 | Emergency guarantee amount is typed by the owner | The hospital asks for it in a letter, and there is no "hospital payment request" document type for the reader yet. Adding one would let this amount come from a document too. |
+| Gmail sending and the new anchoring paths against live services | Not run in the build environment (no Gmail credentials, no FISCO node); code paths are tested with fakes or skip cleanly |
 | A2 through the UI, live models | Needs LLM keys in the environment (covered by the live evidence run of 18 Oct). |
 | Real hospital confirmation, public deployment, video, two real Google accounts | — operational (TASKS 6.8, 7–10) |

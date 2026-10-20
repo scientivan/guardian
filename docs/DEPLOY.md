@@ -65,6 +65,8 @@ NEXTAUTH_SECRET=<new value from: openssl rand -base64 32>
 GOOGLE_CLIENT_ID=<optional, see section 7>
 GOOGLE_CLIENT_SECRET=<optional>
 GUARDIAN_ADMIN_EMAILS=<comma-separated Google emails for /admin>
+GMAIL_USER=<optional: Gmail address that sends payment-request emails>
+GMAIL_APP_PASSWORD=<optional: Google app password for that address>
 
 GEMINI_API_KEY=...
 GROQ_API_KEY=...
@@ -174,7 +176,7 @@ In Google Console, add the origin `https://<domain>` and the redirect `https://<
 
 ## 8. AI quota protection (TASKS 8.7)
 
-Routes that call a model are limited in `src/server/rate-limit.ts`: upload, explanation, chat, hospital search and the admin AI check. The limit is 8 per minute and 60 per hour per account, plus 20 per minute and 150 per hour per client IP. A new demo account costs nothing, so the IP limit is what protects the quota. Over the limit, the API answers `429` with `Retry-After`, and the UI shows "Our AI helpers are busy". Measured locally: 20 fast chat calls gave 8 × `200`, then 12 × `429` (`evidence/e2e-2026-10-20/ui-states/06-rate-limited.png`). Keep `LLM_CACHE_DIR` set so repeated demo steps are served from the cache.
+Routes that call a model are limited in `src/server/rate-limit.ts`: upload, explanation, chat, hospital search and the admin AI check. The limit is 8 per minute and 60 per hour per account, plus 20 per minute and 150 per hour per client IP. A new demo account costs nothing, so the IP limit is what protects the quota. Over the limit, the API answers `429` with `Retry-After`, and the UI shows "Our AI agents are busy". Measured locally: 20 fast chat calls gave 8 × `200`, then 12 × `429` (`evidence/e2e-2026-10-20/ui-states/06-rate-limited.png`). Keep `LLM_CACHE_DIR` set so repeated demo steps are served from the cache.
 
 ## 9. Smoke test (TASKS 8.6) and monitoring (8.8)
 

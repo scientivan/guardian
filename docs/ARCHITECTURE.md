@@ -98,7 +98,7 @@ pending ──(approvals cover amount, checks 1–5 pass)──► executing ─
    └──(owner cancels)──► cancelled
 ```
 
-When `executing`, each approved share is a separate Stripe test charge in the helper's currency, converted at the locked quote, to the registry payee. Each helper receives their own receipt. Approvals can be withdrawn only in `pending`.
+When `executing`, each approved share is a separate Stripe test charge in the payer's currency, converted at the locked quote, to the registry payee. Each payer receives their own receipt. Approvals can be withdrawn only in `pending`.
 
 ### 3.7 Auditor (code, `src/server/audit.ts`)
 
@@ -130,13 +130,19 @@ Money is stored as integer minor units (fen for CNY).
 | `payees` | `id`, `hospital_id`, `account`, `name_normalized`, `source`, `verified_at` |
 | `documents` | `id`, `case_id`, `type`, `sha256`, `anchored_tx`, `created_at` |
 | `bill_items` | `document_id`, `category`, `description`, `qty`, `unit_price`, `flags` |
-| `payment_requests` | `id`, `case_id`, `payee_id`, `amount`, `purpose`, `status`, `created_at`, `expires_at` |
+| `payment_requests` | `id`, `case_id`, `payee_id`, `document_id` (estimate or bill it pays, optional), `amount`, `purpose`, `status`, `created_at`, `expires_at` |
+| `request_invoices` | `id`, `request_id`, `case_id`, `filename`, `mime`, `bytes`, `sha256`, `anchored_tx`, `uploaded_by`, `ts` (hospital invoice for a paid request) |
+| `case_closure` | `case_id`, `closed_at`, `closed_by`, `pack_sha256`, `pack_tx`, `audit_hash`, `audit_tx` (a row means the case is read-only) |
 | `fx_quotes` | `id`, `request_id`, `member_id`, `amount`, `pay_currency`, `pay_amount`, `rate_e4`, `fee`, `expires_at` |
 | `approvals` | `request_id`, `member_id`, `amount`, `status`, `quote_id`, `charge_ref`, `withdrawn_at`, `ts` (unique per member per request) |
 | `anomalies` | `case_id`, `kind`, `detail`, `resolved`, `ts` |
 | `refunds` | `case_id`, `member_id`, `amount`, `status`, `due_at` |
 | `pii_tokens` | `case_id`, `token`, `value`, `kind` |
 | `audit_log` | see §3.7 |
+
+Columns added after the first release are created by guarded `ALTER TABLE` statements in `openDb`, so existing per-account databases keep working. The shared `access.db` (`src/server/access.ts`) holds `invitations` and `memberships` (with the member's Google `email`, used for payment-request emails).
+
+Web-layer additions (20 Oct): request amounts are validated against `src/lib/payment-plan.ts`; `src/server/notify.ts` sends Gmail notifications (optional, hash-free, no patient data); a closed case rejects every mutating case route except chat in `src/server/api.ts`.
 
 ## 6. Rubric mapping
 
