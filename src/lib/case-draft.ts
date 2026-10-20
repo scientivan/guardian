@@ -6,9 +6,11 @@ export type CaseDraft = {
   ownerName: string;
   patientName: string;
   country: string;
-  hospitalName: string;
   currency: string;
-  directory: { id: string; name: string } | null;
+  /** Chosen from the Hospital Directory. */
+  hospital: { id: string; name: string; city: string; status: string } | null;
+  /** Added by this account and waiting for the verification team. */
+  pending: { hospitalId: string; reviewId: string; name: string; city: string; country: string } | null;
   fileName: string | null;
   savedAt: string;
 };
@@ -20,7 +22,8 @@ export function readDraft(account: string): CaseDraft | null {
     const raw = localStorage.getItem(key(account));
     if (!raw) return null;
     const d = JSON.parse(raw) as CaseDraft;
-    return typeof d.step === "number" ? { ...d, step: Math.max(0, Math.min(4, d.step)) } : null;
+    // Drafts from before the directory picker had a typed hospital name; that step starts over.
+    return typeof d.step === "number" ? { ...d, hospital: d.hospital ?? null, pending: d.pending ?? null, step: Math.max(0, Math.min(4, d.step)) } : null;
   } catch { return null; }
 }
 

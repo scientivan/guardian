@@ -36,7 +36,7 @@ export function resetRateLimits() { hits.clear(); }
 export function spendsModelQuota(method: string, path: string[]) {
   if (method !== "POST") return false;
   if (path[0] === "cases" && ["documents", "explanation", "chat"].includes(path[2]) && path.length === 3) return true;
-  if (path[0] === "hospitals" && path[1] === "discover") return true;
+  if (path[0] === "hospitals" && (path[1] === "discover" || path[1] === "request")) return true;
   return path[0] === "admin" && path[1] === "reviews" && path[3] === "ai";
 }
 

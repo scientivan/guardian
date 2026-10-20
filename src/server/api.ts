@@ -70,7 +70,7 @@ export async function dispatch(request:NextRequest,path:string[]) {
     if(path[0]==="cases" && path.length===1 && request.method==="GET")return reply(await accountWorkspace(session,selected));
     if(path[0]==="cases" && path.length===1 && request.method==="POST") {
       const db=ownerDatabase(session.user.id);
-      try {const store=new WorkspaceStore(db,session.user.mode,session.user.name??"You");const created=store.create(await body());return reply(store.view(created.case.id));}finally{db.close();}
+      try {const input=await body();if(session.user.mode==="google"&&!input?.hospitalDirectoryId)throw new ApiError("Choose a hospital from the directory, or add it and wait for its review.");const store=new WorkspaceStore(db,session.user.mode,session.user.name??"You");const created=store.create(input);return reply(store.view(created.case.id));}finally{db.close();}
     }
     let caseId:string;
     if(path[0]==="cases" && path[1])caseId=path[1];

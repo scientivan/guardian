@@ -60,6 +60,7 @@ export default function DashboardPage() {
             <div className="min-w-0 flex-1">
               <p className="text-lg font-bold text-lead">Draft: {draft.patientName.trim() ? `${draft.patientName.trim()}’s care case` : "new care case"}</p>
               <p className="text-sm text-ink-2">Stopped at “{STEPS[draft.step]}” · saved {new Date(draft.savedAt).toLocaleString()}</p>
+              {draft.pending && <p className="mt-1 text-sm font-semibold text-warn-ink">{draft.pending.name} is waiting for the verification team. You can continue once it’s approved.</p>}
             </div>
             <button type="button" className="text-sm font-semibold text-ink-2 hover:underline" onClick={() => { if (session?.user.id) clearDraft(session.user.id); setDraft(null); }}>Discard</button>
             <Link href="/projects/new" className={SECONDARY}>Continue draft</Link>
