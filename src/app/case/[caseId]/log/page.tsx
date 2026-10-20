@@ -3,10 +3,10 @@
 import { useCaseData, useWorkspace } from "@/components/app/WorkspaceProvider";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { ActivityLog } from "@/components/app/TeamPanel";
 import { Chip, Section } from "@/components/app/ui";
 import { clock } from "@/lib/format";
-import { CHECKS } from "@/lib/demo";
 import { actorLabel, describeAction } from "@/lib/audit-labels";
 import { Spinner, useTask, WORK } from "@/components/app/Feedback";
 
@@ -88,16 +88,7 @@ export default function LogPage() {
         </p>
       </Section>
 
-      <Section title="How Payments Are Protected" agent="gate">
-        <ol className="grid gap-x-8 gap-y-3 sm:grid-cols-2">
-          {Object.entries(CHECKS).map(([n, t]) => (
-            <li key={n} className="flex gap-3">
-              <span className="w-5 text-lg font-extrabold leading-7 tabular-nums text-serpent">{n}</span>
-              <span className="leading-7 text-lead">{t}</span>
-            </li>
-          ))}
-        </ol>
-      </Section>
+      <p className="text-sm text-ink-2">How the five payment checks and the tamper check work is explained in <Link href={`/case/${care.id}/guide`} className="font-semibold text-serpent-dark underline">How It Works</Link>.</p>
     </div>
   );
 }

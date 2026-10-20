@@ -10,6 +10,7 @@ import { CopyButton } from "@/components/app/CopyButton";
 import { MoneyBreakdown } from "@/components/app/MoneyBreakdown";
 import { Chip, Figure, FoldSection, MoneyFigure, PRIMARY, Section, SECONDARY, type Tone } from "@/components/app/ui";
 import { Upload } from "@/components/landing/icons";
+import { AskButton } from "@/components/app/Assistant";
 import type { AgentId } from "@/components/landing/agents";
 import { money, share } from "@/lib/format";
 import type { LineType } from "@/lib/demo";
@@ -55,7 +56,7 @@ export default function BillPage() {
     <div className="space-y-12">
       <Section title="Bill Review" agent="reader" action={upload}>{controls}</Section>
       {secondCheckStatus && <p className="text-sm text-ink-2">{secondCheckStatus.startsWith("second model unavailable")?"The independent reader is currently unavailable. Review the cited lines with the hospital.":secondCheckStatus}</p>}
-      <Section title="Estimate vs. Bill" agent="calculator">
+      <Section title="Estimate vs. Bill" agent="calculator" action={<AskButton question="Why is the bill different from the estimate?" context={{ kind: "estimate" }} label="Why is it different?" />}>
         <div className="flex flex-wrap items-end justify-between gap-6">
           <div>
             <p className="text-sm text-ink-2">Estimated range</p>
@@ -76,24 +77,23 @@ export default function BillPage() {
         </div>
       </Section>
 
-      <Section title="Cost Breakdown" agent="reader">
+      <Section title="Cost Breakdown" agent="reader" action={<AskButton question="What is the bill made of?" context={{ kind: "breakdown" }} label="Explain the breakdown" />}>
         <MoneyBreakdown byCategory={e.byCategory} total={e.total} currency={e.currency} items={Object.values(ITEMS)} />
       </Section>
 
       <FoldSection title={`Questions for the Hospital (${e.questions.length})`} agent="planner">
         <ol className="space-y-3">
           {e.questions.map((q, i) => (
-            <li key={q.text} className="flex gap-4">
+            <li key={q.text} className="flex flex-wrap items-start gap-x-4 gap-y-1">
               <span className="w-5 text-lg font-extrabold leading-7 tabular-nums text-serpent">{i + 1}</span>
-              <p className="text-lg leading-7 text-lead">{q.text}</p>
+              <p className="min-w-0 flex-1 text-lg leading-7 text-lead">{q.text}</p>
+              <AskButton question={`Help me understand: ${q.text}`} context={{ kind: "question", index: i }} className="mt-1" />
             </li>
           ))}
         </ol>
         <div className="mt-5 flex flex-wrap gap-2">
           <CopyButton text={questionsText} label="Copy questions" />
-          <Link href="chat" className={SECONDARY}>
-            Ask the assistant
-          </Link>
+
         </div>
       </FoldSection>
 
@@ -104,6 +104,7 @@ export default function BillPage() {
             <ul className="space-y-3">
               {lines.map((l) => (
                 <li key={l.text} className="flex flex-wrap items-start gap-x-3 gap-y-1">
+                  <AskButton question={`Explain this: ${l.text}`} context={{ kind: "line", index: e.lines.indexOf(l) }} className="order-last mt-0.5" />
                   <Chip tone={r.tone} className="mt-0.5">
                     {r.chip}
                   </Chip>

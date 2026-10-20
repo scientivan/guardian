@@ -8,6 +8,7 @@ import { analyse, loadItems } from "./analysis";
 import { explain } from "./explain";
 import { secondCheck } from "./secondcheck";
 import { handleMessage } from "./agent";
+import { AskContext, answerAbout } from "./case-answers";
 import { createQuote, formatRate } from "./fx";
 import { recordApproval, withdrawApproval, resolvePayee } from "./gateway";
 import { createPaymentRequest, cancelRequest, executeRequest, type Charger } from "./payments";
@@ -135,8 +136,16 @@ export class Integration {
     if(!result.ok)throw new ApiError(result.reason,409,1);
     return result;
   }
-  async chat(text:unknown) {
+  async chat(text:unknown,context?:unknown) {
     const message=z.string().trim().min(1).max(2000).parse(text);
+    if(context!==undefined) {
+      // An "Ask" button about one thing on screen: answered by code from the case's facts.
+      const about=AskContext.parse(context);
+      const result=answerAbout(this.view(),about);
+      const seq=appendAudit(this.c.db,{caseId:this.c.caseId,actor:this.c.member.id,action:"chat",inputSources:["user","system"],decision:"info",result:{context:about.kind,actions:result.actions.map(a=>a.type)}},now(this.c.db)).seq;
+      this.c.db.prepare("INSERT INTO web_messages VALUES (?,?,?,?,?,?,?)").run(randomUUID(),this.c.caseId,this.c.member.id,scrub(message).text,result.reply,JSON.stringify(result.actions),now(this.c.db).toISOString());
+      return {...result,auditSeq:seq,model:null};
+    }
     const result=await handleMessage(this.c.db,this.c.caseId,this.c.member.id,message,this.dependencies,now(this.c.db));
     this.c.db.prepare("INSERT INTO web_messages VALUES (?,?,?,?,?,?,?)").run(randomUUID(),this.c.caseId,this.c.member.id,scrub(message).text,result.reply,JSON.stringify(result.actions),now(this.c.db).toISOString());
     return result;

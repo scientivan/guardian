@@ -11,6 +11,7 @@ import { Arrow, Door, Minus, Plus } from "@/components/landing/icons";
 import { AGENT_ROOM, FULL_VIEW, ROOMS, ROOM_GRID, roomView, type RoomId } from "./model";
 import { OfficeScene } from "./OfficeScene";
 import { NextSteps } from "./NextSteps";
+import { ScrollArea } from "@/components/app/ScrollArea";
 
 type View = [number, number, number, number];
 
@@ -94,7 +95,7 @@ export function OfficeView() {
         const target = goal.current;
         if (!target) { glide.current = 0; return; }
         const from = current.current;
-        const next = from.map((v, i) => v + (target[i] - v) * 0.2) as View;
+        const next = from.map((v, i) => v + (target[i] - v) * 0.25) as View;
         if (next.every((v, i) => Math.abs(v - target[i]) < 0.3)) {
           paint(target); setView(target); goal.current = null; glide.current = 0; return;
         }
@@ -129,8 +130,8 @@ export function OfficeView() {
       e.preventDefault();
       const r = el.getBoundingClientRect();
       // Small steps sized by how far the wheel or trackpad moved, so a trackpad zooms gently.
-      const delta = Math.max(-60, Math.min(60, e.deltaMode === 1 ? e.deltaY * 16 : e.deltaY));
-      glideZoom(Math.exp(delta * 0.0022), (e.clientX - r.left) / r.width, (e.clientY - r.top) / r.height);
+      const delta = Math.max(-100, Math.min(100, e.deltaMode === 1 ? e.deltaY * 16 : e.deltaY));
+      glideZoom(Math.exp(delta * 0.003), (e.clientX - r.left) / r.width, (e.clientY - r.top) / r.height);
     };
     el.addEventListener("wheel", onWheel, { passive: false });
     return () => { el.removeEventListener("wheel", onWheel); cancelAnimationFrame(glide.current); glide.current = 0; };
@@ -271,18 +272,18 @@ export function OfficeView() {
               <h2 id="office-team-title" className="font-semibold text-serpent-dark">The Team</h2>
               <span className="text-xs text-ink-2">7 agents</span>
             </div>
-            <div tabIndex={0} aria-label="Agent team members" className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-2">
-              <TeamList status={SAMPLE_STATUS} selected={selected} onSelect={selectAgent} brief />
-            </div>
+            <ScrollArea label="Agent team members" className="flex-1">
+              <div className="p-2"><TeamList status={SAMPLE_STATUS} selected={selected} onSelect={selectAgent} brief /></div>
+            </ScrollArea>
           </section>
           <section aria-labelledby="office-activity-title" className="flex min-h-0 flex-1 flex-col border-t border-line">
             <div className="flex shrink-0 items-center justify-between border-b border-line bg-firstlight px-4 py-3">
               <h2 id="office-activity-title" className="font-semibold text-serpent-dark">Recent Activity</h2>
               <Link href={`/case/${care.id}/log`} className="text-xs font-semibold text-serpent-dark hover:underline">See all</Link>
             </div>
-            <div className="min-h-0 flex-1 px-4 py-1">
-              <ActivityLog rows={AUDIT.rows} fill caseId={care.id} />
-            </div>
+            <ScrollArea label="Recent case activity" className="flex-1">
+              <div className="px-4 py-1"><ActivityLog rows={AUDIT.rows} fill caseId={care.id} /></div>
+            </ScrollArea>
           </section>
         </aside>
       </div>

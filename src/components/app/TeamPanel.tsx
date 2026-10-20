@@ -84,7 +84,7 @@ export function ActivityLog({ rows, horizontal = false, fill = false, caseId, li
   </>;
   const item = horizontal ? "grid w-64 shrink-0 grid-cols-[2.75rem_1fr] gap-2 rounded-xl bg-white/80 px-3 py-2.5" : "grid grid-cols-[2.75rem_1fr] gap-2 py-2.5";
   return (
-    <ol aria-label="Recent case activity" tabIndex={0} className={horizontal ? "flex gap-3 overflow-x-auto overscroll-x-contain pb-2" : `${fill ? "h-full" : "max-h-64"} divide-y divide-line overflow-y-auto overscroll-contain pr-1`}>
+    <ol aria-label="Recent case activity" tabIndex={fill ? undefined : 0} className={horizontal ? "flex gap-3 overflow-x-auto overscroll-x-contain pb-2" : fill ? "divide-y divide-line pr-1" : "max-h-64 divide-y divide-line overflow-y-auto overscroll-contain pr-1"}>
       {list.map((r) => (
         <li key={r.seq}>
           {caseId

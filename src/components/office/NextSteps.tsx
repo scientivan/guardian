@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useRef } from "react";
 import { useCaseData } from "@/components/app/WorkspaceProvider";
 import { Check } from "@/components/landing/icons";
+import { ScrollArea } from "@/components/app/ScrollArea";
 
 // "What to do next" on the Agent Office: the case's steps in order, ticked from the case data
 // itself, with the first open step as the one button to press. Each role sees its own steps.
@@ -49,7 +50,8 @@ export function NextSteps() {
         <span className="text-xs text-ink-2">{next ? `${doneCount} of ${steps.length} done` : "All steps done"}</span>
         <div className="ml-auto hidden h-1.5 w-40 overflow-hidden rounded-full bg-white sm:block"><div className="h-full rounded-full bg-serpent transition-all" style={{ width: `${(doneCount / steps.length) * 100}%` }} /></div>
       </div>
-      <ol ref={strip} tabIndex={0} aria-label="Steps for this care case" className="flex gap-3 overflow-x-auto overscroll-x-contain pb-2">
+      <ScrollArea axis="x" label="Steps for this care case" fade="from-[#e8f0f4]">
+      <ol ref={strip} className="flex gap-3 pb-2">
         {steps.map((s, i) => {
           const current = s === next;
           return (
@@ -65,6 +67,7 @@ export function NextSteps() {
           );
         })}
       </ol>
+      </ScrollArea>
     </section>
   );
 }

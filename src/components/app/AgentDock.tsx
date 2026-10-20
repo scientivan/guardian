@@ -11,6 +11,7 @@ import { ROOMS, roomView, type RoomId } from "@/components/office/model";
 import { OfficeScene } from "@/components/office/OfficeScene";
 
 import { ActivityLog, TeamList } from "./TeamPanel";
+import { ScrollArea } from "./ScrollArea";
 import { Chip, STATE_CHIP } from "./ui";
 
 const BAND = "shrink-0 rounded-[1.25rem] bg-firstlight px-5 py-2.5 text-base font-semibold text-serpent-dark";
@@ -38,18 +39,18 @@ export function AgentDock({ caseId, room, agents, activity = true }: { caseId: s
       </div>
       <section aria-labelledby="dock-team" className="flex min-h-0 flex-1 flex-col">
         <h2 id="dock-team" className={BAND}>The Team</h2>
-        <div tabIndex={0} aria-label="Agent team members" className="mt-2 min-h-0 flex-1 overflow-y-auto overscroll-contain pr-1">
-          <TeamList status={SAMPLE_STATUS} highlight={agents} selected={selected} onSelect={setSelected} brief />
-        </div>
+        <ScrollArea label="Agent team members" className="mt-2 flex-1">
+          <div className="pr-1"><TeamList status={SAMPLE_STATUS} highlight={agents} selected={selected} onSelect={setSelected} brief /></div>
+        </ScrollArea>
       </section>
       {activity && <section aria-labelledby="dock-activity" className="flex min-h-0 flex-1 flex-col">
         <div className={`${BAND} flex items-center justify-between`}>
           <h2 id="dock-activity">Recent Activity</h2>
           <Link href={`/case/${caseId}/log`} className="text-xs font-semibold hover:underline">See all</Link>
         </div>
-        <div className="mt-1 min-h-0 flex-1">
+        <ScrollArea label="Recent case activity" className="mt-1 flex-1">
           <ActivityLog rows={AUDIT.rows} fill caseId={caseId} />
-        </div>
+        </ScrollArea>
       </section>}
     </aside>
   );

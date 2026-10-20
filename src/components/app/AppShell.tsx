@@ -6,7 +6,8 @@ import { AccountMenu } from "@/components/auth/AccountMenu";
 import { useCaseData, useWorkspace } from "./WorkspaceProvider";
 import type { ReactNode } from "react";
 import type { AgentId } from "@/components/landing/agents";
-import { Building, Chain, ChatBubble, Coins, Doc, People, ShieldMark, Upload } from "@/components/landing/icons";
+import { Building, Chain, Coins, Doc, Lock, People, ShieldMark, Upload } from "@/components/landing/icons";
+import { AssistantProvider } from "./Assistant";
 import type { RoomId } from "@/components/office/model";
 import { money, share } from "@/lib/format";
 import { AgentDock } from "./AgentDock";
@@ -15,37 +16,37 @@ import { TabBand } from "./TabBand";
 // Frame for every case screen: case header, "Upload a bill" as the first action, the tab list
 // (sidebar on desktop, bottom bar on phones), the profile menu and the agents panel.
 
-export type NavId = "office" | "bill" | "pledges" | "chat" | "upload" | "refunds" | "log" | "members";
+export type NavId = "office" | "bill" | "pledges" | "upload" | "refunds" | "log" | "members" | "guide";
 
 const NAV: { id: NavId; path: string; label: string; short?: string; icon: ReactNode; phone?: boolean }[] = [
   { id: "office", path: "", label: "Agent Office", icon: <Building className="h-5 w-5" />, phone: true },
   { id: "bill", path: "/bill", label: "Bill Review", icon: <Doc className="h-5 w-5" />, phone: true },
   { id: "pledges", path: "/pledges", label: "Pledges", icon: <Coins className="h-5 w-5" />, phone: true },
-  { id: "chat", path: "/chat", label: "Case Assistant", icon: <ChatBubble className="h-5 w-5" />, phone: true },
   { id: "log", path: "/log", label: "Case History", short: "History", icon: <Chain className="h-5 w-5" />, phone: true },
   { id: "members", path: "/members", label: "Case Members", icon: <People className="h-5 w-5" /> },
+  { id: "guide", path: "/guide", label: "How It Works", short: "Guide", icon: <Lock className="h-5 w-5" />, phone: true },
 ];
 
 /** Which room and agents the panel shows on each tab. */
 const FOCUS: Record<Exclude<NavId, "office">, { room: RoomId; agents: AgentId[] }> = {
   bill: { room: "analysis", agents: ["calculator", "second"] },
   pledges: { room: "vault", agents: ["gate"] },
-  chat: { room: "den", agents: ["planner"] },
   upload: { room: "intake", agents: ["clerk", "reader"] },
   refunds: { room: "records", agents: ["auditor"] },
   log: { room: "records", agents: ["auditor"] },
   members: { room: "intake", agents: ["clerk"] },
+  guide: { room: "vault", agents: ["gate", "auditor"] },
 };
 
 const TITLE: Record<NavId, string> = {
   office: "Agent Office",
   bill: "Bill Review",
   pledges: "Pledges",
-  chat: "Case Assistant",
   upload: "Bill Upload",
   refunds: "Refund Tracking",
   log: "Case History",
   members: "Case Members",
+  guide: "How It Works",
 };
 
 
@@ -62,6 +63,7 @@ export function AppShell({ caseId, children }: { caseId: string; children: React
   const office = active === "office";
 
   return (
+    <AssistantProvider raised={office}>
     <div className={office ? "flex h-dvh flex-col overflow-hidden bg-white pb-[calc(4rem+env(safe-area-inset-bottom))] lg:pb-0" : "min-h-screen bg-white pb-20 lg:pb-0"}>
       <header className="sticky top-0 z-30 shrink-0 border-b border-line bg-white/90 backdrop-blur">
         <div className="flex h-16 items-center gap-3 px-4 sm:gap-4 sm:px-6">
@@ -161,5 +163,6 @@ export function AppShell({ caseId, children }: { caseId: string; children: React
         </ul>
       </nav>
     </div>
+    </AssistantProvider>
   );
 }

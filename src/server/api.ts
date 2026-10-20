@@ -123,7 +123,7 @@ export async function dispatch(request:NextRequest,path:string[]) {
       if(section==="payment-requests" && request.method==="GET")return reply(api.view().requests);
       if(section==="payment-requests" && request.method==="POST")return reply(api.createRequest(await body()));
       if(section==="payees" && path[3]==="verify" && request.method==="POST")return reply(await api.verifyPayees());
-      if(section==="chat" && request.method==="POST")return reply(await api.chat((await body()).message));
+      if(section==="chat" && request.method==="POST"){const b=await body();return reply(await api.chat(b.message,b.context));}
       if(section==="chat" && request.method==="GET")return reply(api.messages());
       if(section==="invitations" && request.method==="POST") {
         const v=z.object({name:z.string().trim().superRefine(zodRule(memberName())),email:z.string().trim().superRefine(zodRule(emailRule())).optional(),delivery:z.enum(["email","link"]).default("email"),role:z.enum(["payer","companion"]),currency:z.enum(["IDR","MYR","SGD","AED","USD","CNY"]),shareLimit:z.number().int().nonnegative().max(100_000_000_00).default(0)}).parse(await body());

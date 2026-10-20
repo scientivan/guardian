@@ -7,6 +7,7 @@ import { Chip, MoneyFigure, PRIMARY, SECONDARY, Section } from "@/components/app
 import { useCaseData, useWorkspace } from "@/components/app/WorkspaceProvider";
 import { money, share } from "@/lib/format";
 import { Arrow, Refund } from "@/components/landing/icons";
+import { AskButton } from "@/components/app/Assistant";
 import type { Quote } from "@/server/fx";
 import { ClientError, explainError, Spinner, useFeedback, useTask, WORK } from "@/components/app/Feedback";
 import { INVALID, useFieldErrors } from "@/components/app/FieldError";
@@ -78,7 +79,7 @@ function PaymentForm({requestId}:{requestId:string}) {
   return <div className="space-y-8">
     {quoteError && <p role="alert" className="rounded-xl bg-warn-soft p-3 text-sm text-warn-ink">{quoteError}</p>}
     {request.status==="cancelled" && !care.payees.some(p=>p.id===request.payeeId) && <p role="status" className="rounded-xl bg-warn-soft p-4 text-sm leading-relaxed text-warn-ink">The hospital’s payment authority changed or was put on hold. This request’s approvals cannot be reused. Review the institution and create a new request after its account is verified again.</p>}
-    <Section title={request.purpose} agent="gate" action={<Chip tone={request.status==="paid"?"ok":request.status==="pending"?"warn":"muted"}>{request.status==="pending"?(request.remaining?`${money(request.remaining,request.currency)} still missing`:"Covered"):request.status}</Chip>}>
+    <Section title={request.purpose} agent="gate" action={<><AskButton question={`How does “${request.purpose}” work?`} context={{ kind: "request", requestId: request.id }} /><Chip tone={request.status==="paid"?"ok":request.status==="pending"?"warn":"muted"}>{request.status==="pending"?(request.remaining?`${money(request.remaining,request.currency)} still missing`:"Covered"):request.status}</Chip></>}>
       <MoneyFigure minor={request.approved} currency={request.currency} /><span className="ml-2 text-ink-2">of {money(request.amount,request.currency)}</span>
       <div className="mt-5 h-5 overflow-hidden rounded-full bg-white"><div className="h-full bg-serpent transition-all" style={{width:`${share(request.approved,request.amount)}%`}} /></div>
       <p className="mt-3 text-xs text-ink-2">Expires {new Date(request.expiresAt).toLocaleString()}</p>
