@@ -6,7 +6,7 @@ import { AccountMenu } from "@/components/auth/AccountMenu";
 import { useCaseData, useWorkspace } from "./WorkspaceProvider";
 import type { ReactNode } from "react";
 import type { AgentId } from "@/components/landing/agents";
-import { Building, Chain, ChatBubble, Coins, Doc, People, Refund, ShieldMark, Upload } from "@/components/landing/icons";
+import { Building, Chain, ChatBubble, Coins, Doc, People, ShieldMark, Upload } from "@/components/landing/icons";
 import type { RoomId } from "@/components/office/model";
 import { money, share } from "@/lib/format";
 import { AgentDock } from "./AgentDock";
@@ -22,7 +22,6 @@ const NAV: { id: NavId; path: string; label: string; icon: ReactNode; phone?: bo
   { id: "bill", path: "/bill", label: "Bill Review", icon: <Doc className="h-5 w-5" />, phone: true },
   { id: "pledges", path: "/pledges", label: "Pledges", icon: <Coins className="h-5 w-5" />, phone: true },
   { id: "chat", path: "/chat", label: "Case Assistant", icon: <ChatBubble className="h-5 w-5" />, phone: true },
-  { id: "refunds", path: "/refunds", label: "Refund Tracking", icon: <Refund className="h-5 w-5" /> },
   { id: "log", path: "/log", label: "Security Log", icon: <Chain className="h-5 w-5" />, phone: true },
   { id: "members", path: "/members", label: "Case Members", icon: <People className="h-5 w-5" /> },
 ];
@@ -56,7 +55,9 @@ export function AppShell({ caseId, children }: { caseId: string; children: React
   const guarantee = requests[0];
   const pathname = usePathname();
   const base = `/case/${caseId}`;
-  const active: NavId = pathname.startsWith(`${base}/upload`) ? "upload" : (NAV.find((n) => n.path && pathname.startsWith(base + n.path))?.id ?? "office");
+  // Refund Tracking lives inside Pledges: it has no tab of its own, so the Pledges tab stays lit.
+  const active: NavId = pathname.startsWith(`${base}/upload`) ? "upload" : pathname.startsWith(`${base}/refunds`) ? "refunds" : (NAV.find((n) => n.path && pathname.startsWith(base + n.path))?.id ?? "office");
+  const lit = (id: NavId) => id === active || (id === "pledges" && active === "refunds");
   const focus = active === "office" ? null : FOCUS[active];
   const office = active === "office";
 
@@ -94,7 +95,7 @@ export function AppShell({ caseId, children }: { caseId: string; children: React
           </Link>
           <ul className="space-y-1">
             {NAV.map((n) => {
-              const on = n.id === active;
+              const on = lit(n.id);
               return (
                 <li key={n.id}>
                   <Link
@@ -137,7 +138,7 @@ export function AppShell({ caseId, children }: { caseId: string; children: React
       <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-white pb-[env(safe-area-inset-bottom)] lg:hidden" aria-label="Case sections">
         <ul className="grid grid-cols-5">
           {NAV.filter((n) => n.phone).map((n) => {
-            const on = n.id === active;
+            const on = lit(n.id);
             return (
               <li key={n.id}>
                 <Link

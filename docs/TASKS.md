@@ -228,3 +228,5 @@ Video outline (4:45):
 
 - 20 Oct, Claude, third round. The wizard's hospital step is a directory combobox: you must choose, and typing only filters. "Add a hospital" takes name, country and city/regency. AI drafts address, phone and website with sources (`POST /api/hospitals/request`), the proposal goes to the Verification Desk, and the step stays locked ("Waiting for review", draft saved) until an admin approves. It then selects the hospital by itself. Google case creation now requires a directory hospital on the server. Tests 108/108.
 
+- 20 Oct, Claude, fourth round. Bill Review has its own section with "Upload a bill" as the section button. The Agent Office has a "What to do next" panel: role-based steps ticked from the case data, with one button for the next step; it starts folded on phones. Refund Tracking leaves the sidebar and opens from a button on Pledges (with "Back to Pledges"). The Pledges tab stays highlighted there. The invite form explains that the share limit is per request and that pledges stop at 100% of each request (gateway check 4, PRD F13).
+

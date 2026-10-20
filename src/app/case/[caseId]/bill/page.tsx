@@ -8,7 +8,8 @@ import { Spinner, useFeedback, useTask, WORK } from "@/components/app/Feedback";
 import Link from "next/link";
 import { CopyButton } from "@/components/app/CopyButton";
 import { MoneyBreakdown } from "@/components/app/MoneyBreakdown";
-import { Chip, Figure, FoldSection, MoneyFigure, Section, SECONDARY, type Tone } from "@/components/app/ui";
+import { Chip, Figure, FoldSection, MoneyFigure, PRIMARY, Section, SECONDARY, type Tone } from "@/components/app/ui";
+import { Upload } from "@/components/landing/icons";
 import type { AgentId } from "@/components/landing/agents";
 import { money, share } from "@/lib/format";
 import type { LineType } from "@/lib/demo";
@@ -44,14 +45,15 @@ export default function BillPage() {
   const working=busy||auto;
   const bills=documents.filter(d=>d.type!=="estimate");
   const controls=<div className="space-y-3"><label className="block text-sm font-semibold text-ink-2">Bill to review<select aria-label="Bill to review" value={selected} onChange={event=>setSelected(event.target.value)} disabled={!bills.length} className="mt-2 block w-full rounded-xl border border-line bg-white p-3">{!bills.length&&<option value="">No bills uploaded yet</option>}{bills.map(d=><option key={d.id} value={d.id}>{d.title} · {d.status==="needs_reupload"?"needs a clearer copy":d.status}</option>)}</select></label><button type="button" disabled={!selected||working} onClick={refreshExplanation} className={SECONDARY}>{working?<><Spinner />Reading and checking…</>:"Explain selected bill"}</button></div>;
-  if (!e) return <Section title="Bill Review" agent="reader">{controls}<p className="mt-4">Upload an estimate and a bill to see the comparison.</p><Link href="upload" className="mt-4 inline-block font-semibold text-serpent-dark underline">Upload a bill</Link></Section>;
+  const upload=<Link href={`/case/${care.id}/upload`} className={PRIMARY}><Upload className="h-4 w-4" />Upload a bill</Link>;
+  if (!e) return <Section title="Bill Review" agent="reader" action={upload}>{controls}<p className="mt-4 text-ink-2">Upload the hospital’s estimate and a bill to see the comparison.</p></Section>;
   const scale=Math.max(e.estimate.high,e.estimate.low,e.total,1)*1.1;
   const at=(value:number)=>Math.max(0,Math.min(100,share(value,scale)));
   const questionsText = e.questions.map((q, i) => `${i + 1}. ${q.text}`).join("\n");
 
   return (
     <div className="space-y-12">
-      {controls}
+      <Section title="Bill Review" agent="reader" action={upload}>{controls}</Section>
       {secondCheckStatus && <p className="text-sm text-ink-2">{secondCheckStatus.startsWith("second model unavailable")?"The independent reader is currently unavailable. Review the cited lines with the hospital.":secondCheckStatus}</p>}
       <Section title="Estimate vs. Bill" agent="calculator">
         <div className="flex flex-wrap items-end justify-between gap-6">

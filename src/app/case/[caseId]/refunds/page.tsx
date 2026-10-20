@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
+import { Arrow } from "@/components/landing/icons";
 import { MemberAvatar } from "@/components/app/people";
 import { Chip, MoneyFigure, PRIMARY, SECONDARY, Section } from "@/components/app/ui";
 import { useCaseData, useWorkspace } from "@/components/app/WorkspaceProvider";
@@ -14,6 +16,7 @@ export default function RefundsPage() {
   async function action(path:string,body:object) {setFeedback("");const result=await run(()=>call(`/cases/${care.id}/${path}`,"POST",body,care.id) as Promise<{balanceDue?:number}>,{work:path==="refunds/reconcile"?WORK.reconcile:undefined});if(result)setFeedback(result.balanceDue?`The final bill has an open balance of ${money(result.balanceDue,care.currency)}.`:"Case updated.");}
   async function download() {const data=await run(()=>call(`/cases/${care.id}/recap`,"GET",undefined,care.id),{retry:true});if(!data)return;const url=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:"application/json"}));const a=document.createElement("a");a.href=url;a.download=`guardian-${care.id}-payment-record.json`;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
   return <div className="space-y-10">
+    <Link href={`/case/${care.id}/pledges`} className={SECONDARY}><Arrow className="h-4 w-4 rotate-180" />Back to Pledges</Link>
     {feedback&&<p role="status" className="rounded-xl bg-ok-soft p-4 text-sm text-ok-ink">{feedback}</p>}
     <Section title="Final Bill and Deposits" agent="auditor"><div className="grid gap-5 sm:grid-cols-2"><div><p className="text-sm text-ink-2">Deposits paid</p><MoneyFigure minor={care.totals.paid} currency={care.currency}/></div><div><p className="text-sm text-ink-2">Final bill</p>{final?<MoneyFigure minor={final.total??0} currency={care.currency}/>:<p>Upload the final bill after discharge.</p>}</div></div>
       {care.me.role==="owner"&&final&&!refunds&&<button type="button" disabled={busy} onClick={()=>action("refunds/reconcile",{documentId:final.id})} className={`${PRIMARY} mt-5`}>{busy?<><Spinner/>Reconciling…</>:"Reconcile final bill"}</button>}

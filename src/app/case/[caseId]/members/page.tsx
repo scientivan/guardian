@@ -85,7 +85,7 @@ export default function MembersPage() {
                 </select>
               </label>
               {delivery === "email" && <label className="text-sm text-ink-2">Google email<input id="invite-email" type="email" autoComplete="off" value={form.email} onChange={set("email")} className={`${FIELD} mt-1 ${v.invalid("email") ? INVALID : ""}`} placeholder="name@gmail.com" {...v.field("email")} />{v.error("email")}</label>}
-              {form.role === "payer" && <label className="text-sm text-ink-2">Maximum share in {CASE.currency}<input id="invite-shareLimit" inputMode="decimal" value={form.shareLimit} onChange={set("shareLimit")} className={`${FIELD} mt-1 ${v.invalid("shareLimit") ? INVALID : ""}`} {...v.field("shareLimit")} />{v.error("shareLimit")}</label>}
+              {form.role === "payer" && <label className="text-sm text-ink-2">Maximum share in {CASE.currency}<input id="invite-shareLimit" inputMode="decimal" value={form.shareLimit} onChange={set("shareLimit")} className={`${FIELD} mt-1 ${v.invalid("shareLimit") ? INVALID : ""}`} {...v.field("shareLimit")} />{v.error("shareLimit")}<span className="mt-1 block text-xs leading-relaxed">The most this person can pledge to one payment request. Pledges stop at 100% of each request, so the total never goes over, however many helpers you invite.</span></label>}
               <label className="text-sm text-ink-2">
                 Currency they pay in
                 <select className={`${FIELD} mt-1`} value={form.currency} onChange={set("currency")}>

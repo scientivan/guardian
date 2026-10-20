@@ -9,6 +9,7 @@ import { Arrow, Door, Minus, Plus } from "@/components/landing/icons";
 
 import { AGENT_ROOM, FULL_VIEW, ROOMS, ROOM_GRID, roomView, type RoomId } from "./model";
 import { OfficeScene } from "./OfficeScene";
+import { NextSteps } from "./NextSteps";
 
 type View = [number, number, number, number];
 
@@ -90,6 +91,8 @@ export function OfficeView() {
     const el = box.current;
     if (!el) return;
     const onWheel = (e: WheelEvent) => {
+      // The "What to do next" panel scrolls normally instead of zooming the office.
+      if ((e.target as Element | null)?.closest("[data-office-panel]")) return;
       e.preventDefault();
       const r = el.getBoundingClientRect();
       zoomAt(e.deltaY > 0 ? 1.12 : 1 / 1.12, (e.clientX - r.left) / r.width, (e.clientY - r.top) / r.height);
@@ -201,6 +204,7 @@ export function OfficeView() {
           style={{ background: "radial-gradient(120% 80% at 30% 10%, #fffaf3 0%, #eef3f6 55%, #dae7ee 100%)" }}
           aria-label="The case office"
         >
+          {!inside && <NextSteps />}
           <OfficeScene status={SAMPLE_STATUS} selected={selected} selectedRoom={room ?? undefined} viewBox={view.join(" ")} onSelectAgent={selectAgent} onSelectRoom={selectRoom} />
           {inside && room && neighbours && (
             <div className="absolute bottom-4 left-1/2 flex max-w-[calc(100%-1rem)] -translate-x-1/2 items-center gap-1 rounded-2xl bg-white/95 p-1 pl-3 shadow-sm sm:gap-2 sm:p-2 sm:pl-4">

@@ -6,6 +6,7 @@ import { useSearchParams } from "next/navigation";
 import { Chip, MoneyFigure, PRIMARY, SECONDARY, Section } from "@/components/app/ui";
 import { useCaseData, useWorkspace } from "@/components/app/WorkspaceProvider";
 import { money, share } from "@/lib/format";
+import { Arrow, Refund } from "@/components/landing/icons";
 import type { Quote } from "@/server/fx";
 import { ClientError, explainError, Spinner, useFeedback, useTask, WORK } from "@/components/app/Feedback";
 import { INVALID, useFieldErrors } from "@/components/app/FieldError";
@@ -30,6 +31,7 @@ export default function PledgesPage() {
   }
   async function verify() {await run(()=>call(`/cases/${care.id}/payees/verify`,"POST",{},care.id),{work:WORK.verify,retry:true});}
   return <div className="space-y-10">
+    <div className="flex flex-wrap items-center justify-between gap-3"><p className="text-sm text-ink-2">Requests, pledges and payments to the hospital. Refunds of unused deposits are tracked on their own page.</p><Link href={`/case/${care.id}/refunds`} className={SECONDARY}><Refund className="h-4 w-4" />Refund Tracking<Arrow className="h-4 w-4" /></Link></div>
     {care.anomalies.filter(a=>!a.resolved).map(a=><p key={a.id} className="rounded-xl bg-danger-soft p-4 text-danger-ink">{a.detail}</p>)}
     {care.me.role==="owner" && <Section title="Payment Requests" agent="gate">
       <p className="mb-4 leading-relaxed text-ink-2">Payments go only to the hospital’s verified account. Each person approves their own share before you review and execute the request.</p>
