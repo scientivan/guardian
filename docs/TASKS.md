@@ -44,7 +44,7 @@ Owners: **Dien** (backend, agent, API, services) and **Aurel** (UI/FE). FE ↔ B
 
 | # | Task | Status |
 |---|---|---|
-| 2.1 | Design direction agreed with Dien before coding (palette, type, layout) | todo |
+| 2.1 | Design direction agreed with Dien before coding (palette, type, layout) | done (UI built, final visual review in 6.2) |
 | 2.2 | App shell, account profile and demo member picker, global badge removed by Dien | done |
 | 2.3 | Case overview | done |
 | 2.4 | Upload screen with re-upload state | done |
@@ -75,6 +75,124 @@ Owners: **Dien** (backend, agent, API, services) and **Aurel** (UI/FE). FE ↔ B
 | 4.4 | Security self-assessment (optional) | Dien | todo |
 | 4.5 | Execution evidence (optional) | Dien | todo |
 | 4.6 | Final check of all files and links, submit, confirm receipt | Dien | todo |
+
+## 5. Remaining work plan (20 Oct, from 11:00 WIB)
+
+Written 20 Oct 10:58 WIB. Official deadline 22:59 WIB (about 12 hours left). The 12:00 WIB internal deadline is no longer realistic for the full list, so this plan sets new internal cut-offs. Priority: **P0** blocks submission, **P1** strongly raises the score, **P2** only if time remains.
+
+| Cut-off (WIB) | Gate |
+|---|---|
+| 14:00 | E2E flow passes locally from a clean database (section 6) |
+| 16:00 | Public HTTPS URL works with the demo account (sections 7–8) |
+| 18:00 | Demo video recorded (section 9) |
+| 21:00 | All required files final (section 10) |
+| 22:00 | Submitted, one hour of buffer before 22:59 |
+
+Rules for today:
+
+- Freeze features at 14:00. After that only bug fixes, deployment and submission material.
+- Do not migrate SQLite to Postgres today. The code is written for synchronous `better-sqlite3` (`src/server/db.ts`, per-account files in `src/server/workspace.ts`). A migration touches every engine and all 89 tests. SQLite on a persistent VPS volume meets the need.
+- Judges must be able to use the app without Google consent. The demo account is the main path, Google sign-in is a secondary path.
+
+### 5.1 Open decisions (Dien, before 11:30)
+
+| # | Decision | Recommendation | Status |
+|---|---|---|---|
+| 5.1.1 | VPS specs (CPU, RAM, OS, provider, region) | Minimum 2 vCPU / 4 GB RAM, because Next.js, the 4-node FISCO chain and Tesseract share the machine | todo |
+| 5.1.2 | Domain or subdomain for the app | Needed for HTTPS and Google OAuth redirect. Without a domain, Google sign-in cannot run on the VPS | todo |
+| 5.1.3 | FISCO BCOS on the VPS or anchoring off in production | On the VPS, same Docker setup as local (`docs/FISCO-SETUP.md`). Anchoring is part of the security story in the video | todo |
+| 5.1.4 | Stripe test key on the public server | Yes, test mode only (`sk_test_`). The gateway already rejects other keys | todo |
+| 5.1.5 | Who records the video and who narrates | Aurel screen recording, Dien narration or subtitles | todo |
+
+## 6. Frontend–backend integration and E2E flow (Dien + Aurel, P0, until 14:00)
+
+Integration is already in place (tasks 1.17, 2.10, `evidence/integration-2026-10-20/`). This section closes the gaps and proves the flow from a **clean database**, not an already filled workspace.
+
+| # | Task | Owner | Pri | Done when | Status |
+|---|---|---|---|---|---|
+| 6.1 | Inventory of UI elements still showing static or demo data (search `src/lib/demo.ts`, hard-coded numbers, buttons without handlers) | Aurel | P0 | List in this file, each item with a file path | todo |
+| 6.2 | Fix every element from 6.1 that appears in the video. Remove or hide the ones that do not | Aurel + Dien | P0 | Nothing on screen claims a feature that is not running | todo |
+| 6.3 | Error, loading and empty states on upload, explanation, payment and chat (model timeout, OCR failure, quota exhausted) | Aurel | P0 | Each failure shows a readable message plus a next action, never a blank screen | todo |
+| 6.4 | Reset script for the demo account and local data (`npm run demo:reset` or a written guide) | Dien | P0 | One command returns the app to the start of the video scenario | todo |
+| 6.5 | Manual E2E run on a clean database, D1 → D6 in UI order: create case, upload estimate, initial deposit, upload 40-line interim bill, explanation, hospital questions, D4 guarantee with 4 helpers and FX, withdraw then reapprove, execution, final bill, refunds, recap, audit + anchor | Dien | P0 | Every step passes, with screenshots in `evidence/e2e-2026-10-20/` | todo |
+| 6.6 | Run the attacks through the UI (not only scripts): A1 changed account in chat, A2 PDF with hidden instruction, A5 data extraction request, A7 owner forcing a transfer | Dien | P0 | Each attack is rejected on screen with a clear reason, and appears in the audit log | todo |
+| 6.7 | Dialogue counts for 3.3: user and agent turns for D1–D6 through the UI | Dien | P1 | Numbers recorded in `docs/TEST-PLAN.md` §3 | todo |
+| 6.8 | Second account via Google invitation (owner invites helper, helper approves own share) | Dien | P1 | Passes with two real Google accounts, not only signed synthetic sessions | todo |
+| 6.9 | Final checks: `npm test`, `npm run lint`, `npx tsc --noEmit`, `npm run build` | Dien | P0 | All green, results in the progress notes | todo |
+| 6.10 | Commit and push the E2E result to `main` | Dien | P0 | Tagged commit `v-submission-rc1` | todo |
+
+## 7. Database and storage on the VPS (Dien, P0, 13:00–15:00)
+
+Target: same SQLite files as local, on a persistent folder outside the build directory, with a backup.
+
+| # | Task | Pri | Done when | Status |
+|---|---|---|---|---|
+| 7.1 | Server setup: non-root user, SSH key only, firewall (`ufw` open 22, 80, 443 only), timezone, swap 2–4 GB | P0 | `ufw status` shows only those three ports | todo |
+| 7.2 | Install Node 20 LTS, build tools for `better-sqlite3` (`build-essential`, `python3`), `tesseract-ocr` + language data used by `src/server/extract.ts`, Docker | P0 | `node -v`, `tesseract --version`, `docker ps` succeed | todo |
+| 7.3 | Data folder `/var/lib/guardian/` with `guardian.db`, `accounts/` and uploaded files. Set `GUARDIAN_DB` and `GUARDIAN_ACCOUNTS_DIR` to it; check every other path still pointing at `process.cwd()` or `.cache` | P0 | No app data is written inside the release folder | todo |
+| 7.4 | Seed the shared registry: `npm run hospitals:seed`, plus the demo hospital (H1) and its signed payee list | P0 | Hospital directory lists 4 hospitals + the demo hospital, no duplicates on rerun | todo |
+| 7.5 | Automatic backup: daily `sqlite3 .backup` (not a raw file copy while the app is running) to a separate folder, keep 7 days | P1 | Backup file can be opened and contains the tables | todo |
+| 7.6 | Upload limits (file size, PDF/image type) checked on the server and in the reverse proxy | P1 | 20 MB+ file rejected with a clear message | todo |
+| 7.7 | Clean demo data before the judging period (22–23 Oct): remove test accounts, keep the seed | P1 | Database contains only seed data and the demo template | todo |
+
+## 8. Website deployment (Dien, P0, 14:00–16:00)
+
+| # | Task | Pri | Done when | Status |
+|---|---|---|---|---|
+| 8.1 | Production `.env` on the VPS (permission 600, never in Git): LLM keys, `STRIPE_SECRET_KEY` test, `NEXTAUTH_URL=https://<domain>`, new `NEXTAUTH_SECRET`, `GUARDIAN_ADMIN_EMAILS`, FISCO variables, DB paths | P0 | `npm run llm:probe` succeeds on the VPS | todo |
+| 8.2 | `npm ci && npm run build`, then run `next start` under a process manager (systemd or pm2) with auto restart | P0 | App comes back after `reboot` | todo |
+| 8.3 | Reverse proxy (Caddy or nginx) with HTTPS (Let's Encrypt), `client_max_body_size` matched to 7.6, timeout above the 70-second reader budget | P0 | `https://<domain>` valid, 40-line PDF upload does not hit a 504 | todo |
+| 8.4 | FISCO BCOS 4 nodes on the VPS in Docker, deploy `Anchor` (`npm run fisco:deploy`), RPC port 8545 **not** open to the internet | P0 if 5.1.3 = yes | Audit anchor from production returns a tx with status 1 | todo |
+| 8.5 | Google OAuth: add origin `https://<domain>` and redirect `https://<domain>/api/auth/callback/google` in Google Console. While the consent screen is in Testing mode, only listed test users can sign in | P1 | Google sign-in succeeds on the domain | todo |
+| 8.6 | Production smoke test: demo account D1 → D4 → D5 from a phone and a laptop, plus attack A1 | P0 | Passes, screenshots in `evidence/deploy-2026-10-20/` | todo |
+| 8.7 | Rate limits and AI quota: make sure free-tier quotas are not used up by visitors before judging (limit per account / IP on reader and chat routes, LLM cache on) | P1 | 20 fast requests do not drain the quota and get a 429 message | todo |
+| 8.8 | Simple monitoring: uptime check (UptimeRobot or similar) on the URL + logs from the process manager | P2 | Notification arrives when the app is down | todo |
+| 8.9 | Deployment steps written in `docs/DEPLOY.md` and the README "Deployment" section, URL included in the submission | P0 | Another person can follow it without asking | todo |
+
+## 9. Demo video (Aurel + Dien, P0, 16:00–18:00)
+
+Requirements (`demo-video-guide-en.docx`): at most 5 minutes, 16:9, preferably 1080p, readable UI, English narration or subtitles, file `Track-TeamName-DemoVideo`. Structure: team intro, core end-to-end scenario, safety mechanisms + innovation + results.
+
+| # | Task | Owner | Pri | Done when | Status |
+|---|---|---|---|---|---|
+| 9.1 | Script with timestamps (outline below) | Dien | P0 | Narration ≤ 650 words, fits 4:45 | todo |
+| 9.2 | Recording preparation: reset data (6.4), browser 1920×1080, zoom 110–125% so text is readable, notifications off, bookmarks hidden, model answers warmed in cache so the demo does not wait 70 seconds | Aurel | P0 | Test take with no visible waiting > 5 seconds | todo |
+| 9.3 | Screen recording per segment (not one long take), from the production URL if 8.6 passed, otherwise localhost | Aurel | P0 | All segments recorded | todo |
+| 9.4 | Narration or English subtitles, cut waiting time, simple labels on screen | Aurel | P0 | Final duration ≤ 5:00 | todo |
+| 9.5 | Honesty check: "demo / synthetic / Stripe test mode" label appears once, no claim of features that do not exist | Dien | P0 | Each claim in the video maps to a test or log | todo |
+| 9.6 | Export MP4 1080p, file name per guide, upload to its destination | Aurel | P0 | File plays on another device | todo |
+
+Video outline (4:45):
+
+| Time | Segment | What is shown |
+|---|---|---|
+| 0:00–0:20 | Team and problem | Family of a patient abroad receives a foreign-language bill that is higher than the estimate and is asked for a deposit |
+| 0:20–0:45 | Case setup | Demo account, case, hospital from the directory, family members and their roles |
+| 0:45–1:45 | Core: bill explainer (D2, D3) | Upload the 40-line interim bill, cause-by-cause explanation with item citations, basic items and duplicate CBC become questions for the hospital |
+| 1:45–2:40 | Emergency guarantee (D4) | Helpers in IDR / MYR / AED, FX quotes, each approves own share, one withdraws, execution once covered, Stripe test receipts |
+| 2:40–3:10 | Colloquial input (D6) + refund (D5) | "bayarin aja yg kemarin dong" gets a clarifying question; final bill, proportional refunds |
+| 3:10–4:10 | Security | A1 changed account in chat rejected, A2 PDF with hidden instruction, A5 data extraction, A7 owner cannot override; architecture diagram in 15 seconds |
+| 4:10–4:45 | Results and evidence | Audit log + FISCO anchor tx, 16/16 evidence, baseline vs generic LLM (5/5 vs 2–4/5 causes, 0 invented clinical causes), URL and repo |
+
+## 10. Other submission material (P0, 18:00–22:00)
+
+| # | Task | Owner | Pri | Status |
+|---|---|---|---|---|
+| 10.1 | Technical document (required, = 4.1) from PRD + ARCHITECTURE + TEST-PLAN, including the URL and deployment section | Dien | P0 | todo |
+| 10.2 | Presentation deck ≤ 10 minutes (= 4.2), reusing screenshots from the E2E run | Aurel | P0 | todo |
+| 10.3 | Security self-assessment (= 4.4), filled from A1–A9 + 6.6 | Dien | P1 | todo |
+| 10.4 | Execution evidence (= 4.5): evidence summary, Stripe test IDs, anchor tx, reproduction steps for judges | Dien | P1 | todo |
+| 10.5 | README: live URL, demo account, how to run, limits (test mode, reference FX, no real hospital verification) | Dien | P0 | todo |
+| 10.6 | Team registration (= 0.4) and Aurel as collaborator (= 0.6) if not done yet | Dien | P0 | todo |
+| 10.7 | Final check and submission (= 4.6): open every link in an incognito window, check file names, send, save the confirmation | Dien | P0 | todo |
+
+## 11. After submission (21 Oct – 22 Nov)
+
+| # | Task | Pri | Status |
+|---|---|---|---|
+| 11.1 | Keep the URL up through online review (22–23 Oct): check uptime and AI quota every day | P0 | todo |
+| 11.2 | Do not deploy new code during 21–23 Oct, except critical fixes | P0 | todo |
+| 11.3 | If selected as a finalist (31 Oct): live defence in English on 22 Nov, prepare an offline fallback (local + recorded video) | P1 | todo |
 
 ## Progress notes
 
