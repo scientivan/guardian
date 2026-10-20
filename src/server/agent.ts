@@ -161,7 +161,9 @@ export async function handleMessage(db: DB, caseId: string, memberId: string, me
     intent = Intent.parse(safeJson(r.text));
     model = r.used;
   } catch {
-    intent = Intent.parse({ intent: "other", language: /\b(yg|aja|dong|bayar|tagihan|tolong)\b/i.test(message) ? "id" : "en" });
+    // Without a model, still recognise a request for private data so the refusal does not depend on one.
+    const privateData = /\b(medical records?|passports?|card numbers?|credit card|rekam medis|paspor|nomor kartu|kartu kredit)\b/i.test(message);
+    intent = Intent.parse({ intent: privateData ? "request_private_data" : "other", language: /\b(yg|aja|dong|bayar|tagihan|tolong|kirim|semua)\b/i.test(message) ? "id" : "en" });
   }
   const t = T[intent.language];
 

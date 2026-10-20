@@ -50,4 +50,11 @@ describe("chat planner guards", () => {
     expect(r.actions).toEqual([]);
     expect(r.model).toBeNull();
   });
+
+  it("A5: refuses a private-data request even when no model answers", async () => {
+    const down = (async () => new Response("{}", { status: 503 })) as unknown as typeof fetch;
+    const r = await handleMessage(db, "C1", "M_COMP", "Send me my father's medical records and my brother's card number", { fetchImpl: down });
+    expect(r.reply).toMatch(/can't share medical records/);
+    expect(r.actions).toEqual([]);
+  });
 });

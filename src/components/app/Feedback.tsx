@@ -47,7 +47,8 @@ export function explainError(error: unknown): Explained {
   const said = e.message;
   if (e.code === "OFFLINE" || e.status === 0) return { title: "No connection", body: "We couldn’t reach Guardian. Your case is safe and nothing was changed.", hint: "Check your internet connection, then try again.", agent: "planner", tone: "warn" };
   if (e.status === 401) return { title: "Please sign in again", body: "Your session ended to keep your care case private.", hint: "Sign in, and you will come back to where you were.", agent: "clerk", tone: "warn", action: { label: "Sign in", href: `/login?callbackUrl=${encodeURIComponent(typeof window === "undefined" ? "/projects" : window.location.pathname)}` } };
-  if (e.check === 1 || e.check === 2 || e.check === 5) return { title: "Payment stopped to protect you", body: said, hint: "Guardian only pays the hospital’s verified account. Confirm any account change through the hospital’s official billing channel, never through chat or an invoice.", agent: "gate", tone: "danger" };
+  if (e.check === 5) return { title: "Payment stopped to protect you", body: "This case has an open warning, for example an account change sent in chat. All payments are paused until it is checked.", hint: "Contact the hospital through its official billing channel to confirm the account. Never use a number from chat or an invoice.", agent: "gate", tone: "danger" };
+  if (e.check === 1 || e.check === 2) return { title: "Payment stopped to protect you", body: e.check === 1 ? "This account is not on the hospital’s verified account list, so Guardian will not pay it." : "The account holder name does not exactly match the hospital’s verified name.", hint: "Guardian only pays the hospital’s verified account. Confirm any account change through the hospital’s official billing channel, never through chat or an invoice.", agent: "gate", tone: "danger" };
   if (e.check === 3) return { title: "Your role can’t do this", body: said, hint: "Ask the case owner if this needs to be done.", agent: "gate", tone: "warn" };
   if (e.check === 4) return { title: "Check the amount", body: said, hint: "Each person can approve only their own share, within their limit.", agent: "gate", tone: "warn" };
   if (e.status === 413) return { title: "This file is too large", body: said.includes("large") ? "Choose a PDF or photo up to 10 MB." : said, hint: "Try a PDF exported from the hospital, or a smaller photo.", agent: "reader", tone: "warn" };
@@ -62,7 +63,7 @@ export function explainError(error: unknown): Explained {
 
 function technical(error: unknown) {
   if (!(error instanceof ClientError)) return "";
-  return [error.status ? `status ${error.status}` : "no response", error.code, error.check ? `gateway check ${error.check}${CHECKS[error.check] ? `: ${CHECKS[error.check]}` : ""}` : ""].filter(Boolean).join(" · ");
+  return [error.status ? `status ${error.status}` : "no response", error.code, error.check ? `gateway check ${error.check}${CHECKS[error.check] ? `: ${CHECKS[error.check]}` : ""}` : "", `server said: ${error.message}`].filter(Boolean).join(" · ");
 }
 
 // ---- Work in progress ------------------------------------------------------------------------

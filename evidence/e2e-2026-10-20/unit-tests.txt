@@ -1,0 +1,92 @@
+ ✓ src/server/llm.test.ts > llm router > falls through a rate-limited model and puts it on cooldown 8ms
+ ✓ src/server/llm.test.ts > llm router > second-model check excludes the first provider 1ms
+ ✓ src/server/hospital-directory.test.ts > human-authorized hospital directory > publishes source listings without granting identity or payment authority, and preserves them on rerun 67ms
+ ✓ src/server/hospital-directory.test.ts > human-authorized hospital directory > allows only configured Google identities, rejects demo identities and fails closed without configuration 10ms
+ ✓ src/server/hospital-directory.test.ts > human-authorized hospital directory > stores family proposals as drafts without publishing or trusting their payment information 13ms
+ ✓ src/server/integration.test.ts > frontend backend service integration > projects progress and quotes from the core ledger 50ms
+ ✓ src/server/integration.test.ts > frontend backend service integration > locks approval to the actual actor's own quote and preserves denied audit 38ms
+ ✓ src/server/hospital-directory.test.ts > human-authorized hospital directory > requires independent institutional evidence and human attestations before profile approval 21ms
+ ✓ src/server/hospital-directory.test.ts > human-authorized hospital directory > does not turn an AI supported assessment into profile or account authority 13ms
+ ✓ src/server/hospital-directory.test.ts > human-authorized hospital directory > checks the hospital identifier, signature and age before separate account activation 24ms
+ ✓ src/server/hospital-directory.test.ts > human-authorized hospital directory > requests additional evidence and allows the submitter to resubmit against the same hospital 18ms
+ ✓ src/server/hospital-directory.test.ts > human-authorized hospital directory > rejects stale approvals, replayed decisions, and changes verified data only upon approval 20ms
+ ✓ src/server/hospital-directory.test.ts > human-authorized hospital directory > requires a previously established channel or explicit independent recovery for critical changes 16ms
+ ✓ src/server/integration.test.ts > frontend backend service integration > approves, withdraws, pays covered shares and reconciles a proportional refund 67ms
+ ✓ src/server/integration.test.ts > frontend backend service integration > does not execute incomplete coverage and does not allow replay after payment 42ms
+ ✓ src/server/integration.test.ts > frontend backend service integration > enforces companion and helper permissions at the service layer 44ms
+ ✓ src/server/hospital-directory.test.ts > human-authorized hospital directory > keeps ordinary phone changes from interrupting active payment authority 15ms
+ ✓ src/server/hospital-directory.test.ts > human-authorized hospital directory > requires the old key’s rotation statement or explicit recovery when replacing a verification key 20ms
+ ✓ src/server/hospital-directory.test.ts > human-authorized hospital directory > holds payment authority if the institutional identity or branch changes 18ms
+ ✓ src/server/integration.test.ts > frontend backend service integration > expires quotes and pending requests using the backend clock 32ms
+ ✓ src/server/integration.test.ts > frontend backend service integration > cancels a request and blocks further approval 28ms
+ ✓ src/server/integration.test.ts > frontend backend service integration > uses the real agent action schema and persists the conversation 39ms
+ ✓ src/server/hospital-directory.test.ts > human-authorized hospital directory > propagates revocation across private workspaces and invalidates old requests and approvals 76ms
+ ✓ src/server/hospital-directory.test.ts > human-authorized hospital directory > rejects old queued activation after an incident hold 16ms
+ ✓ src/server/hospital-directory.test.ts > human-authorized hospital directory > rechecks registry authority before every share, including after a partial execution 46ms
+ ✓ src/server/hospital-directory.test.ts > human-authorized hospital directory > keeps anchoring optional and reports failure without inventing a transaction 12ms
+ ✓ src/server/hospital-directory.test.ts > human-authorized hospital directory > does not approve further trust if the verification audit chain was modified 11ms
+ ✓ src/server/hospital-directory.test.ts > human-authorized hospital directory > does not anchor a modified verification snapshot 12ms
+ ✓ src/server/hospital-directory.test.ts > human-authorized hospital directory > prevents institution relinking after a case is already bound 26ms
+ ✓ src/server/hospital-directory.test.ts > hospital AI and network boundaries > blocks private, loopback, metadata and IPv6 transition targets 9ms
+ ✓ src/server/hospital-directory.test.ts > hospital AI and network boundaries > accepts only provider-grounded source citations for discovery and never activates a record 13ms
+ ✓ src/server/hospital-directory.test.ts > hospital AI and network boundaries > uses an independent provider and drops invented reviewer source URLs 17ms
+ ✓ src/server/hospital-directory.test.ts > hospital AI and network boundaries > falls back from Google quota to browser search using provider evidence, not model-invented URLs 12ms
+ ✓ src/server/integration.test.ts > frontend backend service integration > handles a corrupt PDF as re-upload instead of a server failure 77ms
+ ✓ src/server/integration.test.ts > frontend backend service integration > reads an uploaded PDF, removes PII, computes cited lines and supersedes a failed upload 96ms
+ ✓ src/server/integration.test.ts > frontend backend service integration > keeps an injected upload from reaching payment execution 51ms
+ ✓ src/server/integration.test.ts > frontend backend service integration > binds Google invitations to the matching email and creates only the invited role 54ms
+ ✓ src/server/integration.test.ts > frontend backend service integration > does not invent payee trust for a personal hospital 17ms
+ ✓ src/server/llm.test.ts > llm router > waits for the soonest cooldown once when asked 1503ms
+ ✓ src/server/llm.test.ts > llm router > throws with reasons when every model is unavailable 3ms
+ ✓ src/server/llm.test.ts > llm router > bounds the entire fallback chain instead of restarting the budget per model 4ms
+ ✓ src/server/core.test.ts > D1 deposit to official account > authorizes once the owner approves the full amount 23ms
+ ✓ src/server/core.test.ts > D2/D3 bill comparator > explains the longer stay and flags basic items and duplicates 4ms
+ ✓ src/server/core.test.ts > D4 emergency guarantee from many helpers > holds payment until approvals cover the amount 7ms
+ ✓ src/server/core.test.ts > D5 refund split > splits proportionally and conserves the total 3ms
+ ✓ src/server/core.test.ts > A1/A6 changed-account message > rejects an account from chat and blocks later payments until resolved 5ms
+ ✓ src/server/core.test.ts > A3 homoglyph and invisible characters > rejects a Cyrillic look-alike name 3ms
+ ✓ src/server/core.test.ts > A3 homoglyph and invisible characters > rejects a zero-width character 3ms
+ ✓ src/server/core.test.ts > A3 homoglyph and invisible characters > accepts the exact official name 3ms
+ ✓ src/server/core.test.ts > A4 privilege escalation > companion cannot approve 3ms
+ ✓ src/server/core.test.ts > A4 privilege escalation > payer cannot exceed own share limit 3ms
+ ✓ src/server/core.test.ts > A4 privilege escalation > unknown member cannot approve 3ms
+ ✓ src/server/core.test.ts > A7 owner forces an unverified account > is still rejected; there is no override 2ms
+ ✓ src/server/core.test.ts > A5 PII scrubbing > removes identifiers before the LLM and restores by role 3ms
+ ✓ src/server/core.test.ts > audit hash chain > detects tampering 3ms
+ ✓ src/server/payments.test.ts > signed payee enrollment > seeds the registry only through a verified signed list 18ms
+ ✓ src/server/payments.test.ts > signed payee enrollment > rejects a list whose contents were altered after signing 6ms
+ ✓ src/server/payments.test.ts > signed payee enrollment > A8: a forged 'official invoice' account is matched, never enrolled 4ms
+ ✓ src/server/payments.test.ts > signed payee enrollment > re-verifying through the portal closes the anomaly but keeps the disputed account out 4ms
+ ✓ src/server/payments.test.ts > FX quotes > converts in integers with a 1% demo fee 4ms
+ ✓ src/server/payments.test.ts > FX quotes > refuses an approval with someone else's quote, a different amount, or an expired quote 5ms
+ ✓ src/server/payments.test.ts > D4 per-helper charges > charges each share separately in the helper's currency and marks the request paid 9ms
+ ✓ src/server/payments.test.ts > D4 per-helper charges > marks the request failed and shows per-share status when one charge fails 5ms
+ ✓ src/server/payments.test.ts > D4b withdraw and expiry > withdrawal lowers coverage; at expiry nothing is charged 13ms
+ ✓ src/server/payments.test.ts > D4b withdraw and expiry > a withdrawn member can approve again while pending 3ms
+ ✓ src/server/payments.test.ts > owner-only actions > only the owner creates and cancels requests 3ms
+ ✓ src/server/workspace.test.ts > account workspace separation > starts Google accounts empty and never supplies C1 13ms
+ ✓ src/server/workspace.test.ts > account workspace separation > seeds each demo session separately 20ms
+ ✓ src/server/workspace.test.ts > account workspace separation > keeps created cases private to the owning Google account 6ms
+ ✓ src/server/workspace.test.ts > account workspace separation > does not reseed a demo session on refresh 11ms
+ ✓ src/server/workspace.test.ts > account workspace separation > validates new case fields without granting payee trust 3ms
+ ✓ src/server/agent.test.ts > chat planner guards > D6: a model's guess from 'kemarin' is not accepted; agent asks which bill 36ms
+ ✓ src/server/agent.test.ts > chat planner guards > prepares (never executes) a payment once bill and amount are clear 5ms
+ ✓ src/server/agent.test.ts > chat planner guards > A1: an account in chat is checked by code even if the model says nothing 6ms
+ ✓ src/server/agent.test.ts > chat planner guards > an injected model reply cannot create a payment for a payer 5ms
+ ✓ src/server/agent.test.ts > chat planner guards > works without any model (fallback reply, no action) 5ms
+ ✓ src/server/agent.test.ts > chat planner guards > A5: refuses a private-data request even when no model answers 4ms
+ ✓ src/server/refunds.test.ts > D5 refund > splits CNY 9,000 by share paid, conserves the total, and reminds once when overdue 37ms
+ ✓ src/server/refunds.test.ts > D5 refund > recap shows each member's payments, receipts, refund share and document hashes 14ms
+ ✓ src/server/explain.test.ts > analysis cites items > ties causes and questions to item codes 22ms
+ ✓ src/server/explain.test.ts > explanation guards > drops invented numbers, unstated clinical causes and uncited lines; fills missing causes 27ms
+ ✓ src/server/explain.test.ts > explanation guards > still explains every cause when no model is available 8ms
+ ✓ src/server/fixtures.test.ts > fixtures agree with the hand-written answer keys > D2 totals and causes 3ms
+ ✓ src/server/fixtures.test.ts > fixtures agree with the hand-written answer keys > D3 flags 0ms
+ ✓ src/server/fixtures.test.ts > fixtures agree with the hand-written answer keys > D5 final bill 0ms
+ ✓ src/server/secondcheck.test.ts > selective second-model check > selects flagged, high-value and questioned items only 25ms
+ ✓ src/server/secondcheck.test.ts > selective second-model check > uses a different provider and turns disagreement into a hospital question 12ms
+ ✓ src/server/secondcheck.test.ts > selective second-model check > reports honestly when no independent model is available 4ms
+ ✓ src/lib/auth-redirect.test.ts > login return destination > preserves a case, project step or invite after signing in 2ms
+ ✓ src/lib/auth-redirect.test.ts > login return destination > rejects external redirects and login loops 1ms
+ Test Files  12 passed (12)
+      Tests  90 passed (90)

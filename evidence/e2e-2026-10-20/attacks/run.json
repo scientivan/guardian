@@ -1,0 +1,627 @@
+[
+  {
+    "id": "setup",
+    "step": "demo account opened, case C1",
+    "at": "2026-10-20T04:30:02.203Z",
+    "auditRows": 19,
+    "screenshot": "00-log-before.png"
+  },
+  {
+    "id": "A1",
+    "step": "chat with changed account",
+    "at": "2026-10-20T04:30:04.415Z",
+    "screenshot": "A1-chat-warning.png"
+  },
+  {
+    "id": "A1",
+    "step": "case state after chat",
+    "at": "2026-10-20T04:30:04.659Z",
+    "openAnomalies": [
+      {
+        "id": 1,
+        "kind": "unverified_payee",
+        "detail": "payee not in official registry (source: chat)",
+        "resolved": false,
+        "ts": "2026-10-20T04:30:03.776Z"
+      }
+    ],
+    "officeGate": {
+      "state": "blocked",
+      "text": "Verify the open warning before paying",
+      "detail": "Verify the open warning before paying"
+    }
+  },
+  {
+    "id": "A7",
+    "step": "owner creates request while anomaly is open (API)",
+    "at": "2026-10-20T04:30:05.921Z",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "reason": "created",
+      "id": "R_fdb474e8",
+      "auditSeq": 22
+    }
+  },
+  {
+    "id": "A7",
+    "step": "owner names the chat account as payee (API)",
+    "at": "2026-10-20T04:30:05.983Z",
+    "status": 409,
+    "body": {
+      "error": "payee is not in the hospital's official account list",
+      "code": "ACTION_REJECTED",
+      "check": 1
+    }
+  },
+  {
+    "id": "A7",
+    "step": "owner insists in chat",
+    "at": "2026-10-20T04:30:10.136Z",
+    "screenshot": "A7-owner-insists.png"
+  },
+  {
+    "id": "A4",
+    "step": "companion opens the pledge screen",
+    "at": "2026-10-20T04:30:12.983Z",
+    "screenshot": "A4-companion-ui.png"
+  },
+  {
+    "id": "A4",
+    "step": "companion approves via API",
+    "at": "2026-10-20T04:30:13.203Z",
+    "status": 409,
+    "body": {
+      "error": "companions cannot approve payments",
+      "code": "ACTION_REJECTED",
+      "check": 3
+    }
+  },
+  {
+    "id": "A4",
+    "step": "mosque fund asks quote above its share limit (API)",
+    "at": "2026-10-20T04:30:13.271Z",
+    "status": 200,
+    "body": {
+      "id": "Q_96983e3b",
+      "requestId": "R2",
+      "memberId": "M_MOSQUE",
+      "amount": 5000000,
+      "currency": "CNY",
+      "payCurrency": "IDR",
+      "payAmount": 11475000000,
+      "rateE4": 22950000,
+      "fee": 114750000,
+      "expiresAt": "2026-10-20T04:45:13.258Z",
+      "quoteId": "Q_96983e3b",
+      "fxRate": "2295.0000",
+      "expiresInMinutes": 15,
+      "auditSeq": 27
+    }
+  },
+  {
+    "id": "A4",
+    "step": "mosque fund approves above its share limit (API)",
+    "at": "2026-10-20T04:30:13.335Z",
+    "status": 409,
+    "body": {
+      "error": "amount exceeds this member's share limit",
+      "code": "ACTION_REJECTED",
+      "check": 4
+    }
+  },
+  {
+    "id": "A4",
+    "step": "mosque fund types an amount above its limit in the UI",
+    "at": "2026-10-20T04:30:17.103Z",
+    "screenshot": "A4-over-limit-ui.png"
+  },
+  {
+    "id": "A4",
+    "step": "unknown member id (API)",
+    "at": "2026-10-20T04:30:17.353Z",
+    "status": 403,
+    "body": {
+      "error": "You are not a member of this care case.",
+      "code": "ACTION_REJECTED",
+      "check": 3
+    }
+  },
+  {
+    "id": "A7",
+    "step": "mosque fund covers the last CNY 5,000 within its limit (API)",
+    "at": "2026-10-20T04:30:18.750Z",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "reason": "approval recorded",
+      "id": "R2",
+      "payeeId": "P1",
+      "payeeName": "Shenzhen International Hospital",
+      "accountMasked": "•••• 2222",
+      "amount": 5000000,
+      "currency": "CNY",
+      "approved": 5000000,
+      "remaining": 0,
+      "purpose": "Emergency guarantee",
+      "status": "pending",
+      "createdAt": "2026-10-20T04:29:59.945Z",
+      "expiresAt": "2026-10-20T06:29:59.945Z",
+      "approvals": [
+        {
+          "memberId": "M_DXB",
+          "displayName": "Fajar (Dubai)",
+          "amount": 1000000,
+          "status": "approved",
+          "ts": "2026-10-20T04:29:59.945Z",
+          "chargeRef": null,
+          "payCurrency": "AED",
+          "payAmount": 510000,
+          "rateE4": 5100,
+          "fee": 5100,
+          "quoteExpiresAt": "2026-10-20T04:44:59.945Z",
+          "fxRate": "0.5100"
+        },
+        {
+          "memberId": "M_JKT",
+          "displayName": "Adi (Jakarta)",
+          "amount": 2000000,
+          "status": "approved",
+          "ts": "2026-10-20T04:29:59.945Z",
+          "chargeRef": null,
+          "payCurrency": "IDR",
+          "payAmount": 4590000000,
+          "rateE4": 22950000,
+          "fee": 45900000,
+          "quoteExpiresAt": "2026-10-20T04:44:59.945Z",
+          "fxRate": "2295.0000"
+        },
+        {
+          "memberId": "M_KL",
+          "displayName": "Sari (Kuala Lumpur)",
+          "amount": 1500000,
+          "status": "approved",
+          "ts": "2026-10-20T04:29:59.945Z",
+          "chargeRef": null,
+          "payCurrency": "MYR",
+          "payAmount": 885000,
+          "rateE4": 5900,
+          "fee": 8850,
+          "quoteExpiresAt": "2026-10-20T04:44:59.945Z",
+          "fxRate": "0.5900"
+        },
+        {
+          "memberId": "M_MOSQUE",
+          "displayName": "Masjid community fund",
+          "amount": 500000,
+          "status": "approved",
+          "ts": "2026-10-20T04:30:18.735Z",
+          "chargeRef": null,
+          "payCurrency": "IDR",
+          "payAmount": 1147500000,
+          "rateE4": 22950000,
+          "fee": 11475000,
+          "quoteExpiresAt": "2026-10-20T04:45:18.653Z",
+          "fxRate": "2295.0000"
+        }
+      ],
+      "auditSeq": 32
+    }
+  },
+  {
+    "id": "A7",
+    "step": "execute R2 with the anomaly open (API)",
+    "at": "2026-10-20T04:30:18.804Z",
+    "status": 409,
+    "body": {
+      "error": "open anomaly; verify through the hospital's official channel first",
+      "code": "ACTION_REJECTED",
+      "check": 5
+    }
+  },
+  {
+    "id": "A7",
+    "step": "owner presses pay in the UI",
+    "at": "2026-10-20T04:30:22.106Z",
+    "screenshot": "A7-pay-blocked-dialog.png"
+  },
+  {
+    "id": "A5",
+    "step": "companion asks for private data",
+    "at": "2026-10-20T04:30:29.257Z",
+    "screenshot": "A5-private-data.png"
+  },
+  {
+    "id": "A5",
+    "step": "payer downloads the original bill (API)",
+    "at": "2026-10-20T04:30:29.446Z",
+    "status": 403,
+    "body": {
+      "error": "Your role can read the bill summary, not the original document.",
+      "code": "ACTION_REJECTED",
+      "check": 3
+    }
+  },
+  {
+    "id": "A5",
+    "step": "payer reads another member's payment record (API)",
+    "at": "2026-10-20T04:30:29.542Z",
+    "status": 403,
+    "body": {
+      "error": "You can only read your own payment record.",
+      "code": "ACTION_REJECTED",
+      "check": 3
+    }
+  },
+  {
+    "id": "log",
+    "step": "security log after attacks",
+    "at": "2026-10-20T04:30:32.289Z",
+    "screenshot": "Z-log-after.png"
+  },
+  {
+    "id": "log",
+    "step": "blocked rows only",
+    "at": "2026-10-20T04:30:32.918Z",
+    "screenshot": "Z-log-blocked.png"
+  },
+  {
+    "id": "log",
+    "step": "audit rows added during the run",
+    "at": "2026-10-20T04:30:33.185Z",
+    "rows": [
+      {
+        "seq": 20,
+        "ts": "2026-10-20T04:30:03.778Z",
+        "actor": "Rina (owner)",
+        "action": "gateway.check",
+        "decision": "deny",
+        "hash": "02e0ecdd466c2367bb47155ef91906f2019193795dbaa23fc263498d318484f7",
+        "check": 1,
+        "inputSources": [
+          "chat"
+        ],
+        "result": {
+          "check": 1,
+          "reason": "payee is not in the hospital's official account list"
+        },
+        "prevHash": "8d7054179e23e6b357e943100148f14a493fa117c8d3311615f9c083ac578936"
+      },
+      {
+        "seq": 21,
+        "ts": "2026-10-20T04:30:03.775Z",
+        "actor": "Rina (owner)",
+        "action": "chat",
+        "decision": "allow",
+        "hash": "16fef81e60732c06cbc8c80e7e4f767943410b536db91a734ee90d455d9ddf6c",
+        "inputSources": [
+          "chat"
+        ],
+        "result": {
+          "intent": "other",
+          "documentRef": null,
+          "actions": [
+            "warning",
+            "ask_hospital"
+          ],
+          "model": null
+        },
+        "prevHash": "02e0ecdd466c2367bb47155ef91906f2019193795dbaa23fc263498d318484f7"
+      },
+      {
+        "seq": 22,
+        "ts": "2026-10-20T04:30:05.912Z",
+        "actor": "Rina (owner)",
+        "action": "request.create",
+        "decision": "allow",
+        "hash": "379e5ac80be274238f7a93316fbb24a511cbf975df07a3307b0f9b206ee403f6",
+        "inputSources": [
+          "user"
+        ],
+        "result": {
+          "id": "R_fdb474e8",
+          "payeeId": "P1",
+          "amount": 500000,
+          "purpose": "Owner insists: transfer now",
+          "ttlMinutes": 60
+        },
+        "prevHash": "16fef81e60732c06cbc8c80e7e4f767943410b536db91a734ee90d455d9ddf6c"
+      },
+      {
+        "seq": 23,
+        "ts": "2026-10-20T04:30:05.972Z",
+        "actor": "Rina (owner)",
+        "action": "gateway.check",
+        "decision": "deny",
+        "hash": "1a4a3b2062f241c012f60801d4a57be54f88710c96b7c6ccf5a653f57637da42",
+        "check": 1,
+        "inputSources": [
+          "official_registry"
+        ],
+        "result": {
+          "check": 1,
+          "reason": "payee is not in the hospital's official account list"
+        },
+        "prevHash": "379e5ac80be274238f7a93316fbb24a511cbf975df07a3307b0f9b206ee403f6"
+      },
+      {
+        "seq": 24,
+        "ts": "2026-10-20T04:30:07.191Z",
+        "actor": "Rina (owner)",
+        "action": "gateway.check",
+        "decision": "deny",
+        "hash": "301d493641afa0f9b7365405964a37034ac28ec366826b1320689e11aeea74cf",
+        "check": 1,
+        "inputSources": [
+          "chat"
+        ],
+        "result": {
+          "check": 1,
+          "reason": "payee is not in the hospital's official account list"
+        },
+        "prevHash": "1a4a3b2062f241c012f60801d4a57be54f88710c96b7c6ccf5a653f57637da42"
+      },
+      {
+        "seq": 25,
+        "ts": "2026-10-20T04:30:07.189Z",
+        "actor": "Rina (owner)",
+        "action": "chat",
+        "decision": "allow",
+        "hash": "5622d133bd1fa054a4652502fabf762a7671084af487d9859b6c23ed39edfe48",
+        "inputSources": [
+          "chat"
+        ],
+        "result": {
+          "intent": "other",
+          "documentRef": null,
+          "actions": [
+            "warning",
+            "ask_hospital"
+          ],
+          "model": null
+        },
+        "prevHash": "301d493641afa0f9b7365405964a37034ac28ec366826b1320689e11aeea74cf"
+      },
+      {
+        "seq": 26,
+        "ts": "2026-10-20T04:30:13.193Z",
+        "actor": "Dewi (at hospital)",
+        "action": "gateway.check",
+        "decision": "deny",
+        "hash": "866e3526442300090b7d7ef851134822bfb1303593d9858b15e1ca49c6900eeb",
+        "check": 3,
+        "inputSources": [
+          "user"
+        ],
+        "result": {
+          "check": 3,
+          "reason": "companions cannot approve payments"
+        },
+        "prevHash": "5622d133bd1fa054a4652502fabf762a7671084af487d9859b6c23ed39edfe48"
+      },
+      {
+        "seq": 27,
+        "ts": "2026-10-20T04:30:13.261Z",
+        "actor": "Masjid community fund",
+        "action": "fx.quote",
+        "decision": "allow",
+        "hash": "b42bab0c060f134d72539c9ac7045ccc7cda4152c2e094c837fea1f45d8c838b",
+        "inputSources": [
+          "system"
+        ],
+        "result": {
+          "quoteId": "Q_96983e3b",
+          "requestId": "R2",
+          "amount": 5000000,
+          "payAmount": 11475000000,
+          "fee": 114750000,
+          "expiresAt": "2026-10-20T04:45:13.258Z"
+        },
+        "prevHash": "866e3526442300090b7d7ef851134822bfb1303593d9858b15e1ca49c6900eeb"
+      },
+      {
+        "seq": 28,
+        "ts": "2026-10-20T04:30:13.322Z",
+        "actor": "Masjid community fund",
+        "action": "gateway.check",
+        "decision": "deny",
+        "hash": "7c901c373098552422345d0f2c71d71ce592c969b6fa06c0a169416c465d1e9a",
+        "check": 4,
+        "inputSources": [
+          "user"
+        ],
+        "result": {
+          "check": 4,
+          "reason": "amount exceeds this member's share limit"
+        },
+        "prevHash": "b42bab0c060f134d72539c9ac7045ccc7cda4152c2e094c837fea1f45d8c838b"
+      },
+      {
+        "seq": 29,
+        "ts": "2026-10-20T04:30:14.159Z",
+        "actor": "Masjid community fund",
+        "action": "fx.quote",
+        "decision": "allow",
+        "hash": "103ed04b33544897b42c5ce964469cafd3f508ac674f4b860ba1a0a5f361e8dd",
+        "inputSources": [
+          "system"
+        ],
+        "result": {
+          "quoteId": "Q_23489c3f",
+          "requestId": "R2",
+          "amount": 500000,
+          "payAmount": 1147500000,
+          "fee": 11475000,
+          "expiresAt": "2026-10-20T04:45:14.157Z"
+        },
+        "prevHash": "7c901c373098552422345d0f2c71d71ce592c969b6fa06c0a169416c465d1e9a"
+      },
+      {
+        "seq": 30,
+        "ts": "2026-10-20T04:30:18.027Z",
+        "actor": "Rina (owner)",
+        "action": "fx.quote",
+        "decision": "allow",
+        "hash": "a5e183f7ef3fbb9c7d338757b9e9d5cb4fa395198259259ce4526b41f149af96",
+        "inputSources": [
+          "system"
+        ],
+        "result": {
+          "quoteId": "Q_8db7c380",
+          "requestId": "R2",
+          "amount": 500000,
+          "payAmount": 1147500000,
+          "fee": 11475000,
+          "expiresAt": "2026-10-20T04:45:18.025Z"
+        },
+        "prevHash": "103ed04b33544897b42c5ce964469cafd3f508ac674f4b860ba1a0a5f361e8dd"
+      },
+      {
+        "seq": 31,
+        "ts": "2026-10-20T04:30:18.655Z",
+        "actor": "Masjid community fund",
+        "action": "fx.quote",
+        "decision": "allow",
+        "hash": "81a8a95df7d36dafcfe81c1bb4a2eb69dac903455a6fc1e5da810ed89b8782f3",
+        "inputSources": [
+          "system"
+        ],
+        "result": {
+          "quoteId": "Q_5f9324bf",
+          "requestId": "R2",
+          "amount": 500000,
+          "payAmount": 1147500000,
+          "fee": 11475000,
+          "expiresAt": "2026-10-20T04:45:18.653Z"
+        },
+        "prevHash": "a5e183f7ef3fbb9c7d338757b9e9d5cb4fa395198259259ce4526b41f149af96"
+      },
+      {
+        "seq": 32,
+        "ts": "2026-10-20T04:30:18.735Z",
+        "actor": "Masjid community fund",
+        "action": "approval.record",
+        "decision": "allow",
+        "hash": "65e995be83bb6bce0f59c4343325f4e67233170887fb5e61da0472f02c98745a",
+        "inputSources": [
+          "user"
+        ],
+        "result": {
+          "requestId": "R2",
+          "amount": 500000,
+          "quoteId": "Q_5f9324bf",
+          "payCurrency": "IDR",
+          "payAmount": 1147500000,
+          "fee": 11475000
+        },
+        "prevHash": "81a8a95df7d36dafcfe81c1bb4a2eb69dac903455a6fc1e5da810ed89b8782f3"
+      },
+      {
+        "seq": 33,
+        "ts": "2026-10-20T04:30:18.793Z",
+        "actor": "gateway",
+        "action": "gateway.check",
+        "decision": "deny",
+        "hash": "d5a696a2a3ea522f2d4a616802f5d255d97f81c108a56a152d8ea44f9e9a7024",
+        "check": 5,
+        "inputSources": [
+          "system"
+        ],
+        "result": {
+          "check": 5,
+          "reason": "open anomaly; verify through the hospital's official channel first"
+        },
+        "prevHash": "65e995be83bb6bce0f59c4343325f4e67233170887fb5e61da0472f02c98745a"
+      },
+      {
+        "seq": 34,
+        "ts": "2026-10-20T04:30:21.264Z",
+        "actor": "gateway",
+        "action": "gateway.check",
+        "decision": "deny",
+        "hash": "5e4d21268c686a2202c3e3a85a84076520816eb43ff999401a7e5d51dc31d8f1",
+        "check": 5,
+        "inputSources": [
+          "system"
+        ],
+        "result": {
+          "check": 5,
+          "reason": "open anomaly; verify through the hospital's official channel first"
+        },
+        "prevHash": "d5a696a2a3ea522f2d4a616802f5d255d97f81c108a56a152d8ea44f9e9a7024"
+      },
+      {
+        "seq": 35,
+        "ts": "2026-10-20T04:30:24.816Z",
+        "actor": "Dewi (at hospital)",
+        "action": "chat",
+        "decision": "allow",
+        "hash": "e9a61160226a893bbd7ff0c124e9efd864f59226267f0a2558eec6f1aafaca2a",
+        "inputSources": [
+          "chat"
+        ],
+        "result": {
+          "intent": "request_private_data",
+          "documentRef": null,
+          "actions": [],
+          "model": null
+        },
+        "prevHash": "5e4d21268c686a2202c3e3a85a84076520816eb43ff999401a7e5d51dc31d8f1"
+      },
+      {
+        "seq": 36,
+        "ts": "2026-10-20T04:30:29.434Z",
+        "actor": "Adi (Jakarta)",
+        "action": "permission.denied",
+        "decision": "deny",
+        "hash": "c0a8ba91d48ac9ee6233d9957dbbb35e9d2aba171c86d580e288ef81f1eecb16",
+        "check": 3,
+        "inputSources": [
+          "user"
+        ],
+        "result": {
+          "check": 3,
+          "reason": "Your role can read the bill summary, not the original document."
+        },
+        "prevHash": "e9a61160226a893bbd7ff0c124e9efd864f59226267f0a2558eec6f1aafaca2a"
+      },
+      {
+        "seq": 37,
+        "ts": "2026-10-20T04:30:29.533Z",
+        "actor": "Adi (Jakarta)",
+        "action": "permission.denied",
+        "decision": "deny",
+        "hash": "793a51740089c7498bafe440081e81e473c2f261ca26cd5a68a4ae1ae5200f5c",
+        "check": 3,
+        "inputSources": [
+          "user"
+        ],
+        "result": {
+          "check": 3,
+          "reason": "You can only read your own payment record."
+        },
+        "prevHash": "c0a8ba91d48ac9ee6233d9957dbbb35e9d2aba171c86d580e288ef81f1eecb16"
+      }
+    ],
+    "chainValid": true
+  },
+  {
+    "id": "A9",
+    "step": "rewrote a denied gateway row as allowed, directly in SQLite",
+    "at": "2026-10-20T04:30:33.202Z",
+    "seq": 34,
+    "before": "deny"
+  },
+  {
+    "id": "A9",
+    "step": "security log after tampering",
+    "at": "2026-10-20T04:30:36.627Z",
+    "chainValid": false,
+    "auditor": {
+      "state": "blocked",
+      "text": "37 steps recorded · integrity check failed",
+      "detail": "37 steps recorded · integrity check failed"
+    },
+    "screenshot": "A9-chain-broken.png"
+  }
+]

@@ -9,7 +9,7 @@ import { recap } from "./recap";
 import type { CareCase } from "@/lib/workspace";
 import { hospitalDispatch } from "./hospital-api";
 import { linkDirectoryHospital } from "./hospital-directory";
-import { requireOwner } from "./access";
+import { requireOwner, denyAccess } from "./access";
 
 export async function accountWorkspace(session:Session,selectedMember?:string|null) {
   const db=ownerDatabase(session.user.id);
@@ -82,7 +82,7 @@ export async function dispatch(request:NextRequest,path:string[]) {
       if(path[0]==="documents" && request.method==="GET") {
         api.document(path[1]);
         if(path[2]==="file") {
-          if(c.member.role==="payer")throw new ApiError("Your role can read the bill summary, not the original document.",403,3);
+          if(c.member.role==="payer")denyAccess(c,"Your role can read the bill summary, not the original document.");
           const file=c.db.prepare("SELECT filename,mime,bytes FROM web_uploads WHERE document_id=?").get(path[1]) as {filename:string;mime:string;bytes:Buffer}|undefined;
           if(!file)throw new ApiError("The original file is not available for this seeded document.",404);
           return new NextResponse(new Uint8Array(file.bytes),{headers:{"Content-Type":file.mime,"Content-Disposition":`attachment; filename*=UTF-8''${encodeURIComponent(file.filename)}`,"Cache-Control":"no-store"}});
@@ -125,7 +125,7 @@ export async function dispatch(request:NextRequest,path:string[]) {
       if(section==="clock" && request.method==="POST")return reply(api.advance((await body()).advanceDays));
       if(section==="recap" && request.method==="GET") {
         const memberId=request.nextUrl.searchParams.get("memberId")??c.member.id;
-        if(c.member.role!=="owner" && memberId!==c.member.id)throw new ApiError("You can only read your own payment record.",403,3);
+        if(c.member.role!=="owner" && memberId!==c.member.id)denyAccess(c,"You can only read your own payment record.");
         const data=recap(c.db,c.caseId,memberId);if(!data)throw new ApiError("Member not found.",404);return reply({...data,demo:session.user.mode==="demo"});
       }
       if(section==="audit" && request.method==="GET")return reply(api.view().audit);

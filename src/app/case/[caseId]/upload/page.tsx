@@ -50,7 +50,7 @@ export default function UploadPage() {
       {retake && (
         <div className="flex flex-wrap items-center gap-3 rounded-2xl bg-warn-soft px-5 py-4">
           <p className="min-w-0 flex-1 text-warn-ink">
-            <b>{retake.title}</b> was too blurry to read. Please take it again.
+            <b>{retake.title}</b> couldn’t be read{retake.reason ? `: ${retake.reason}` : "."} Please upload a clearer copy.
           </p>
           <label className={`${SECONDARY} cursor-pointer`}>
             Retake photo
