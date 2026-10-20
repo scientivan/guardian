@@ -9,6 +9,7 @@ import { explain } from "./explain";
 import { secondCheck } from "./secondcheck";
 import { handleMessage } from "./agent";
 import { AskContext, answerAbout } from "./case-answers";
+import { paymentPlan } from "@/lib/payment-plan";
 import { createQuote, formatRate } from "./fx";
 import { recordApproval, withdrawApproval, resolvePayee } from "./gateway";
 import { createPaymentRequest, cancelRequest, executeRequest, type Charger } from "./payments";
@@ -86,14 +87,17 @@ export class Integration {
     requireOwner(this.c);
     const v=z.object({payeeId:z.string().min(1),amount:amountSchema,purpose:z.string().trim().min(1).max(200),expiresInMinutes:z.number().int().min(5).max(10080).default(120),documentId:z.string().optional()}).parse(input);
     if(v.documentId) {
-      // A request for a bill can't ask for more than the bill's open balance: its line total less
-      // what earlier live requests for the same bill already ask for. The payee still comes only
-      // from the registry, never from the bill (A8).
-      const bill=this.document(v.documentId) as {type?:string;status?:string;total?:number|null};
-      if(bill.type==="estimate"||bill.status!=="parsed")throw new ApiError("Choose a bill that has been read, not an estimate.",409);
-      const asked=(this.c.db.prepare("SELECT COALESCE(SUM(amount),0) n FROM payment_requests WHERE document_id=? AND status IN ('pending','executing','paid')").get(v.documentId) as {n:number}).n;
-      const open=Math.max(0,(bill.total??0)-asked);
-      if(v.amount>open)throw new ApiError(`This bill has ${(open/100).toLocaleString("en",{minimumFractionDigits:2})} left to pay. Ask for that amount or less.`,409,4);
+      // Amounts tied to a document must match what the documents say (src/lib/payment-plan.ts):
+      // a deposit is the estimate's lower or upper end; a bill payment is at most the latest bill's
+      // balance after every live request. The payee still comes only from the registry (A8).
+      this.document(v.documentId);
+      const plan=paymentPlan(this.view());
+      if(plan.deposit?.documentId===v.documentId) {
+        if(![plan.deposit.low,plan.deposit.high].includes(v.amount))throw new ApiError("A deposit from the estimate is its lower or upper end.",409,4);
+      } else if(plan.bill?.documentId===v.documentId) {
+        if(plan.bill.balance<=0)throw new ApiError("Deposits already cover this bill. Any difference comes back as a refund.",409,4);
+        if(v.amount>plan.bill.balance)throw new ApiError(`This bill has ${(plan.bill.balance/100).toLocaleString("en",{minimumFractionDigits:2})} left to pay. Ask for that amount or less.`,409,4);
+      } else throw new ApiError(plan.superseded.some(b=>b.documentId===v.documentId)?"A newer bill replaces this one. Pay from the latest bill.":"Choose the estimate or the latest bill that has been read.",409);
     }
     gate(resolvePayee(this.c.db,this.c.caseId,this.c.member.id,{payeeId:v.payeeId,source:"official_registry"}));
     return gate(createPaymentRequest(this.c.db,{...v,caseId:this.c.caseId,actor:this.c.member.id},now(this.c.db)));

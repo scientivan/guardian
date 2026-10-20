@@ -64,11 +64,13 @@ export function projectCase(db: DB, source: CareCase, memberId: string): CareCas
   data.case.me = { id: me.id, role: me.role };
   data.case.payees = (db.prepare("SELECT id,account,source,verified_at FROM payees WHERE hospital_id=? AND source='official_registry'").all(data.case.hospital.id) as { id: string; account: string; source: string; verified_at: string }[]).map(p => ({ id: p.id, name: data.case.hospital.name, accountMasked: `•••• ${p.account.replace(/\D/g, "").slice(-4)}`, source: p.source, verifiedAt: p.verified_at }));
   data.case.anomalies = (db.prepare("SELECT id,kind,detail,resolved,ts FROM anomalies WHERE case_id=?").all(id) as { id: number; kind: string; detail: string; resolved: number; ts: string }[]).map(a => ({ ...a, resolved: Boolean(a.resolved) }));
-  const docs = db.prepare("SELECT id,type,sha256,anchored_tx,status,reason,created_at FROM documents WHERE case_id=? ORDER BY created_at,rowid").all(id) as { id: string; type: "estimate" | "interim" | "final"; sha256: string; anchored_tx: string | null; status: "parsed" | "needs_reupload"; reason: string | null; created_at: string }[];
+  const docs = db.prepare("SELECT id,type,sha256,anchored_tx,status,reason,created_at,meta FROM documents WHERE case_id=? ORDER BY created_at,rowid").all(id) as { id: string; type: "estimate" | "interim" | "final"; sha256: string; anchored_tx: string | null; status: "parsed" | "needs_reupload"; reason: string | null; created_at: string; meta: string | null }[];
   data.documents = docs.map(doc => {
     const old = source.documents.find(d => d.id === doc.id);
     const items = loadItems(db, doc.id);
-    return { id: doc.id, type: doc.type, title: old?.title ?? `${doc.type === "final" ? "Final" : doc.type === "estimate" ? "Estimate" : "Interim"} bill`, by: old?.by ?? "Case member", ts: doc.created_at, status: doc.status, reason: doc.reason ?? undefined, items: items.length, total: doc.type === "estimate" ? null : items.reduce((s, i) => s + i.lineTotal, 0), sha256: doc.sha256, anchoredTx: doc.anchored_tx };
+    // A bill read without line items (a summary page) still has its stated total.
+    const meta = JSON.parse(doc.meta ?? "{}") as { statedTotal?: number | null; estimateLow?: number | null; estimateHigh?: number | null; assumedStayDays?: number | null };
+    return { id: doc.id, type: doc.type, title: old?.title ?? `${doc.type === "final" ? "Final" : doc.type === "estimate" ? "Estimate" : "Interim"} bill`, by: old?.by ?? "Case member", ts: doc.created_at, status: doc.status, reason: doc.reason ?? undefined, items: items.length, total: doc.type === "estimate" ? null : items.reduce((s, i) => s + i.lineTotal, 0) || (meta.statedTotal ?? null), estimate: doc.type === "estimate" && meta.estimateLow ? { low: meta.estimateLow, high: meta.estimateHigh ?? meta.estimateLow, assumedStayDays: meta.assumedStayDays ?? null } : null, sha256: doc.sha256, anchoredTx: doc.anchored_tx };
   });
   if(db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='web_replacements'").get()) {
     const replaced=new Set((db.prepare("SELECT old_id FROM web_replacements").all() as {old_id:string}[]).map(r=>r.old_id));

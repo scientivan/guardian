@@ -13,6 +13,7 @@ import type { Quote } from "@/server/fx";
 import { ClientError, explainError, Spinner, useFeedback, useTask, WORK } from "@/components/app/Feedback";
 import { INVALID, useFieldErrors } from "@/components/app/FieldError";
 import { amount as amountRule, check, text } from "@/lib/validate";
+import { paymentPlan } from "@/lib/payment-plan";
 
 export default function PledgesPage() {
   const { case: care, requests, documents } = useCaseData();
@@ -22,24 +23,21 @@ export default function PledgesPage() {
   const requestedId=requests.find(r=>r.id===requested)?.id;
   const [selected,setSelected]=useState(requestedId ?? requests.find(r=>r.status==="pending")?.id ?? requests[0]?.id ?? "");
   useEffect(()=>{if(requestedId)setSelected(requestedId);},[requestedId]);
+  // Amounts come from the documents (src/lib/payment-plan.ts). Only an emergency guarantee, which
+  // the hospital asks for in a letter Guardian doesn't read yet, is typed in.
+  const plan=paymentPlan({documents,requests});
+  const [kind,setKind]=useState<"deposit"|"bill"|"guarantee">(plan.bill&&plan.bill.balance>0?"bill":plan.deposit&&!requests.length?"deposit":"guarantee");
+  const [end,setEnd]=useState<"low"|"high">("low");
   const [amount,setAmount]=useState("");
-  const [purpose,setPurpose]=useState("Hospital deposit");
-  // A request either pays an uploaded bill (amount up to its open balance) or asks for a deposit or
-  // guarantee the hospital requested without a bill.
-  const bills=documents.filter(d=>d.type!=="estimate"&&d.status==="parsed"&&d.total).map(d=>{
-    const asked=requests.filter(r=>r.documentId===d.id&&["pending","executing","paid"].includes(r.status)).reduce((s,r)=>s+r.amount,0);
-    return {...d,open:Math.max(0,(d.total??0)-asked)};
-  });
-  const [kind,setKind]=useState<"bill"|"deposit">(bills.some(b=>b.open>0)?"bill":"deposit");
-  const [billId,setBillId]=useState(bills.find(b=>b.open>0)?.id??"");
-  const bill=bills.find(b=>b.id===billId);
-  function chooseBill(id:string) {const b=bills.find(b=>b.id===id);setBillId(id);if(b){setAmount((b.open/100).toFixed(2));setPurpose(`Payment for ${b.title}`.slice(0,120));}}
-  useEffect(()=>{if(kind==="bill"&&bill&&!amount){setAmount((bill.open/100).toFixed(2));setPurpose(`Payment for ${bill.title}`.slice(0,120));}},[kind,bill,amount]);
+  const [purpose,setPurpose]=useState("Emergency guarantee");
   const {busy,run}=useTask();
-  const rv=useFieldErrors(check({purpose,amount,bill:kind==="bill"?billId:"-"},{purpose:text("what the payment is for",3,120),amount:amountRule("the amount",kind==="bill"&&bill?{max:bill.open/100}:{}),bill:v=>v?null:"Choose the bill to pay."}),"request");
+  const rv=useFieldErrors(check({purpose,amount},{purpose:text("what the hospital asked for",3,120),amount:amountRule("the amount the hospital asked for")}),"request");
+  const fixed=kind==="deposit"&&plan.deposit?{amount:plan.deposit[end],purpose:"Initial deposit",documentId:plan.deposit.documentId}:kind==="bill"&&plan.bill&&plan.bill.balance>0?{amount:plan.bill.balance,purpose:`${plan.bill.type==="final"?"Final bill":"Interim bill"} balance`,documentId:plan.bill.documentId}:null;
   async function create() {
-    if(!rv.submit())return;
-    const result=await run(()=>call(`/cases/${care.id}/payment-requests`,"POST",{payeeId:care.payees[0]?.id,amount:Math.round(Number(amount)*100),purpose,expiresInMinutes:120,...(kind==="bill"?{documentId:billId}:{})},care.id) as Promise<{id:string}>);
+    if(kind==="guarantee"&&!rv.submit())return;
+    if(kind!=="guarantee"&&!fixed)return;
+    const body=fixed?{...fixed}:{amount:Math.round(Number(amount)*100),purpose};
+    const result=await run(()=>call(`/cases/${care.id}/payment-requests`,"POST",{payeeId:care.payees[0]?.id,expiresInMinutes:120,...body},care.id) as Promise<{id:string}>);
     if(result)setSelected(result.id);
   }
   async function verify() {await run(()=>call(`/cases/${care.id}/payees/verify`,"POST",{},care.id),{work:WORK.verify,retry:true});}
@@ -51,16 +49,29 @@ export default function PledgesPage() {
       <Link href={`/hospitals?caseId=${care.id}`} className="mb-4 inline-flex min-h-11 items-center text-sm font-semibold text-serpent-dark underline">Find this institution in Hospital Directory</Link>
       <div className="flex flex-wrap items-center gap-3"><button type="button" onClick={verify} disabled={busy} className={SECONDARY}>{busy?<><Spinner/>Checking…</>:"Verify hospital account"}</button>{care.payees.map(p=><span key={p.id} className="text-sm text-serpent-dark">{p.name} · {p.accountMasked}</span>)}</div>
       {care.payees.length>0 && <form noValidate onSubmit={e=>{e.preventDefault();void create();}} className="mt-6 space-y-4 rounded-2xl bg-white p-5">
-        <div className="flex flex-wrap rounded-xl bg-mist p-1 text-sm font-semibold" role="radiogroup" aria-label="What is this request for">
-          {([["bill","Pay an uploaded bill"],["deposit","Deposit or guarantee"]] as const).map(([value,label])=><button key={value} type="button" role="radio" aria-checked={kind===value} disabled={value==="bill"&&!bills.length} onClick={()=>{setKind(value);if(value==="deposit"){setPurpose("Hospital deposit");setAmount("");}else if(bill)chooseBill(bill.id);}} className={`flex-1 rounded-lg px-3 py-2 disabled:opacity-40 ${kind===value?"bg-serpent text-white":"text-ink-2 hover:text-lead"}`}>{label}</button>)}
+        <div className="grid gap-1 rounded-xl bg-mist p-1 text-sm font-semibold sm:grid-cols-3" role="radiogroup" aria-label="What is this request for">
+          {([["deposit","Initial deposit","from the estimate"],["bill","Bill balance","from the latest bill"],["guarantee","Emergency guarantee","amount the hospital asked"]] as const).map(([value,label,hint])=><button key={value} type="button" role="radio" aria-checked={kind===value} onClick={()=>setKind(value)} className={`rounded-lg px-3 py-2 text-left ${kind===value?"bg-serpent text-white":"text-ink-2 hover:text-lead"}`}><span className="block">{label}</span><span className={`block text-xs font-normal ${kind===value?"text-cerulean":"text-ink-2"}`}>{hint}</span></button>)}
         </div>
-        <p className="text-xs leading-relaxed text-ink-2">{kind==="bill"?"The amount comes from the bill Guardian has read and checked. The money still goes only to the hospital’s verified account, never to an account printed on the bill.":"For a deposit or emergency guarantee the hospital asked for before there is a bill."}</p>
-        {kind==="bill" && <div className="text-sm text-ink-2"><span>Bill</span><Select id="request-bill" label="Bill to pay" className="mt-1" value={billId} onChange={chooseBill} invalid={rv.invalid("bill")} placeholder="Choose the bill to pay" options={bills.map(b=>({value:b.id,label:b.title,disabled:b.open===0,hint:`${b.type==="final"?"Final":"Interim"} bill · total ${money(b.total??0,care.currency)} · ${b.open?`${money(b.open,care.currency)} left to pay`:"fully requested"}`}))}/>{rv.error("bill")}</div>}
-        <div className="grid items-start gap-3 sm:grid-cols-[1fr_1fr_auto]">
-          <div className="text-sm text-ink-2"><label htmlFor="request-purpose">What it’s for</label><input id="request-purpose" value={purpose} onChange={e=>setPurpose(e.target.value)} className={`mt-1 w-full rounded-xl border border-line bg-white p-3 text-lead ${rv.invalid("purpose")?INVALID:""}`} {...rv.field("purpose")} />{rv.error("purpose")}</div>
-          <div className="text-sm text-ink-2"><label htmlFor="request-amount">Amount in {care.currency}</label><input id="request-amount" inputMode="decimal" value={amount} onChange={e=>setAmount(e.target.value)} placeholder={`Amount in ${care.currency}`} className={`mt-1 w-full rounded-xl border border-line bg-white p-3 text-lead ${rv.invalid("amount")?INVALID:""}`} {...rv.field("amount")} />{rv.error("amount")}{kind==="bill"&&bill&&<span className="mt-1 block text-xs">Up to {money(bill.open,care.currency)}. You can ask for part of it.</span>}</div>
-          <button type="submit" disabled={busy} className={`${PRIMARY} sm:mt-6`}>Create request</button>
-        </div>
+        {kind==="deposit"&&(plan.deposit?<div className="space-y-3">
+          <p className="text-sm leading-relaxed text-ink-2">From <b className="text-lead">{plan.deposit.title}</b>: the hospital estimated {money(plan.deposit.low,care.currency)} to {money(plan.deposit.high,care.currency)}{plan.deposit.assumedStayDays?` for ${plan.deposit.assumedStayDays} days`:""}. Choose which end the hospital asked for.</p>
+          <div className="flex flex-wrap gap-2" role="radiogroup" aria-label="Deposit amount">{(["low","high"] as const).map(e=><button key={e} type="button" role="radio" aria-checked={end===e} onClick={()=>setEnd(e)} className={`rounded-xl border px-4 py-2.5 text-left ${end===e?"border-serpent bg-firstlight":"border-line hover:border-cerulean"}`}><span className="block text-xs text-ink-2">{e==="low"?"Lower end":"Upper end"}</span><b className="font-num text-serpent-dark">{money(plan.deposit![e],care.currency)}</b></button>)}</div>
+        </div>:<p className="rounded-xl bg-warn-soft p-3 text-sm text-warn-ink">Upload the hospital’s estimate first. The deposit is taken from its range.</p>)}
+        {kind==="bill"&&(plan.bill?<div className="space-y-2 text-sm leading-relaxed">
+          <dl className="divide-y divide-line rounded-xl border border-line px-4">
+            <div className="flex justify-between gap-4 py-2.5"><dt className="text-ink-2">{plan.bill.type==="final"?"Final bill":"Latest interim bill"} · {plan.bill.title}</dt><dd className="font-semibold text-lead">{money(plan.bill.total,care.currency)}</dd></div>
+            <div className="flex justify-between gap-4 py-2.5"><dt className="text-ink-2">Deposits paid or already requested</dt><dd className="font-semibold text-lead">− {money(plan.bill.committed,care.currency)}</dd></div>
+            <div className="flex justify-between gap-4 py-2.5"><dt className="font-semibold text-lead">{plan.bill.balance>0?"Still to pay":"Nothing to pay"}</dt><dd className="font-num text-lg font-extrabold text-serpent-dark">{money(Math.max(0,plan.bill.balance),care.currency)}</dd></div>
+          </dl>
+          {plan.bill.balance<0&&<p className="text-ok-ink">Deposits are {money(-plan.bill.balance,care.currency)} more than the bill. That comes back as a refund: <Link href={`/case/${care.id}/refunds`} className="font-semibold underline">Refund Tracking</Link>.</p>}
+          {plan.superseded.length>0&&<p className="text-xs text-ink-2">{plan.bill.type==="final"?"The final bill covers the whole stay, so it replaces":"The latest bill replaces"} {plan.superseded.map(b=>b.title).join(", ")}.</p>}
+        </div>:<p className="rounded-xl bg-warn-soft p-3 text-sm text-warn-ink">Upload an interim or final bill first. The amount is taken from it.</p>)}
+        {kind==="guarantee"&&<div className="grid items-start gap-3 sm:grid-cols-2">
+          <p className="text-xs leading-relaxed text-ink-2 sm:col-span-2">For a guarantee or top-up the hospital asks for in writing, before there is a bill for it. Enter exactly what their letter says.</p>
+          <div className="text-sm text-ink-2"><label htmlFor="request-purpose">What the hospital asked for</label><input id="request-purpose" value={purpose} onChange={e=>setPurpose(e.target.value)} className={`mt-1 w-full rounded-xl border border-line bg-white p-3 text-lead ${rv.invalid("purpose")?INVALID:""}`} {...rv.field("purpose")} />{rv.error("purpose")}</div>
+          <div className="text-sm text-ink-2"><label htmlFor="request-amount">Amount in {care.currency}</label><input id="request-amount" inputMode="decimal" value={amount} onChange={e=>setAmount(e.target.value)} className={`mt-1 w-full rounded-xl border border-line bg-white p-3 text-lead ${rv.invalid("amount")?INVALID:""}`} {...rv.field("amount")} />{rv.error("amount")}</div>
+        </div>}
+        <p className="text-xs leading-relaxed text-ink-2">The money goes only to the hospital’s verified account, never to an account printed on a document.</p>
+        <button type="submit" disabled={busy||(kind!=="guarantee"&&!fixed)} className={PRIMARY}>{fixed?`Ask for ${money(fixed.amount,care.currency)}`:"Create request"}</button>
       </form>}
     </Section>}
     {!requests.length ? <Section title="Pledges" agent="gate"><p>No payment request is waiting for approval. A hospital account must be verified before a request can be created.</p></Section> : <>

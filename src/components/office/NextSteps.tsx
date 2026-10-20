@@ -26,8 +26,8 @@ export function NextSteps() {
     { title: "Read the bill explanation", detail: "Why the cost changed, and questions to ask the hospital.", done: Boolean(explanation), href: `${base}/bill`, action: "Open Bill Review" },
     { title: "Invite the people who will help pay", detail: "Family or friends, each with their own share limit.", done: c.members.length > 1, href: `${base}/members`, action: "Invite helpers" },
     { title: "Verify the hospital’s account", detail: "Guardian only pays the hospital’s verified account.", done: c.payees.length > 0, href: `${base}/pledges`, action: "Verify account" },
-    { title: "Create a payment request", detail: "A deposit or guarantee the hospital asked for.", done: requests.length > 0, href: `${base}/pledges`, action: "Create request" },
-    { title: "Collect pledges and pay", detail: "Each helper approves their own share; you pay once it’s covered.", done: requests.some(r => r.status === "paid"), href: `${base}/pledges`, action: "Open Pledges" },
+    { title: "Ask the family for a payment", detail: "You set what is needed: a deposit from the estimate, a bill balance, or a guarantee. Nothing is charged yet.", done: requests.length > 0, href: `${base}/pledges`, action: "Create request" },
+    { title: "Helpers pledge, then you pay", detail: "Each helper approves their own share. When the pledges reach 100%, you confirm and each share goes to the hospital.", done: requests.some(r => r.status === "paid"), href: `${base}/pledges`, action: "Open Pledges" },
     { title: "Track refunds after the final bill", detail: "Unused deposits go back in proportion to what each person paid.", done: Boolean(refunds), href: `${base}/refunds`, action: "Refund Tracking" },
   ] : c.me.role === "payer" ? [
     { title: "Read the bill summary", detail: "What the hospital billed and why it changed.", done: Boolean(explanation), href: `${base}/bill`, action: "Open Bill Review" },

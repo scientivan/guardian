@@ -214,6 +214,6 @@ export const STATE_CHIP: Record<AgentState, { label: string; tone: Tone }> = {
   blocked: { label: "Blocked", tone: "danger" },
 };
 
-export const BUTTON = "inline-flex items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold transition-colors";
+export const BUTTON = "inline-flex items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-50";
 export const PRIMARY = `${BUTTON} bg-serpent text-white hover:bg-serpent-dark`;
 export const SECONDARY = `${BUTTON} border border-line bg-white text-lead hover:border-cerulean hover:bg-mist`;

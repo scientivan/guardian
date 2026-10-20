@@ -51,6 +51,8 @@ export const DOCUMENTS: {
   status: DocStatus;
   items: number;
   total: number | null;
+  /** Estimates only: the range and stay the hospital estimated. */
+  estimate?: { low: number; high: number; assumedStayDays: number | null } | null;
   sha256: string;
   anchoredTx: string | null;
   reason?: string;

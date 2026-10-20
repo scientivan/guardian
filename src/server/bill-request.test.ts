@@ -12,16 +12,19 @@ beforeEach(() => { dir = mkdtempSync(join(tmpdir(), "guardian-billreq-")); vi.st
 afterEach(() => { vi.unstubAllEnvs(); rmSync(dir, { recursive: true, force: true }); });
 
 describe("payment request for an uploaded bill", () => {
-  it("asks up to the bill's open balance, links the bill, and refuses more", () => {
+  it("pays the latest bill's balance after deposits, and deposits come from the estimate range", () => {
     const c = caseAccess(demo, "C1", "M_OWNER");
     try {
       const api = new Integration(c);
-      const bill = api.view().documents.find(d => d.type === "interim")!;
       const payeeId = api.view().case.payees[0].id;
-      const first = api.createRequest({ payeeId, amount: 1_000_000, purpose: "Part of the interim bill", documentId: bill.id }) as { id: string };
-      expect(api.view().requests.find(r => r.id === first.id)?.documentId).toBe(bill.id);
-      expect(() => api.createRequest({ payeeId, amount: bill.total!, purpose: "Too much", documentId: bill.id })).toThrow("left to pay");
-      expect(() => api.createRequest({ payeeId, amount: 100, purpose: "Estimate", documentId: api.view().documents.find(d => d.type === "estimate")!.id })).toThrow("not an estimate");
+      const docs = api.view().documents;
+      const interim = docs.find(d => d.type === "interim")!, final = docs.find(d => d.type === "final")!, estimate = docs.find(d => d.type === "estimate")!;
+      // Final bill CNY 71,000 replaces the interim one; R1 30,000 paid + R2 50,000 pending = 80,000 committed.
+      expect(() => api.createRequest({ payeeId, amount: 100, purpose: "Old bill", documentId: interim.id })).toThrow("newer bill");
+      expect(() => api.createRequest({ payeeId, amount: 100, purpose: "Final", documentId: final.id })).toThrow("already cover");
+      expect(() => api.createRequest({ payeeId, amount: 3_100_000, purpose: "Deposit", documentId: estimate.id })).toThrow("lower or upper end");
+      const deposit = api.createRequest({ payeeId, amount: estimate.estimate!.high, purpose: "Initial deposit", documentId: estimate.id }) as { id: string };
+      expect(api.view().requests.find(r => r.id === deposit.id)?.documentId).toBe(estimate.id);
     } finally { c.close(); }
   });
 });
