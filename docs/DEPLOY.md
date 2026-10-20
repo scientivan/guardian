@@ -1,5 +1,16 @@
-# Deployment on a VPS
+# Deployment on Vercel and the VPS alternative
 
+## Active production deployment, 20 October
+
+Guardian is deployed to Vercel at https://guardian.scientivan.dev using Supabase Postgres and private Storage. Vercel project guardian is connected to scientivan/guardian. The production domain uses a Cloudflare CNAME with proxy disabled. Backend environment variables live in Vercel, while .env files and database dumps are excluded from deployment uploads.
+
+Use Node 22 and the checked-in vercel.json. Install with npm ci --legacy-peer-deps. Configure GUARDIAN_DATABASE_DRIVER=postgres, GUARDIAN_STORAGE_DRIVER=supabase, SUPABASE_URL as a PostgreSQL transaction-pooler connection string, SUPABASE_PROJECT_URL and a server-only SUPABASE_SECRET_KEY. Set NEXTAUTH_URL=https://guardian.scientivan.dev and register https://guardian.scientivan.dev/api/auth/callback/google with the OAuth client. Retain the existing model, Gmail and Stripe test credentials. Never use NEXT_PUBLIC names for backend keys.
+
+Cloud uploads up to 10 MB use scoped signed permissions. Downloads authorize the case role before redirecting to a short-lived signed URL. The function bundle includes the Postgres worker, pg dependencies, Supabase's public CA and English OCR WASM/data. Native laptop binaries and laptop-local FISCO nodes cannot be reached by Vercel. Production anchoring is intentionally disabled by Dien's choice, while database audit chains remain active.
+
+Run npm run data:backup from a trusted operator machine with pg_dump 17 or newer and the backend environment loaded. The cloud backup includes a PostgreSQL dump and downloaded hash-verified referenced Storage objects. Read [Supabase migration and recovery](SUPABASE-MIGRATION.md) before changing drivers or restoring data.
+
+The VPS instructions below describe the retained alternative local/native deployment.
 This guide runs Guardian on one Linux server with HTTPS. The judges' main path is the demo account, which does not use Google. It covers TASKS sections 7 and 8. Payments stay in the demo sandbox or Stripe test mode. FX rates are a reference table.
 
 What runs on the machine:

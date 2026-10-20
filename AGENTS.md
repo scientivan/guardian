@@ -1,6 +1,6 @@
 # Guide for coding agents
 
-Guardian is a Next.js 15 app (TypeScript, `better-sqlite3`, Tailwind v4, vitest) for a FinTechathon entry: an AI agent that explains a foreign hospital's bills and pays deposits only to the hospital's verified account after each payer approves their own share.
+Guardian is a Next.js 15 app (TypeScript, Supabase Postgres and private Storage in production, SQLite for offline tests, Tailwind v4, vitest) for a FinTechathon entry: an AI agent that explains a foreign hospital's bills and pays deposits only to the hospital's verified account after each payer approves their own share.
 
 ## Read first
 
@@ -11,7 +11,7 @@ Guardian is a Next.js 15 app (TypeScript, `better-sqlite3`, Tailwind v4, vitest)
 ## Commands
 
 ```bash
-npm ci
+npm ci --legacy-peer-deps
 npm test              # vitest, no network needed (125 tests on 20 Oct)
 npm run lint
 npx tsc --noEmit

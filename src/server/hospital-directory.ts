@@ -5,6 +5,7 @@ import type { Session } from "next-auth";
 import { z } from "zod";
 import type { HospitalProfile, HospitalSource, HospitalRecord, HospitalReview, HospitalTrust, HospitalAIReview, HospitalVerification, PublicHospital } from "@/lib/hospitals";
 import { openDb, type DB } from "./db";
+import { postgresEnabled } from "./postgres";
 import { ApiError } from "./errors";
 import { requireAdmin } from "./admin-access";
 import { appendAudit, sha256, verifyChain, type AuditRow } from "./audit";
@@ -44,7 +45,7 @@ function requireGoogle(session: Session) {
 
 export function openHospitalDirectory(): HospitalDirectory {
   const dir = process.env.GUARDIAN_ACCOUNTS_DIR ?? join(process.cwd(), ".cache", "accounts");
-  mkdirSync(dir, {recursive:true, mode:0o700});
+  if(!postgresEnabled())mkdirSync(dir, {recursive:true, mode:0o700});
   return new HospitalDirectory(openDb(join(dir,"hospital-directory.db")));
 }
 

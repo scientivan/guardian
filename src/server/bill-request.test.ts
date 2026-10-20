@@ -79,7 +79,7 @@ describe("payment request for an uploaded bill", () => {
     const helper = caseAccess(demo, "C1", "M_JKT");
     try {
       const paid = new Integration(helper).view().requests.find(r => r.status === "paid")!;
-      expect(new Integration(helper).invoiceFile(paid.id, paid.invoices![0].id).filename).toBe("invoice.pdf");
+      expect((await new Integration(helper).invoiceFile(paid.id, paid.invoices![0].id)).filename).toBe("invoice.pdf");
     } finally { helper.close(); }
   });
 });

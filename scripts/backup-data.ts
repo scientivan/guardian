@@ -10,8 +10,13 @@ import Database from "better-sqlite3";
 import { existsSync, mkdirSync, readdirSync, rmSync, statSync } from "node:fs";
 import { basename, join } from "node:path";
 import { loadEnvConfig } from "@next/env";
+import {spawnSync} from "node:child_process";
 
 loadEnvConfig(process.cwd());
+if(process.env.GUARDIAN_DATABASE_DRIVER==="postgres") {
+  const result=spawnSync(process.execPath,["--import","tsx","scripts/backup-supabase.ts"],{stdio:"inherit",env:process.env});
+  process.exit(result.status??1);
+}
 const accounts = process.env.GUARDIAN_ACCOUNTS_DIR ?? join(process.cwd(), ".cache", "accounts");
 const legacy = process.env.GUARDIAN_DB ?? "guardian.db";
 const root = process.env.GUARDIAN_BACKUP_DIR ?? join(process.cwd(), ".cache", "backups");

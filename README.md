@@ -60,10 +60,10 @@ Details: `docs/ARCHITECTURE.md`, `docs/PRD.md`, `docs/API.md`, `docs/TEST-PLAN.m
 ## 3. Environment and dependencies
 
 - **OS:** macOS 14+ or Linux. Tested on macOS (Apple silicon).
-- **Runtime:** Node.js 22 or later (tested with 24.10), npm 10+.
+- **Runtime:** Node.js 22, npm 10+.
 - **Docker:** needed only for the FISCO BCOS chain.
 - **Optional:** `tesseract` (photos via OCR; `brew install tesseract` or `apt install tesseract-ocr`). Text-layer PDFs need nothing extra.
-- **Main libraries:** Next.js 15, TypeScript, `better-sqlite3`, `zod`, `stripe`, `ethers`, `unpdf`, `pdf-lib`, `vitest`.
+- **Main libraries:** Next.js 15.5.28, TypeScript, Postgres via `pg`, Supabase Storage, `better-sqlite3` for offline tests, `zod`, `stripe`, `ethers`, `unpdf`, Tesseract WASM, `pdf-lib`, `vitest`.
 
 Environment variables (`.env`, never committed; template in `.env.example`):
 
@@ -87,6 +87,12 @@ Environment variables (`.env`, never committed; template in `.env.example`):
 
 The router uses whichever LLM keys are present and skips a model that is rate-limited, so one key is enough to run.
 
+### Cloud database and deployment
+
+The production target is [guardian.scientivan.dev](https://guardian.scientivan.dev), hosted on Vercel with Supabase Postgres and private Storage. Set GUARDIAN_DATABASE_DRIVER=postgres and GUARDIAN_STORAGE_DRIVER=supabase, then supply the server-only SUPABASE_URL PostgreSQL pooler string, SUPABASE_PROJECT_URL HTTPS URL and SUPABASE_SECRET_KEY. SUPABASE_SERVICE_ROLE_KEY is an alternative backend Storage credential. Keep all of these out of NEXT_PUBLIC variables.
+
+NextAuth sessions and existing role checks remain in place. Account schemas are private, uploads use temporary scoped signed permissions, and downloads require membership. Production FISCO anchoring is disabled until a reachable node is supplied. The database audit chain remains active. Migration results, backups, recovery and verification are recorded in [Supabase migration](docs/SUPABASE-MIGRATION.md).
+
 ## 4. Installation and execution
 
 ### 4.1 Without any keys (code-level tests)
@@ -94,7 +100,7 @@ The router uses whichever LLM keys are present and skips a model that is rate-li
 ```bash
 git clone https://github.com/scientivan/guardian.git
 cd guardian
-npm ci
+npm ci --legacy-peer-deps
 npm test            # 125 tests covering the core, authentication, isolation, hospital verification, rate limits, document-based requests, invoices and case closing
 npm run fixtures    # regenerates the demo PDFs in fixtures/pdf/
 ```
@@ -172,7 +178,7 @@ Known limitations:
 
 - **Repository:** https://github.com/scientivan/guardian
 - **Live demo:** not deployed yet.
-- **Deployment:** local by default (SQLite files, local chain). VPS steps with HTTPS, backups and AI rate limits are in [`docs/DEPLOY.md`](docs/DEPLOY.md). No real accounts or money.
+- **Deployment:** Vercel with Supabase Postgres and private Storage at [guardian.scientivan.dev](https://guardian.scientivan.dev). SQLite remains available for offline work. Production anchoring is disabled until a reachable FISCO node is supplied. Deployment and backup guidance is in [DEPLOY.md](docs/DEPLOY.md). Payments remain sandbox or Stripe test mode.
 - **Demo reset:** `npm run demo:reset` removes demo workspaces so the next demo sign-in starts from the seeded case.
 - **Demo payments for directory hospitals:** `npm run hospitals:demo-verify` marks the listed directory hospitals as verified, with synthetic signed "DEMO" accounts, so Pledges can be tried with a Google case. It is for testing only: there is no real hospital confirmation, and it refuses to run with `NODE_ENV=production`.
 

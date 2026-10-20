@@ -1,4 +1,5 @@
-import Database from "better-sqlite3";
+import { connectDb } from "./db";
+import { postgresEnabled } from "./postgres";
 import { randomUUID, createHash } from "node:crypto";
 import { mkdirSync } from "node:fs";
 import { join } from "node:path";
@@ -14,9 +15,10 @@ export { ApiError } from "./errors";
 
 function directory() {
   const dir = process.env.GUARDIAN_ACCOUNTS_DIR ?? join(process.cwd(), ".cache", "accounts");
-  mkdirSync(dir,{recursive:true,mode:0o700});
-  const db = new Database(join(dir,"access.db"));
+  if(!postgresEnabled())mkdirSync(dir,{recursive:true,mode:0o700});
+  const db = connectDb(join(dir,"access.db"));
   db.pragma("journal_mode=WAL");
+  db.transaction(()=>{
   db.exec(`CREATE TABLE IF NOT EXISTS memberships (account_id TEXT, owner_id TEXT, case_id TEXT, member_id TEXT, PRIMARY KEY(account_id,owner_id,case_id));
     CREATE TABLE IF NOT EXISTS invitations (hash TEXT PRIMARY KEY,owner_id TEXT,case_id TEXT,mode TEXT,name TEXT,email TEXT,role TEXT,currency TEXT,share_limit INTEGER,expires_at TEXT,used_by TEXT);`);
   // Added 20 Oct: how the invite was sent, who sent it, and a payer's "not now".
@@ -26,6 +28,7 @@ function directory() {
   if(!columns.has("declined_by"))db.exec("ALTER TABLE invitations ADD COLUMN declined_by TEXT");
   // Added 20 Oct: the member's Google address, for payment-request notifications.
   if(!(db.prepare("PRAGMA table_info(memberships)").all() as {name:string}[]).some(c=>c.name==="email"))db.exec("ALTER TABLE memberships ADD COLUMN email TEXT");
+  })();
   return db;
 }
 /** Google addresses of the members who joined a case, by member id. */

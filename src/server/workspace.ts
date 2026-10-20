@@ -7,6 +7,7 @@ import { CASE, DOCUMENTS, EXPLANATION, ITEMS, REQUESTS, REFUNDS, AUDIT } from "@
 import { SAMPLE_STATUS } from "@/components/office/model";
 import type { AccountMode, CareCase, Workspace } from "@/lib/workspace";
 import { openDb, type DB } from "./db";
+import { postgresEnabled } from "./postgres";
 import { appendAudit, verifyChain, type AuditRow } from "./audit";
 import { seed } from "./seed";
 import { ESTIMATE, INTERIM_ITEMS } from "./fixtures/demo-case";
@@ -25,13 +26,14 @@ export const CreateCase = z.object({
 export function ownerDatabase(accountId: string): DB {
   if (!accountId) throw new Error("Sign in to continue.");
   const dir = process.env.GUARDIAN_ACCOUNTS_DIR ?? join(process.cwd(), ".cache", "accounts");
-  mkdirSync(dir, { recursive: true, mode: 0o700 });
+  if(!postgresEnabled())mkdirSync(dir, { recursive: true, mode: 0o700 });
   return openDb(join(dir, `${createHash("sha256").update(accountId).digest("hex")}.db`));
 }
 
 /** Each account has a separate database. Nothing from a Google workspace is seeded. */
 export class WorkspaceStore {
   constructor(readonly db: DB, readonly mode: AccountMode, readonly actor: string) {
+    db.transaction(()=>{
     db.exec("CREATE TABLE IF NOT EXISTS web_cases (id TEXT PRIMARY KEY, snapshot TEXT NOT NULL)");
     db.exec("CREATE TABLE IF NOT EXISTS web_workspace (key TEXT PRIMARY KEY)");
     if (mode === "demo" && !db.prepare("SELECT key FROM web_workspace WHERE key='initialized'").get()) {
@@ -55,6 +57,7 @@ export class WorkspaceStore {
       db.prepare("INSERT INTO web_workspace VALUES ('initialized')").run();
     }
     importLegacyState(db, this.list().cases, mode === "demo");
+    })();
   }
 
   list(): Workspace {

@@ -1,0 +1,12 @@
+{
+  "workspaceCases": 1,
+  "paymentStatus": "paid",
+  "invoiceBytes": 5242880,
+  "invoiceMatches": true,
+  "originalBytes": 5242880,
+  "originalDownload": 200,
+  "payerOriginalStatus": 403,
+  "payerOtherIdsInAudit": false,
+  "documentStatus": "needs_reupload",
+  "pageErrors": []
+}

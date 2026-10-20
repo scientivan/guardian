@@ -31,6 +31,7 @@ function digest(prev: string, ts: string, e: AuditEntry, result: string): string
 }
 
 export function appendAudit(db: DB, e: AuditEntry, now = new Date()): AuditRow {
+  return db.transaction(() => {
   const last = db.prepare("SELECT hash FROM audit_log ORDER BY seq DESC LIMIT 1").get() as { hash: string } | undefined;
   const prev = last?.hash ?? GENESIS;
   const ts = now.toISOString();
@@ -43,6 +44,7 @@ export function appendAudit(db: DB, e: AuditEntry, now = new Date()): AuditRow {
     )
     .run(ts, e.caseId, e.actor, e.action, JSON.stringify(e.inputSources), e.decision, result, prev, hash);
   return db.prepare("SELECT * FROM audit_log WHERE seq = ?").get(info.lastInsertRowid) as AuditRow;
+  })();
 }
 
 /** Recomputes every hash; returns the first broken seq, or null if the chain is intact. */

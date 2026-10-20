@@ -1,4 +1,5 @@
 import Database from "better-sqlite3";
+import { PostgresDatabase, postgresEnabled } from "./postgres";
 
 // Amounts are stored as integer minor units (fen for CNY) to avoid float drift.
 const SCHEMA = `
@@ -161,16 +162,23 @@ CREATE TABLE IF NOT EXISTS settings (
 
 export type DB = Database.Database;
 
+export function connectDb(path:string):DB {
+  return postgresEnabled() && path!==":memory:" ? new PostgresDatabase(path) as unknown as DB : new Database(path);
+}
+
 export function openDb(path = process.env.GUARDIAN_DB ?? "guardian.db"): DB {
-  const db = new Database(path);
+  const db = connectDb(path);
   db.pragma("journal_mode = WAL");
   db.pragma("foreign_keys = ON");
+  db.transaction(()=>{
   db.exec(SCHEMA);
   // Added 20 Oct: blockchain anchors for invoices and the closing pack.
   const cols = (t: string) => new Set((db.prepare(`PRAGMA table_info(${t})`).all() as { name: string }[]).map(x => x.name));
   if (!cols("request_invoices").has("anchored_tx")) db.exec("ALTER TABLE request_invoices ADD COLUMN anchored_tx TEXT");
+  if (!cols("request_invoices").has("storage_key")) db.exec("ALTER TABLE request_invoices ADD COLUMN storage_key TEXT");
   const closure = cols("case_closure");
   for (const col of ["pack_sha256", "pack_tx", "audit_hash", "audit_tx"]) if (!closure.has(col)) db.exec(`ALTER TABLE case_closure ADD COLUMN ${col} TEXT`);
+  })();
   return db;
 }
 

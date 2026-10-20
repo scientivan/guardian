@@ -15,6 +15,10 @@ import { openHospitalDirectory } from "../src/server/hospital-directory";
 import hospitals from "../src/server/hospital-seeds.json";
 
 loadEnvConfig(process.cwd());
+if(process.env.GUARDIAN_DATABASE_DRIVER==="postgres") {
+  console.log("Cloud demo workspaces are preserved. Sign out and choose Use demo account for a new seeded workspace. For deliberate local cleanup, explicitly select GUARDIAN_DATABASE_DRIVER=sqlite.");
+  process.exit(0);
+}
 const dryRun = process.argv.includes("--dry-run");
 const dir = process.env.GUARDIAN_ACCOUNTS_DIR ?? join(process.cwd(), ".cache", "accounts");
 const SHARED = new Set(["access.db", "hospital-directory.db"]);

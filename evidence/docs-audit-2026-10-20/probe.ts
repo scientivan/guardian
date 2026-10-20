@@ -16,7 +16,7 @@ try{
 const paid=api.view().requests.find(r=>r.status==="paid")!;
 const invoice=await api.addInvoice(paid.id,new File(["PATIENT MEDICAL DETAIL SYNTHETIC"],"invoice.pdf",{type:"application/pdf"}));
 const q=api.quote("R2",500000);api.approve("R2",{amount:500000,quoteId:q.quoteId});await api.execute("R2");
-const payer=caseAccess(session,"C1","M_JKT");try{const p=new Integration(payer);console.log(JSON.stringify({probe:"payer_projection",systemRows:p.view().audit.rows.filter(r=>r.actor==="gateway"&&JSON.stringify((r as typeof r & {result:Record<string,unknown>}).result).includes("M_")).map(r=>({action:r.action,result:(r as typeof r & {result:Record<string,unknown>}).result})),invoiceBytes:p.invoiceFile(paid.id,invoice.id).bytes.toString()}));}finally{payer.close()}
+const payer=caseAccess(session,"C1","M_JKT");try{const p=new Integration(payer);console.log(JSON.stringify({probe:"payer_projection",systemRows:p.view().audit.rows.filter(r=>r.actor==="gateway"&&JSON.stringify((r as typeof r & {result:Record<string,unknown>}).result).includes("M_")).map(r=>({action:r.action,result:(r as typeof r & {result:Record<string,unknown>}).result})),invoiceBytes:(await p.invoiceFile(paid.id,invoice.id)).bytes.toString()}));}finally{payer.close()}
 const analysis=analyse(c.db,"C1","D2");if("error" in analysis)throw Error(analysis.error);
 const target=analysis.causes.find(x=>x.cause.kind==="longer_stay")!;
 const fake:typeof fetch=async()=>new Response(JSON.stringify({choices:[{message:{content:JSON.stringify({lines:[{type:"arithmetic_fact",causeRef:target.ref,itemIds:target.itemIds,text:"The stay is 5 days longer, adding CNY 34,000."},{type:"unknown_ask_hospital",itemIds:target.itemIds,text:"The patient has cancer."}]})}}]}));

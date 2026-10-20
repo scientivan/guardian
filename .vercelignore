@@ -1,0 +1,16 @@
+.git
+.next
+node_modules
+.cache
+.env*
+*.db
+*.db-shm
+*.db-wal
+*.key
+*.pem
+fisco/nodes
+evidence
+docs
+testing
+bun.lock
+supabase/.temp

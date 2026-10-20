@@ -63,6 +63,16 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
   const call=useCallback(async (path:string,method="GET",body?:object|FormData,caseId?:string) => {
     const headers:Record<string,string>={};
     if(caseId && selectedMembers[caseId])headers["x-member-id"]=selectedMembers[caseId];
+    if(body instanceof FormData&&body.get("file") instanceof File) {
+      const file=body.get("file") as File;
+      const prepared=await request(`/api${path}/upload-ticket`,{method:"POST",headers:{...headers,"Content-Type":"application/json"},body:JSON.stringify({name:file.name,mime:file.type,size:file.size})});
+      if(prepared.status!==404) {
+        const ticket=await readResponse<{signedUrl:string;receipt:string}>(prepared);
+        const uploaded=await fetch(ticket.signedUrl,{method:"PUT",headers:{"Content-Type":file.type,"x-upsert":"false"},body:file});
+        if(!uploaded.ok)throw new Error("The private file upload failed. Try again.");
+        body={receipt:ticket.receipt,...Object.fromEntries([...body.entries()].filter(([key])=>key!=="file"))};
+      }
+    }
     if(body && !(body instanceof FormData))headers["Content-Type"]="application/json";
     try{return await result(await request(`/api${path}`,{method,headers,cache:"no-store",...(body?{body:body instanceof FormData?body:JSON.stringify(body)}:{})}));}
     finally {if(method!=="GET")await refresh();}

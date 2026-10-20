@@ -1,5 +1,7 @@
 import { spawn } from "node:child_process";
 import { extractText, getDocumentProxy } from "unpdf";
+import {createWorker,PSM} from "tesseract.js";
+import {join} from "node:path";
 
 // Turns an uploaded file into plain text locally. Text-layer PDFs are read
 // directly; images go through the local Tesseract binary. Raw files never go
@@ -19,8 +21,24 @@ export async function extract(data: Uint8Array, mime: string): Promise<Extracted
       } finally {await pdf.destroy();}
     } catch {return {ok:false,reason:"This PDF could not be read. Upload an intact PDF or a clear photo."};}
   }
-  if (mime === "image/png" || mime === "image/jpeg") return ocr(data);
+  if (mime === "image/png" || mime === "image/jpeg") return process.env.VERCEL?wasmOcr(data):ocr(data);
   return { ok: false, reason: `unsupported file type ${mime}` };
+}
+
+async function wasmOcr(data:Uint8Array):Promise<Extracted> {
+  let worker:Awaited<ReturnType<typeof createWorker>>|undefined;
+  try {
+    worker=await createWorker("eng",1,{
+      workerPath:join(process.cwd(),"node_modules/tesseract.js/src/worker-script/node/index.js"),
+      langPath:join(process.cwd(),"node_modules/@tesseract.js-data/eng/4.0.0"),
+      cacheMethod:"none",
+    });
+    await worker.setParameters({tessedit_pageseg_mode:PSM.SINGLE_BLOCK});
+    const result=await worker.recognize(Buffer.from(data));
+    const text=result.data.text.trim();
+    return text.length>=20?{ok:true,text,method:"ocr"}:{ok:false,reason:"OCR could not read the photo. Retake it flat and well lit."};
+  }catch{return {ok:false,reason:"This photo could not be read. Upload a clearer photo or a text PDF."};}
+  finally{await worker?.terminate();}
 }
 
 function ocr(data: Uint8Array): Promise<Extracted> {

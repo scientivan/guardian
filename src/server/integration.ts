@@ -27,6 +27,7 @@ import { PORTAL_PAYEES } from "./seed";
 import { stripeCharger } from "./stripe";
 import { scrubCase } from "./pii";
 import { syncDirectoryHospital } from "./hospital-directory";
+import { fileScope, putPrivateFile, readPrivateFile } from "./storage";
 
 function gate<T extends {ok:boolean;reason?:string;check?:number}>(value:T):T {
   if(!value.ok) throw new ApiError(value.reason ?? "This action could not be completed.",409,value.check);
@@ -36,7 +37,10 @@ const amountSchema=z.number().int().positive().max(Number.MAX_SAFE_INTEGER);
 
 export class Integration {
   constructor(readonly c:CaseAccess, readonly dependencies: {fetchImpl?:typeof fetch;charger?:Charger}={}) {
+    c.db.transaction(()=>{
     c.db.exec("CREATE TABLE IF NOT EXISTS web_explanations (document_id TEXT PRIMARY KEY,payload TEXT); CREATE TABLE IF NOT EXISTS web_messages (id TEXT PRIMARY KEY,case_id TEXT,member_id TEXT,question TEXT,reply TEXT,actions TEXT,ts TEXT); CREATE TABLE IF NOT EXISTS web_uploads (document_id TEXT PRIMARY KEY,filename TEXT,mime TEXT,bytes BLOB); CREATE TABLE IF NOT EXISTS web_replacements(old_id TEXT PRIMARY KEY,new_id TEXT)");
+    if(!(c.db.prepare("PRAGMA table_info(web_uploads)").all() as {name:string}[]).some(c=>c.name==="storage_key"))c.db.exec("ALTER TABLE web_uploads ADD COLUMN storage_key TEXT");
+    })();
   }
   view() { return this.c.store.view(this.c.caseId,this.c.member.id); }
   request(id:string) {
@@ -107,8 +111,9 @@ export class Integration {
     if(!["application/pdf","image/png","image/jpeg"].includes(file.type))throw new ApiError("Choose a PDF, PNG or JPEG document.");
     if(replacementId){const old=this.document(replacementId);if(old.status!=="needs_reupload")throw new ApiError("Only an unreadable document can be replaced.",409);}
     const bytes=new Uint8Array(await file.arrayBuffer());
+    const storageKey=await putPrivateFile(fileScope(this.c.ownerId,this.c.caseId),bytes,file.type);
     const result=await ingestDocument(this.c.db,{caseId:this.c.caseId,actor:this.c.member.id,type,data:bytes,mime:file.type,anchor:true,interactive:true},now(this.c.db));
-    this.c.db.prepare("INSERT INTO web_uploads VALUES (?,?,?,?)").run(result.documentId,file.name,file.type,Buffer.from(bytes));
+    this.c.db.prepare("INSERT INTO web_uploads (document_id,filename,mime,bytes,storage_key) VALUES (?,?,?,?,?)").run(result.documentId,file.name,file.type,storageKey?Buffer.alloc(0):Buffer.from(bytes),storageKey);
     if(replacementId && result.status==="parsed")this.c.db.prepare("INSERT INTO web_replacements VALUES (?,?) ON CONFLICT(old_id) DO UPDATE SET new_id=excluded.new_id").run(replacementId,result.documentId);
     const data=this.c.store.get(this.c.caseId);
     data.documents.push({id:result.documentId,type,title:file.name,by:this.c.member.displayName,ts:now(this.c.db).toISOString(),status:result.status,items:0,total:null,sha256:result.sha256,anchoredTx:result.anchoredTx,reason:result.reason});
@@ -120,8 +125,9 @@ export class Integration {
     }
     return {...result,demo:this.c.session.user.mode==="demo"};
   }
-  createRequest(input:unknown) {
+  createRequest(input:unknown):ReturnType<typeof createPaymentRequest> {
     requireOwner(this.c);
+    const outcome=this.c.db.transaction(()=>{
     const v=z.object({payeeId:z.string().min(1),amount:amountSchema,purpose:z.string().trim().min(1).max(200),expiresInMinutes:z.number().int().min(5).max(10080).default(120),documentId:z.string().optional()}).parse(input);
     if(v.documentId) {
       // Amounts tied to a document must match what the documents say (src/lib/payment-plan.ts):
@@ -138,8 +144,11 @@ export class Integration {
         if(v.amount>plan.bill.balance)throw new ApiError(`This bill has ${(plan.bill.balance/100).toLocaleString("en",{minimumFractionDigits:2})} left to pay. Ask for that amount or less.`,409,4);
       } else throw new ApiError(plan.superseded.some(b=>b.documentId===v.documentId)?"A newer bill replaces this one. Pay from the latest bill.":"Choose the estimate or the latest bill that has been read.",409);
     }
-    gate(resolvePayee(this.c.db,this.c.caseId,this.c.member.id,{payeeId:v.payeeId,source:"official_registry"}));
-    return gate(createPaymentRequest(this.c.db,{...v,caseId:this.c.caseId,actor:this.c.member.id},now(this.c.db)));
+    const recipient=resolvePayee(this.c.db,this.c.caseId,this.c.member.id,{payeeId:v.payeeId,source:"official_registry"});
+    if(!recipient.ok)return recipient;
+    return createPaymentRequest(this.c.db,{...v,caseId:this.c.caseId,actor:this.c.member.id},now(this.c.db));
+    })();
+    return gate(outcome);
   }
   /** Emails every payer who joined with a Google account that a new request needs pledges. */
   async notifyRequest(requestId:string,origin:string) {
@@ -165,8 +174,8 @@ export class Integration {
     const result=this.c.db.transaction(()=>recordApproval(this.c.db,requestId,this.c.member.id,v.amount,v.quoteId,now(this.c.db)))();
     return {...gate(result),...this.request(requestId)};
   }
-  withdraw(requestId:string) {this.request(requestId);return gate(withdrawApproval(this.c.db,requestId,this.c.member.id,now(this.c.db)));}
-  cancel(requestId:string) {requireOwner(this.c);this.request(requestId);return gate(cancelRequest(this.c.db,requestId,this.c.member.id,now(this.c.db)));}
+  withdraw(requestId:string) {this.request(requestId);return gate(this.c.db.transaction(()=>withdrawApproval(this.c.db,requestId,this.c.member.id,now(this.c.db)))());}
+  cancel(requestId:string) {requireOwner(this.c);this.request(requestId);return gate(this.c.db.transaction(()=>cancelRequest(this.c.db,requestId,this.c.member.id,now(this.c.db)))());}
   /** The hospital's invoice or receipt for a paid request (owner or companion). */
   async addInvoice(requestId:string,file:File) {
     if(this.c.member.role==="payer")denyAccess(this.c,"Only the owner or companion can attach the hospital’s invoice.");
@@ -175,8 +184,9 @@ export class Integration {
     if(file.size===0 || file.size>10*1024*1024)throw new ApiError("Choose a photo or PDF up to 10 MB.");
     if(!["application/pdf","image/png","image/jpeg"].includes(file.type))throw new ApiError("Choose a PDF, PNG or JPEG document.");
     const bytes=Buffer.from(await file.arrayBuffer());
+    const storageKey=await putPrivateFile(fileScope(this.c.ownerId,this.c.caseId),bytes,file.type);
     const id=`INV_${randomUUID().slice(0,8)}`,sha256=createHash("sha256").update(bytes).digest("hex"),ts=now(this.c.db).toISOString();
-    this.c.db.prepare("INSERT INTO request_invoices (id,request_id,case_id,filename,mime,bytes,sha256,uploaded_by,ts) VALUES (?,?,?,?,?,?,?,?,?)").run(id,requestId,this.c.caseId,file.name.slice(0,200),file.type,bytes,sha256,this.c.member.id,ts);
+    this.c.db.prepare("INSERT INTO request_invoices (id,request_id,case_id,filename,mime,bytes,sha256,uploaded_by,ts,storage_key) VALUES (?,?,?,?,?,?,?,?,?,?)").run(id,requestId,this.c.caseId,file.name.slice(0,200),file.type,storageKey?Buffer.alloc(0):bytes,sha256,this.c.member.id,ts,storageKey);
     // Same treatment as bills (PRD F20): the invoice's hash goes on chain when anchoring is configured.
     let anchoredTx:string|null=null;
     try{anchoredTx=await anchorHash(sha256,`invoice:${requestId}`);}catch{anchoredTx=null;}
@@ -184,17 +194,18 @@ export class Integration {
     appendAudit(this.c.db,{caseId:this.c.caseId,actor:this.c.member.id,action:"request.invoice",inputSources:["hospital_doc"],decision:"info",result:{requestId,invoiceId:id,sha256,anchoredTx}});
     return {id,sha256,anchoredTx};
   }
-  invoiceFile(requestId:string,invoiceId:string) {
+  async invoiceFile(requestId:string,invoiceId:string) {
     // Every member may open it: it is the hospital's proof of payment, which payers paid towards.
     this.request(requestId);
-    const f=this.c.db.prepare("SELECT filename,mime,bytes FROM request_invoices WHERE id=? AND request_id=?").get(invoiceId,requestId) as {filename:string;mime:string;bytes:Buffer}|undefined;
+    const f=this.c.db.prepare("SELECT filename,mime,bytes,storage_key,sha256 FROM request_invoices WHERE id=? AND request_id=?").get(invoiceId,requestId) as {filename:string;mime:string;bytes:Buffer;storage_key:string|null;sha256:string}|undefined;
     if(!f)throw new ApiError("Invoice not found.",404);
-    return f;
+    return {...f,bytes:f.storage_key?await readPrivateFile(f.storage_key,f.sha256):f.bytes};
   }
   closed() {return Boolean(this.c.db.prepare("SELECT 1 FROM case_closure WHERE case_id=?").get(this.c.caseId));}
   /** Owner ends the case. Every member keeps read access; nothing can be written afterwards. */
   async closeCase() {
     requireOwner(this.c);
+    const {packSha256}=this.c.db.transaction(()=>{
     if(this.closed())throw new ApiError("This care case is already closed.",409);
     const open=this.view().requests.filter(r=>r.status==="pending"||r.status==="executing");
     if(open.length)throw new ApiError(`Finish or cancel the open payment request${open.length>1?"s":""} (${open.map(r=>r.purpose).join(", ")}) before closing the case.`,409);
@@ -203,10 +214,10 @@ export class Integration {
     if(noInvoice.length)throw new ApiError(`Attach the hospital’s invoice to ${noInvoice.map(r=>r.purpose).join(", ")} before closing the case.`,409);
     const at=now(this.c.db).toISOString();
     const packSha256=createHash("sha256").update(JSON.stringify(this.closingPack(at))).digest("hex");
-    this.c.db.transaction(()=>{
       this.c.db.prepare("INSERT INTO case_closure (case_id,closed_at,closed_by,pack_sha256) VALUES (?,?,?,?)").run(this.c.caseId,at,this.c.member.id,packSha256);
       this.c.db.prepare("UPDATE cases SET status='closed' WHERE id=?").run(this.c.caseId);
       appendAudit(this.c.db,{caseId:this.c.caseId,actor:this.c.member.id,action:"case.closed",inputSources:["user"],decision:"info",result:{closedAt:at,packSha256}});
+      return {at,packSha256};
     })();
     // The closing pack and the final log head (which includes the case.closed row) go on chain.
     let packTx:string|null=null;

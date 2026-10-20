@@ -21,20 +21,25 @@
     "evidence": "LLM_CACHE_DIR=.cache/llm tsx --env-file=.env scripts/run-evidence.ts",
     "baseline": "LLM_CACHE_DIR=.cache/llm tsx --env-file=.env scripts/baseline.ts",
     "d4:live": "tsx --env-file=.env scripts/run-d4-live.ts",
-    "fisco:deploy": "tsx --env-file=.env scripts/deploy-anchor.ts"
+    "fisco:deploy": "tsx --env-file=.env scripts/deploy-anchor.ts",
+    "data:migrate:supabase": "GUARDIAN_DATABASE_DRIVER=postgres GUARDIAN_STORAGE_DRIVER=supabase node --env-file=.env --import tsx scripts/migrate-supabase.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.135.0",
+    "@supabase/supabase-js": "2.118.0",
+    "@tesseract.js-data/eng": "1.0.0",
     "better-sqlite3": "^13.0.3",
     "ethers": "^6.15.0",
-    "next": "15.5.4",
+    "next": "15.5.28",
     "next-auth": "^4.24.15",
-    "nodemailer": "^7.0.13",
+    "nodemailer": "^10.1.7",
     "pdf-lib": "^1.17.1",
+    "pg": "8.23.1",
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "solc": "^0.8.26",
     "stripe": "^23.0.0",
+    "tesseract.js": "7.0.0",
     "unpdf": "^1.3.2",
     "zod": "^4.6.7"
   },
@@ -47,10 +52,13 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
-    "eslint-config-next": "15.5.4",
+    "eslint-config-next": "15.5.28",
     "tailwindcss": "^4",
     "tsx": "^4.23.15",
     "typescript": "^5",
     "vitest": "^3.2.4"
+  },
+  "engines": {
+    "node": "22.x"
   }
 }

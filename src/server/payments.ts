@@ -46,12 +46,14 @@ export function createPaymentRequest(
 
 /** Moves every overdue pending request to expired. Approvals stay recorded; nothing was charged. */
 export function expireDue(db: DB, now = new Date()): string[] {
+  return db.transaction(()=>{
   const due = db.prepare("SELECT id, case_id FROM payment_requests WHERE status = 'pending' AND expires_at <= ?").all(now.toISOString()) as { id: string; case_id: string }[];
   for (const r of due) {
     db.prepare("UPDATE payment_requests SET status = 'expired' WHERE id = ? AND status = 'pending'").run(r.id);
     appendAudit(db, { caseId: r.case_id, actor: "system", action: "request.expire", inputSources: ["system"], decision: "info", result: { requestId: r.id } }, now);
   }
   return due.map((r) => r.id);
+  })();
 }
 
 export function cancelRequest(db: DB, requestId: string, actor: string, now = new Date()): GateResult {
@@ -72,12 +74,13 @@ export interface ExecuteResult extends GateResult {
 
 export async function executeRequest(db: DB, requestId: string, actor: string, charge: Charger, now = new Date()): Promise<ExecuteResult> {
   expireDue(db, now);
-  const gate = authorizeExecution(db, requestId, now);
+  const gate = db.transaction(() => {
+    const verdict = authorizeExecution(db, requestId, now);
+    if (!verdict.ok) return verdict;
+    const claimed = db.prepare("UPDATE payment_requests SET status = 'executing' WHERE id = ? AND status = 'pending'").run(requestId);
+    return claimed.changes ? verdict : { ok: false as const, check: 3 as const, reason: "request is already being executed" };
+  })();
   if (!gate.ok) return gate;
-
-  // Claim the request; a second concurrent execute sees changes = 0 and stops.
-  const claimed = db.prepare("UPDATE payment_requests SET status = 'executing' WHERE id = ? AND status = 'pending'").run(requestId);
-  if (claimed.changes === 0) return { ok: false, check: 3, reason: "request is already being executed" };
 
   const req = db.prepare("SELECT case_id, payee_id, purpose FROM payment_requests WHERE id = ?").get(requestId) as { case_id: string; payee_id: string; purpose: string };
   appendAudit(db, { caseId: req.case_id, actor, action: "request.execute", inputSources: ["user"], decision: "allow", result: { requestId } }, now);

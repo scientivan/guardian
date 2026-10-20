@@ -250,3 +250,11 @@ This update takes precedence over earlier examples.
 - Case model inputs use persistent case token allocation, including names and request-purpose text in chat state. AI-generated views keep tokens. Unsupported PII formats may still be missed.
 - Stripe payeeId metadata identifies the intended recipient only. Sandbox/test charges do not route funds to the hospital's bank account. Charge references are not proof of hospital settlement.
 - Uploaded receipt files remain downloadable by every case member under the agreed invoice-sharing scope. The UI warns uploaders to remove medical details, identifiers and card numbers. No automatic redaction or issuer-authentication claim is made.
+
+## v1.7 Supabase persistence and temporary file permissions, 20 October
+
+The cloud backend uses private Postgres workspace schemas and a private Supabase Storage bucket. NextAuth and case membership remain the authority. No Supabase client identity or database credential is exposed to the browser.
+
+POST /cases/:caseId/documents/upload-ticket and POST /payment-requests/:requestId/invoices/upload-ticket accept name, mime and size. Owner and companion roles may request tickets while the case is open. Invoice tickets additionally require a paid request. Supported types are PDF, PNG and JPEG up to 10 MB. The result contains signedUrl and receipt. Upload the bytes with PUT to signedUrl, then POST receipt and the existing document fields as JSON to the original documents/invoices endpoint. A signed receipt binds the session, destination, metadata and 15-minute processing window. The backend reads the private uploaded object and repeats the existing validation and intake logic. Legacy multipart requests remain supported for local installations.
+
+Original-file and invoice GET routes authorize membership before returning a 302 to a 60-second private signed download URL. This supports files larger than the Vercel function body limit. Payers still cannot download original medical documents. All case members may download the explicitly shared hospital invoice. Hashes and file metadata stay in Postgres, while bytes live in Storage.

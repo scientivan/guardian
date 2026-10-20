@@ -12,6 +12,7 @@ import { hospitalDispatch } from "./hospital-api";
 import { linkDirectoryHospital } from "./hospital-directory";
 import { requireOwner, denyAccess } from "./access";
 import { clientIp, LLM_LIMITS, spendsModelQuota, take } from "./rate-limit";
+import { cloudStorageEnabled, fileScope, privateDownloadUrl, uploadedFile, uploadTicket } from "./storage";
 
 export async function accountWorkspace(session:Session,selectedMember?:string|null) {
   const db=ownerDatabase(session.user.id);
@@ -83,6 +84,25 @@ export async function dispatch(request:NextRequest,path:string[]) {
     try {
       const api=new Integration(c);
       if(mutate&&path[2]!=="chat"&&api.closed())throw new ApiError("This care case is closed. Everyone can still read it, but nothing can be changed.",409);
+      if(path.at(-1)==="upload-ticket"&&request.method==="POST") {
+        if(!cloudStorageEnabled())throw new ApiError("Direct uploads are unavailable.",404);
+        if(c.member.role==="payer")denyAccess(c,"Only the owner or companion can upload files.");
+        const target=path.slice(0,-1);
+        if(target[0]==="payment-requests"&&target[2]==="invoices") {
+          if(api.request(target[1]).status!=="paid")throw new ApiError("Attach the invoice after payment.",409);
+        }else if(!(target[0]==="cases"&&target[2]==="documents"))throw new ApiError("Invalid upload destination.");
+        const input=z.object({name:z.string().min(1).max(200),mime:z.enum(["application/pdf","image/png","image/jpeg"]),size:z.number().int().positive().max(10*1024*1024)}).parse(await body());
+        return reply(await uploadTicket(fileScope(c.ownerId,c.caseId),session.user.id,target.join("/"),input));
+      }
+      const incomingFile=async()=>{
+        if(request.headers.get("content-type")?.includes("application/json")) {
+          const value=z.object({receipt:z.string().max(4000),type:z.enum(["estimate","interim","final"]).optional(),replacementDocumentId:z.string().optional()}).parse(await body());
+          return {...value,file:await uploadedFile(value.receipt,session.user.id,path.join("/"))};
+        }
+        const form=await request.formData(),file=form.get("file");
+        if(!(file instanceof File))throw new ApiError("Choose a photo or PDF.");
+        return {file,type:form.get("type"),replacementDocumentId:typeof form.get("replacementDocumentId")==="string"?String(form.get("replacementDocumentId")):undefined};
+      };
       if(sectionIsHospital(path) && request.method==="POST") {
         requireOwner(c);
         if(session.user.mode!=="google")throw new ApiError("Hospital directory linking requires a Google account.",403);
@@ -95,9 +115,11 @@ export async function dispatch(request:NextRequest,path:string[]) {
         api.document(path[1]);
         if(path[2]==="file") {
           if(c.member.role==="payer")denyAccess(c,"Your role can read the bill summary, not the original document.");
-          const file=c.db.prepare("SELECT filename,mime,bytes FROM web_uploads WHERE document_id=?").get(path[1]) as {filename:string;mime:string;bytes:Buffer}|undefined;
+          const file=c.db.prepare("SELECT u.filename,u.mime,u.bytes,u.storage_key,d.sha256 FROM web_uploads u JOIN documents d ON d.id=u.document_id WHERE u.document_id=?").get(path[1]) as {filename:string;mime:string;bytes:Buffer;storage_key:string|null;sha256:string}|undefined;
           if(!file)throw new ApiError("The original file is not available for this seeded document.",404);
-          return new NextResponse(new Uint8Array(file.bytes),{headers:{"Content-Type":file.mime,"Content-Disposition":`attachment; filename*=UTF-8''${encodeURIComponent(file.filename)}`,"Cache-Control":"no-store"}});
+          if(file.storage_key)return new NextResponse(null,{status:302,headers:{Location:await privateDownloadUrl(file.storage_key,file.filename),"Cache-Control":"no-store"}});
+          const bytes=file.bytes;
+          return new NextResponse(new Uint8Array(bytes),{headers:{"Content-Type":file.mime,"Content-Disposition":`attachment; filename*=UTF-8''${encodeURIComponent(file.filename)}`,"Cache-Control":"no-store"}});
         }
         return reply(api.document(path[1]));
       }
@@ -109,21 +131,21 @@ export async function dispatch(request:NextRequest,path:string[]) {
         if(path[2]==="execute" && request.method==="POST")return reply(await api.execute(id));
         if(path[2]==="cancel" && request.method==="POST")return reply(api.cancel(id));
         if(path[2]==="invoices" && !path[3] && request.method==="POST") {
-          const form=await request.formData();const file=form.get("file");
-          if(!(file instanceof File))throw new ApiError("Choose a photo or PDF.");
+          const {file}=await incomingFile();
           return reply(await api.addInvoice(id,file));
         }
         if(path[2]==="invoices" && path[3] && request.method==="GET") {
-          const f=api.invoiceFile(id,path[3]);
+          const stored=c.db.prepare("SELECT storage_key,filename FROM request_invoices WHERE id=? AND request_id=? AND case_id=?").get(path[3],id,c.caseId) as {storage_key:string|null;filename:string}|undefined;
+          if(stored?.storage_key)return new NextResponse(null,{status:302,headers:{Location:await privateDownloadUrl(stored.storage_key,stored.filename),"Cache-Control":"no-store"}});
+          const f=await api.invoiceFile(id,path[3]);
           return new NextResponse(new Uint8Array(f.bytes),{headers:{"Content-Type":f.mime,"Content-Disposition":`attachment; filename*=UTF-8''${encodeURIComponent(f.filename)}`,"Cache-Control":"no-store"}});
         }
       }
       const section=path[2];
       if(path[0]==="cases" && !section && request.method==="GET")return reply(api.view());
       if(section==="documents" && request.method==="POST") {
-        const form=await request.formData();const file=form.get("file");
-        if(!(file instanceof File))throw new ApiError("Choose a photo or PDF.");
-        return reply(await api.upload(file,z.enum(["estimate","interim","final"]).parse(form.get("type")),typeof form.get("replacementDocumentId")==="string"?String(form.get("replacementDocumentId")):undefined));
+        const {file,type,replacementDocumentId}=await incomingFile();
+        return reply(await api.upload(file,z.enum(["estimate","interim","final"]).parse(type),replacementDocumentId));
       }
       if(section==="explanation") {
         const doc=request.nextUrl.searchParams.get("documentId")??(c.db.prepare("SELECT id FROM documents WHERE case_id=? AND type!='estimate' AND status='parsed' AND id NOT IN (SELECT old_id FROM web_replacements) ORDER BY created_at DESC,rowid DESC LIMIT 1").get(c.caseId) as {id:string}|undefined)?.id;
@@ -162,6 +184,7 @@ export async function dispatch(request:NextRequest,path:string[]) {
   } catch(e) {
     if(e instanceof ApiError)return NextResponse.json({error:e.message,code:"ACTION_REJECTED",check:e.check},{status:e.status});
     if(e instanceof z.ZodError)return NextResponse.json({error:e.issues.find(i=>i.code==="custom")?.message??"Check the submitted fields and try again.",code:"INVALID_INPUT"},{status:400});
+    console.error("guardian.service_error",{code:e instanceof Error?((e as Error&{code?:string}).code??e.name):"UNKNOWN",frames:e instanceof Error?e.stack?.split("\n").slice(1,4):undefined});
     return NextResponse.json({error:"The service is temporarily unavailable. Refresh the case before trying again.",code:"SERVICE_UNAVAILABLE"},{status:503});
   }
 }
