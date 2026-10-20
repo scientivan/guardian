@@ -1,7 +1,19 @@
 {
   "compilerOptions": {
-    "target": "ES2020", "module": "ESNext", "moduleResolution": "bundler", "jsx": "react-jsx",
-    "strict": true, "skipLibCheck": true, "resolveJsonModule": true, "esModuleInterop": true, "noEmit": true
+    "target": "ES2020",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "jsx": "react-jsx",
+    "strict": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "noEmit": true
   },
-  "include": ["src"]
+  "include": [
+    "src/index.ts",
+    "src/Root.tsx",
+    "src/FiveMinute.tsx",
+    "src/theme.ts"
+  ]
 }

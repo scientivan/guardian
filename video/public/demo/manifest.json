@@ -1,0 +1,96 @@
+{
+  "pay-receipts": {
+    "image": "demo/pay-receipts.png",
+    "video": "demo/pay-receipts.mp4",
+    "videoFrames": 66
+  },
+  "refund": {
+    "image": "demo/refund.png"
+  },
+  "clarify-question": {
+    "image": "demo/clarify-question.png"
+  },
+  "pay-pending": {
+    "image": "demo/pay-pending.png"
+  },
+  "bill-questions": {
+    "image": "demo/bill-questions.png"
+  },
+  "pay-pledged": {
+    "image": "demo/pay-pledged.png"
+  },
+  "permissions-companion": {
+    "image": "demo/permissions-companion.png"
+  },
+  "recovery-failed": {
+    "image": "demo/recovery-failed.png"
+  },
+  "privacy-refused": {
+    "image": "demo/privacy-refused.png"
+  },
+  "pay-quote": {
+    "image": "demo/pay-quote.png"
+  },
+  "clarify-answer": {
+    "image": "demo/clarify-answer.png"
+  },
+  "close-audit": {
+    "image": "demo/close-audit.png"
+  },
+  "refund-receipts": {
+    "image": "demo/refund-receipts.png"
+  },
+  "pay-withdraw": {
+    "image": "demo/pay-withdraw.png"
+  },
+  "security-hold": {
+    "image": "demo/security-hold.png"
+  },
+  "security-blocked": {
+    "image": "demo/security-blocked.png"
+  },
+  "recovery-replace": {
+    "image": "demo/recovery-replace.png"
+  },
+  "bill-calculation": {
+    "image": "demo/bill-calculation.png"
+  },
+  "setup": {
+    "image": "demo/setup.png"
+  },
+  "permissions-payer": {
+    "image": "demo/permissions-payer.png"
+  },
+  "pay-create": {
+    "image": "demo/pay-create.png"
+  },
+  "refund-shares": {
+    "image": "demo/refund-shares.png"
+  },
+  "pay-authorize": {
+    "image": "demo/pay-authorize.png"
+  },
+  "bill": {
+    "image": "demo/bill.png"
+  },
+  "plan": {
+    "image": "demo/plan.png"
+  },
+  "recovery-replaced": {
+    "image": "demo/recovery-replaced.png"
+  },
+  "close-ready": {
+    "image": "demo/close-ready.png"
+  },
+  "security-message": {
+    "image": "demo/security-message.png"
+  },
+  "pay-review": {
+    "image": "demo/pay-review.png"
+  },
+  "close-done": {
+    "image": "demo/close-done.png",
+    "video": "demo/close-done.mp4",
+    "videoFrames": 84
+  }
+}

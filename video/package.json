@@ -2,8 +2,10 @@
   "name": "guardian-demo-video",
   "private": true,
   "scripts": {
-    "studio": "remotion studio src/index.ts",
-    "render": "remotion render src/index.ts GuardianDemo out/demo.mp4"
+    "studio": "remotion studio src/index.ts --port=3100",
+    "render": "remotion render src/index.ts GuardianDemo out/Guardian-5min.mp4 --port=3100 --concurrency=4 --codec=h264 --crf=18",
+    "check:types": "tsc --noEmit",
+    "check:timeline": "node scripts/verify-video.cjs"
   },
   "dependencies": {
     "@remotion/cli": "^4.0.537",

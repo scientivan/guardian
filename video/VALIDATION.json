@@ -1,0 +1,87 @@
+{
+  "verifiedAt": "2026-10-20T13:30:44.653139+00:00",
+  "submissionFile": "AI-I_Couldve_Done_It_Father-DemoVideo.mp4",
+  "sha256": "e98369c6ca9b71a19388ed4c66aa56c86fed33012fc84795948cc3b82139511f",
+  "media": {
+    "programs": [],
+    "stream_groups": [],
+    "streams": [
+      {
+        "codec_name": "h264",
+        "width": 1920,
+        "height": 1080,
+        "r_frame_rate": "30/1",
+        "duration": "298.000000",
+        "nb_frames": "8940",
+        "side_data_list": [
+          {}
+        ]
+      },
+      {
+        "codec_name": "aac",
+        "r_frame_rate": "0/0",
+        "duration": "298.000000",
+        "nb_frames": "13970"
+      }
+    ],
+    "format": {
+      "duration": "298.000000",
+      "size": "90517030"
+    }
+  },
+  "scenes": 17,
+  "cues": 59,
+  "decode": "FFmpeg full video/audio decode passed",
+  "chromePlayback": {
+    "duration": 298,
+    "width": 1920,
+    "height": 1080,
+    "samples": [
+      {
+        "at": 1.000105,
+        "ready": 4,
+        "error": null
+      },
+      {
+        "at": 130.000176,
+        "ready": 4,
+        "error": null
+      },
+      {
+        "at": 259.000144,
+        "ready": 4,
+        "error": null
+      },
+      {
+        "at": 270.000176,
+        "ready": 4,
+        "error": null
+      },
+      {
+        "at": 295.000176,
+        "ready": 4,
+        "error": null
+      }
+    ],
+    "playbackAdvanced": true,
+    "error": null
+  },
+  "audio": {
+    "integratedLUFS": -16.14,
+    "truePeakDBTP": -1.47
+  },
+  "checks": {
+    "unitTests": "125/125 across 19 files",
+    "websiteLint": "pass",
+    "websiteTypeScript": "pass",
+    "isolatedProductionBuild": "pass",
+    "videoTypeScript": "pass",
+    "timeline": "8940 frames, no cue overflow, all media present",
+    "sampledScenes": "all 17 visually inspected"
+  },
+  "originalBackup": {
+    "file": "video/out/original-before-5min.mp4",
+    "sha256": "8c588fccd4d1ea0370b3fdbfb0a33dae8bb8df0ca8144456e1da6a6d7078e004",
+    "durationSeconds": 154.752
+  }
+}

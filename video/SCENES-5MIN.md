@@ -1,15 +1,15 @@
 # Guardian demo video, rancangan 5 menit
 
-Status **draft editorial untuk ditinjau**. Permintaan Dien pada 20 Oktober 2026. Pemetaan mengikuti kriteria dan subkriteria pada gambar yang diberikan Dien, dengan bobot internal yang dicatat di AGENTS.md Shenzhen. Pemetaan ini bukan prediksi nilai juri.
+Status **rancangan disetujui dan sudah diterapkan**. Permintaan Dien pada 20 Oktober 2026. Pemetaan mengikuti kriteria dan subkriteria pada gambar yang diberikan Dien, dengan bobot internal yang dicatat di AGENTS.md Shenzhen. Pemetaan ini bukan prediksi nilai juri.
 
-Video acuan adalah `../AI-I_Couldve_Done_It_Father-DemoVideo.mp4`. FFprobe mengukur **154,752 detik**, 1920 × 1080, 30 fps. Rancangan ini menargetkan **298 detik atau 4 menit 58 detik**, sehingga menambah sekitar **2 menit 23 detik** dan menyisakan 2 detik dari batas 5 menit. Durasi tersebut merupakan anggaran edit, bukan hasil render baru.
+Video acuan sebelum perubahan dicadangkan di `out/original-before-5min.mp4`. FFprobe mengukur **154,752 detik**, 1920 × 1080, 30 fps. Rancangan ini menargetkan **298 detik atau 4 menit 58 detik**, sehingga menambah sekitar **2 menit 23 detik** dan menyisakan 2 detik dari batas 5 menit. Durasi tersebut menjadi timeline tetap composition baru. Metadata MP4 final dicatat di `PRODUCTION.md`.
 
 ## File yang dipakai
 
 - `narration.json` dan `src/timeline.ts` tetap menjadi sumber render versi lama. README video dan outline lama ada di `../docs/TASKS.md` bagian 9.
 - **Dokumen ini** menjadi rancangan scene versi panjang, termasuk instruksi rekaman, ilustrasi, batas klaim, dan pemetaan penilaian.
 - **`narration.5min.json`** adalah naskah Inggris versi panjang, dengan ID `v2-*`. Kolom `text` untuk subtitle dan `say` untuk pengucapan angka atau alamat web.
-- Aset suara, durasi TTS, dan rekaman lama belum mencakup naskah baru. Mengganti import JSON saja belum menghasilkan video versi panjang yang benar. Produksi dan render dilakukan setelah rancangan ditinjau.
+- Aset suara baru tersedia di `public/tts/v2-*.wav` dan media UI di `public/demo/`. Composition aktif memakai `src/FiveMinute.tsx` dan `src/timeline.5min.json`. Catatan produksi membedakan demo baru, ilustrasi, dan bukti arsip.
 
 ## Pilihan editorial
 
@@ -340,3 +340,12 @@ Naskah berisi 551 kata pada subtitle dan 568 kata menurut pengucapan `say`. Ini 
 Pemeriksaan terstruktur lulus. Timeline memiliki 17 scene tanpa celah, total 298 detik atau 8.940 frame. Semua 59 cue memiliki ID unik dan teks yang sama pada storyboard serta naskah JSON. Seluruh 16 subkriteria dipetakan. Naskah memiliki 551 kata subtitle dan sekitar 568 kata berdasarkan kolom pengucapan, di bawah batas kerja internal 650 kata. Ini belum mengukur durasi suara atau MP4 versi baru.
 
 Unit test aplikasi lulus 125/125. Pemeriksaan lint, TypeScript, dan build juga dijalankan. Ada kendala pada source/setup video yang sudah ada sebelum perubahan draft ini. Dependensi Remotion belum terpasang di workspace ini, import public/rec/offsets.json menunjuk aset yang belum tersedia, dan lint melaporkan hook di callback serta apostrof JSX pada scene lama. Build Next.js terhenti saat pemeriksaan tipe Remotion. Kendala tersebut perlu ditangani pada tahap implementasi/produksi, bukan dianggap sebagai hasil render yang sudah siap. Tahap ini hanya mengubah dokumen dan JSON draft, tidak mengubah kode aplikasi, composition aktif, audio, rekaman, atau MP4 acuan.
+
+
+## Production implementation · 20 October 2026
+
+The approved storyboard is now implemented in `src/FiveMinute.tsx`, with the fixed 8,940-frame timeline in `src/timeline.5min.json`. All 59 English voice cues have been generated at normal speed. The active composition no longer uses presenter placeholders. See `PRODUCTION.md` for the evidence sources, recording notes and validation.
+
+Editorial adjustments preserve truthful claims. PDF injection uses a diagram with explicitly archived A2 evidence, while private-record refusal is shown in the actual UI. The independent-reader fallback is explained rather than presented as a successful fresh second-provider run. Blank-file replacement was genuinely parsed in the isolated recording workspace. New website footage and stills use synthetic local demo cases, with selected repeated shots prepared on fresh copies of the same seed. Refund shares remain outstanding when the case closes, and the closed UI preserves read access.
+
+Scene timing stays exactly as planned. Earlier observations about missing Remotion dependencies and root build failures are historical. Dependencies are installed, curated media is committed, the video passes its own TypeScript check, and the root application excludes the independent video workspace from its compiler and lint scope. Root tests, lint, TypeScript and isolated production build pass.
