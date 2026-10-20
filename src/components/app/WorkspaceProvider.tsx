@@ -98,6 +98,6 @@ export function useCaseData(): CareCase {
 
 export function CaseAccess({ caseId, children }: { caseId: string; children: ReactNode }) {
   const { cases } = useWorkspace();
-  if (!cases.some(c => c.case.id === caseId)) return <div className="p-8"><h1 className="font-serif text-3xl text-lead">Care case not found</h1><p className="mt-3 text-ink-2">This care case isn’t available in your account.</p><a href="/projects" className="mt-4 inline-block font-semibold text-serpent-dark underline">Back to your care cases</a></div>;
+  if (!cases.some(c => c.case.id === caseId)) return <div className="p-8"><h1 className="font-serif text-3xl text-lead">Care case not found</h1><p className="mt-3 text-ink-2">This care case isn’t available in your account.</p><a href="/projects" className="mt-4 inline-block font-semibold text-serpent-dark underline">Back to dashboard</a></div>;
   return children;
 }

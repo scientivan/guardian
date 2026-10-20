@@ -3,7 +3,8 @@ import { NextResponse, type NextRequest } from "next/server";
 import { z } from "zod";
 import { authOptions } from "./auth";
 import { ownerDatabase, WorkspaceStore } from "./workspace";
-import { caseAccess, ApiError, memberships, invitation, invite, type CaseAccess } from "./access";
+import { caseAccess, ApiError, memberships, invitation, invitationById, invite, receivedInvitations, type CaseAccess } from "./access";
+import { email as emailRule, memberName, zodRule } from "@/lib/validate";
 import { Integration } from "./integration";
 import { recap } from "./recap";
 import type { CareCase } from "@/lib/workspace";
@@ -60,6 +61,11 @@ export async function dispatch(request:NextRequest,path:string[]) {
       return NextResponse.json(value&&typeof value==="object"&&!Array.isArray(value)&&head?{...value,auditSeq:head.seq}:value,{headers:{"Cache-Control":"no-store"}});
     };
 
+    if(path[0]==="invitations" && path.length===1 && request.method==="GET")return reply({invitations:receivedInvitations(session)});
+    if(path[0]==="invitations" && path[1]==="id" && path[2]) {
+      const action=request.method==="POST"?z.object({action:z.enum(["accept","decline"])}).parse(await body()).action:"view";
+      return reply(invitationById(session,path[2],action));
+    }
     if(path[0]==="invitations" && path[1])return reply(invitation(session,path[1],request.method==="POST"));
     if(path[0]==="cases" && path.length===1 && request.method==="GET")return reply(await accountWorkspace(session,selected));
     if(path[0]==="cases" && path.length===1 && request.method==="POST") {
@@ -120,7 +126,7 @@ export async function dispatch(request:NextRequest,path:string[]) {
       if(section==="chat" && request.method==="POST")return reply(await api.chat((await body()).message));
       if(section==="chat" && request.method==="GET")return reply(api.messages());
       if(section==="invitations" && request.method==="POST") {
-        const v=z.object({name:z.string().trim().min(1).max(120),email:z.string().email().optional(),role:z.enum(["payer","companion"]),currency:z.enum(["IDR","MYR","SGD","AED","USD","CNY"]),shareLimit:z.number().int().nonnegative().max(100_000_000_00).default(0)}).parse(await body());
+        const v=z.object({name:z.string().trim().superRefine(zodRule(memberName())),email:z.string().trim().superRefine(zodRule(emailRule())).optional(),delivery:z.enum(["email","link"]).default("email"),role:z.enum(["payer","companion"]),currency:z.enum(["IDR","MYR","SGD","AED","USD","CNY"]),shareLimit:z.number().int().nonnegative().max(100_000_000_00).default(0)}).parse(await body());
         return reply({link:`${request.nextUrl.origin}/join/${invite(c,v)}`});
       }
       if(section==="refunds" && request.method==="GET")return reply(api.view().refunds);
@@ -139,7 +145,7 @@ export async function dispatch(request:NextRequest,path:string[]) {
     } finally{c.close();}
   } catch(e) {
     if(e instanceof ApiError)return NextResponse.json({error:e.message,code:"ACTION_REJECTED",check:e.check},{status:e.status});
-    if(e instanceof z.ZodError)return NextResponse.json({error:"Check the submitted fields and try again.",code:"INVALID_INPUT"},{status:400});
+    if(e instanceof z.ZodError)return NextResponse.json({error:e.issues.find(i=>i.code==="custom")?.message??"Check the submitted fields and try again.",code:"INVALID_INPUT"},{status:400});
     return NextResponse.json({error:"The service is temporarily unavailable. Refresh the case before trying again.",code:"SERVICE_UNAVAILABLE"},{status:503});
   }
 }

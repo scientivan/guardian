@@ -2,6 +2,7 @@ import { createHash, randomUUID } from "node:crypto";
 import { mkdirSync } from "node:fs";
 import { join } from "node:path";
 import { z } from "zod";
+import { orgName, personName, zodRule } from "@/lib/validate";
 import { CASE, DOCUMENTS, EXPLANATION, ITEMS, REQUESTS, REFUNDS, AUDIT } from "@/lib/demo";
 import { SAMPLE_STATUS } from "@/components/office/model";
 import type { AccountMode, CareCase, Workspace } from "@/lib/workspace";
@@ -13,11 +14,11 @@ import { importLegacyState, projectCase } from "./case-state";
 import { linkDirectoryHospital, openHospitalDirectory } from "./hospital-directory";
 
 export const CreateCase = z.object({
-  patientName: z.string().trim().min(1).max(120),
-  hospitalName: z.string().trim().min(1).max(160),
+  patientName: z.string().trim().superRefine(zodRule(personName("the patient’s name"))),
+  hospitalName: z.string().trim().superRefine(zodRule(orgName())),
   country: z.enum(["China", "Malaysia", "Singapore", "Thailand"]),
   currency: z.enum(["IDR", "MYR", "SGD", "AED", "USD", "CNY"]),
-  ownerName: z.string().trim().min(1).max(120),
+  ownerName: z.string().trim().superRefine(zodRule(personName("your name"))),
   hospitalDirectoryId: z.string().optional(),
 });
 

@@ -4,17 +4,44 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { EntryFrame } from "@/components/app/EntryFrame";
+import { explainError, Spinner, useTask } from "@/components/app/Feedback";
+import { InvitationDialog, type InvitationBrief } from "@/components/app/InvitationDialog";
 import { PRIMARY, Section } from "@/components/app/ui";
 import { useWorkspace } from "@/components/app/WorkspaceProvider";
 
-type Invitation={caseId:string;patientName:string;hospitalName:string;role:string;name:string;expiresAt:string;accepted:boolean;memberId?:string};
+// A shared invite link. Signing in (Google) happens first through the protected layout; then the
+// invitation opens as a dialog with the case brief and Accept.
+
 export default function JoinPage() {
-  const {token}=useParams<{token:string}>();const router=useRouter();const {call,refresh,mode,selectMember}=useWorkspace();
-  const [invitation,setInvitation]=useState<Invitation|null>(null);const [error,setError]=useState("");const [busy,setBusy]=useState(false);
-  useEffect(()=>{let active=true;call(`/invitations/${encodeURIComponent(token)}`).then(v=>{if(active)setInvitation(v as Invitation);}).catch(e=>{if(active)setError(e.message);});return()=>{active=false;};},[token,call]);
-  async function accept() {setBusy(true);setError("");try{const result=await call(`/invitations/${encodeURIComponent(token)}`,"POST",{}) as Invitation;await refresh();if(mode==="demo" && result.memberId)await selectMember(result.caseId,result.memberId);router.push(`/case/${result.caseId}`);}catch(e){setError((e as Error).message);}finally{setBusy(false);}}
-  return <EntryFrame title="Join a Care Case" profile><Section title="Your Invitation" agent="clerk">
-    {error?<p role="alert" className="text-danger-ink">{error}</p>:invitation?<div className="space-y-4"><p className="text-lg text-lead">You’re invited to help with <b>{invitation.patientName}’s treatment</b> at {invitation.hospitalName}.</p><p className="text-ink-2">Your role will be {invitation.role}. The invitation expires {new Date(invitation.expiresAt).toLocaleString()}.</p><button type="button" onClick={accept} disabled={busy} className={PRIMARY}>{busy?"Joining…":invitation.accepted?"Open care case":"Accept invitation"}</button></div>:<p role="status">Checking your invitation…</p>}
-    <Link href="/projects" className="mt-6 inline-block text-sm font-semibold text-serpent-dark underline">Back to your care cases</Link>
-  </Section></EntryFrame>;
+  const { token } = useParams<{ token: string }>();
+  const router = useRouter();
+  const { call, refresh, mode, selectMember } = useWorkspace();
+  const [invitation, setInvitation] = useState<InvitationBrief | null>(null);
+  const [failure, setFailure] = useState<unknown>(null);
+  const [open, setOpen] = useState(true);
+  const { busy, run } = useTask();
+  useEffect(() => {
+    let active = true;
+    call(`/invitations/${encodeURIComponent(token)}`).then(v => { if (active) setInvitation(v as InvitationBrief); }).catch(e => { if (active) setFailure(e); });
+    return () => { active = false; };
+  }, [token, call]);
+  async function accept() {
+    const result = await run(async () => {
+      const r = await call(`/invitations/${encodeURIComponent(token)}`, "POST", {}) as InvitationBrief;
+      await refresh();
+      if (mode === "demo" && r.memberId) await selectMember(r.caseId, r.memberId);
+      return r;
+    });
+    if (result) router.push(`/case/${result.caseId}`);
+  }
+  const problem = failure ? explainError(failure) : null;
+  return <EntryFrame title="Join a Care Case" profile>
+    <Section title="Your Invitation" agent="clerk">
+      {problem ? <div role="alert" className="space-y-2"><p className="text-lg font-semibold text-lead">{problem.title}</p><p className="text-ink-2">{problem.body}</p><p className="text-sm text-ink-2">{problem.hint}</p></div>
+        : invitation ? <div className="space-y-4"><p className="text-lg text-lead">{invitation.inviter} invited you to help with <b>{invitation.patientName}’s treatment</b> at {invitation.hospitalName}.</p><button type="button" className={PRIMARY} onClick={() => setOpen(true)}>View invitation</button></div>
+        : <p role="status" className="flex items-center gap-3 text-ink-2"><Spinner className="h-5 w-5 text-serpent" />Checking your invitation…</p>}
+      <Link href="/projects" className="mt-6 inline-block text-sm font-semibold text-serpent-dark underline">Back to dashboard</Link>
+    </Section>
+    {invitation && open && <InvitationDialog invitation={invitation} busy={busy} onAccept={accept} onClose={() => setOpen(false)} />}
+  </EntryFrame>;
 }

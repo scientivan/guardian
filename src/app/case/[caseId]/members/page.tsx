@@ -4,7 +4,9 @@ import { useState, type FormEvent } from "react";
 import { CopyButton } from "@/components/app/CopyButton";
 import { MemberAvatar } from "@/components/app/people";
 import { Chip, PRIMARY, SECONDARY, Section, type Tone } from "@/components/app/ui";
-import { useTask } from "@/components/app/Feedback";
+import { Spinner, useTask } from "@/components/app/Feedback";
+import { INVALID, useFieldErrors } from "@/components/app/FieldError";
+import { amount, check, email, memberName } from "@/lib/validate";
 import { useCaseData, useWorkspace } from "@/components/app/WorkspaceProvider";
 
 // Members and invites (brainstorm/17 §4–5). Every person is invited with a personal one-time
@@ -25,45 +27,68 @@ export default function MembersPage() {
   const { act,mode,selectMember } = useWorkspace();
   const { busy, run } = useTask();
   const [open, setOpen] = useState(false);
-  const [link, setLink] = useState<string | null>(null);
+  const [sent, setSent] = useState<{ delivery: "email" | "link"; link: string; email: string; name: string } | null>(null);
+  const [delivery, setDelivery] = useState<"email" | "link">("email");
+  const [form, setForm] = useState({ name: "", email: "", role: "payer", shareLimit: "5000", currency: "SGD" });
+  const set = (key: keyof typeof form) => (e: { target: { value: string } }) => setForm(f => ({ ...f, [key]: e.target.value }));
+  const errors = check(form, {
+    name: memberName(),
+    ...(delivery === "email" ? { email: email("the helper’s Google email") } : {}),
+    ...(form.role === "payer" ? { shareLimit: amount("a maximum share", { min: 0 }) } : {}),
+  });
+  const v = useFieldErrors(errors, "invite");
 
   async function create(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    const fields = new FormData(e.currentTarget);
-    const r = await run(() => act(CASE.id, { action: "invite", name: fields.get("name"), role: fields.get("role"), currency: fields.get("currency"), email: String(fields.get("email")??"").trim() || undefined, shareLimit: Math.round(Number(fields.get("shareLimit")??0)*100) }) as Promise<{ link: string }>);
-    if (r) setLink(r.link);
+    if (!v.submit()) return;
+    const r = await run(() => act(CASE.id, { action: "invite", delivery, name: form.name.trim(), role: form.role, currency: form.currency, email: delivery === "email" ? form.email.trim() : undefined, shareLimit: form.role === "payer" ? Math.round(Number(form.shareLimit) * 100) : 0 }) as Promise<{ link: string }>);
+    if (r) setSent({ delivery, link: r.link, email: form.email.trim(), name: form.name.trim() });
   }
+  function another() { setSent(null); setForm(f => ({ ...f, name: "", email: "" })); v.reset(); }
 
   return (
     <div className="space-y-12">
       {open && (
         <Section title="Invite a Helper" agent="clerk">
-          {link ? (
+          {sent ? (
             <div className="space-y-3">
-              <p className="text-sm text-ink-2">Share this invitation with the intended helper. It expires after 72 hours. They must sign in with the Google email you invited before accepting their role.</p>
+              {sent.delivery === "email"
+                ? <p className="leading-relaxed text-lead">Invitation sent to <b>{sent.email}</b>. When {sent.name} signs in to Guardian with that Google account, it appears on their Dashboard under Invitation Requests. Guardian does not send an email, so tell them to sign in. It expires after 72 hours.</p>
+                : <p className="leading-relaxed text-lead">Share this link with {sent.name}. They sign in with Google, see the case brief and accept. Anyone with the link can use it once within 72 hours, so send it only to them.</p>}
               <div className="flex flex-wrap items-center gap-2">
-                <code className="min-w-0 flex-1 truncate rounded-xl bg-mist px-3 py-2.5 text-sm text-lead">{link}</code>
-                <CopyButton text={link} label="Copy link" />
+                <code className="min-w-0 flex-1 truncate rounded-xl bg-mist px-3 py-2.5 text-sm text-lead">{sent.link}</code>
+                <CopyButton text={sent.link} label="Copy link" />
               </div>
+              <div className="flex gap-2"><button type="button" className={SECONDARY} onClick={another}>Invite someone else</button><button type="button" className={SECONDARY} onClick={() => { setOpen(false); another(); }}>Done</button></div>
             </div>
           ) : (
-            <form onSubmit={create} className="grid gap-3 sm:grid-cols-2">
+            <form onSubmit={create} noValidate className="grid gap-4 sm:grid-cols-2">
+              <fieldset className="sm:col-span-2">
+                <legend className="text-sm text-ink-2">How to invite</legend>
+                <div className="mt-1 flex flex-wrap rounded-xl bg-white p-1 text-sm font-semibold" role="radiogroup">
+                  {([["email", "Their Google email"], ["link", "A share link"]] as const).map(([value, label]) => (
+                    <button key={value} type="button" role="radio" aria-checked={delivery === value} onClick={() => setDelivery(value)} className={`flex-1 rounded-lg px-3 py-2 ${delivery === value ? "bg-serpent text-white" : "text-ink-2 hover:text-lead"}`}>{label}</button>
+                  ))}
+                </div>
+                <p className="mt-2 text-xs text-ink-2">{delivery === "email" ? "The invitation waits on their Dashboard when they sign in with this Google account. Only that account can accept." : "You get a link to send on WhatsApp or anywhere. The first person who signs in with it and accepts joins."}</p>
+              </fieldset>
               <label className="text-sm text-ink-2">
                 Name
-                <input className={`${FIELD} mt-1`} name="name" placeholder="Helper’s name" required />
+                <input id="invite-name" className={`${FIELD} mt-1 ${v.invalid("name") ? INVALID : ""}`} value={form.name} onChange={set("name")} placeholder="Helper’s name" {...v.field("name")} />
+                {v.error("name")}
               </label>
               <label className="text-sm text-ink-2">
                 Role
-                <select className={`${FIELD} mt-1`} name="role" defaultValue="payer">
+                <select className={`${FIELD} mt-1`} value={form.role} onChange={set("role")}>
                   <option value="payer">Helper (can pledge)</option>
                   <option value="companion">Companion (uploads bills, can’t pay)</option>
                 </select>
               </label>
-              <label className="text-sm text-ink-2">Google email<input type="email" name="email" required={mode === "google"} className={`${FIELD} mt-1`} placeholder="The helper’s Google email" /></label>
-              <label className="text-sm text-ink-2">Maximum share in {CASE.currency}<input type="number" min="0" step="0.01" name="shareLimit" defaultValue="5000" className={`${FIELD} mt-1`} /></label>
+              {delivery === "email" && <label className="text-sm text-ink-2">Google email<input id="invite-email" type="email" autoComplete="off" value={form.email} onChange={set("email")} className={`${FIELD} mt-1 ${v.invalid("email") ? INVALID : ""}`} placeholder="name@gmail.com" {...v.field("email")} />{v.error("email")}</label>}
+              {form.role === "payer" && <label className="text-sm text-ink-2">Maximum share in {CASE.currency}<input id="invite-shareLimit" inputMode="decimal" value={form.shareLimit} onChange={set("shareLimit")} className={`${FIELD} mt-1 ${v.invalid("shareLimit") ? INVALID : ""}`} {...v.field("shareLimit")} />{v.error("shareLimit")}</label>}
               <label className="text-sm text-ink-2">
                 Currency they pay in
-                <select className={`${FIELD} mt-1`} name="currency" defaultValue="SGD">
+                <select className={`${FIELD} mt-1`} value={form.currency} onChange={set("currency")}>
                   {["IDR", "MYR", "SGD", "AED", "USD"].map((c) => (
                     <option key={c}>{c}</option>
                   ))}
@@ -71,9 +96,9 @@ export default function MembersPage() {
               </label>
               <div className="flex gap-2 sm:col-span-2">
                 <button type="submit" className={PRIMARY} disabled={busy}>
-                  Create invite link
+                  {busy ? <><Spinner />Creating…</> : delivery === "email" ? "Send invitation" : "Create invite link"}
                 </button>
-                <button type="button" className={SECONDARY} onClick={() => setOpen(false)}>
+                <button type="button" className={SECONDARY} onClick={() => { setOpen(false); another(); }}>
                   Cancel
                 </button>
               </div>

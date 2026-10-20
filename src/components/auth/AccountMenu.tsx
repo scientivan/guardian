@@ -21,8 +21,7 @@ export function AccountMenu() {
       <div className="absolute right-0 top-full z-50 mt-2 w-64 max-w-[calc(100vw-2rem)] rounded-2xl border border-line bg-white p-4 shadow-sm">
         <p className="truncate font-semibold text-lead">{user?.name}</p>
         {user?.email && <p className="mt-1 truncate text-sm text-ink-2">{user.email}</p>}
-        <Link href="/hospitals" className="mt-3 flex min-h-10 items-center text-sm font-semibold text-serpent-dark">Hospital Directory</Link>
-        {admin&&<Link href="/admin" className="flex min-h-10 items-center text-sm font-semibold text-serpent-dark">Verification Desk</Link>}
+        {admin&&<Link href="/admin" className="mt-3 flex min-h-10 items-center text-sm font-semibold text-serpent-dark">Verification Desk</Link>}
         <button type="button" onClick={() => signOut({ callbackUrl: "/" })} className="mt-3 min-h-10 text-sm font-semibold text-serpent-dark hover:underline">Sign out</button>
       </div>
     </details>

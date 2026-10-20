@@ -7,6 +7,8 @@ import { Arrow, Upload } from "@/components/landing/icons";
 import { Minifig } from "@/components/landing/Minifig";
 import { useCaseData, useWorkspace } from "@/components/app/WorkspaceProvider";
 import { Spinner, useTask, WORK } from "@/components/app/Feedback";
+import { FieldError } from "@/components/app/FieldError";
+import { documentFile } from "@/lib/validate";
 
 // Bill Upload (TASKS 2.4): pick the file, see which agents will handle it. A document the
 // backend marked `needs_reupload` comes back as the one thing to act on, at the top.
@@ -31,9 +33,10 @@ export default function UploadPage() {
   const { busy, run } = useTask();
   const [feedback, setFeedback] = useState<{ ok: boolean; text: string } | null>(null);
   const [replacement,setReplacement]=useState<string|null>(null);
+  const fileError = documentFile(file);
   async function upload() {
     if (!file) return;
-    if (file.size > 10 * 1024 * 1024) { setFeedback({ ok: false, text: "This file is larger than 10 MB. Choose a smaller PDF or photo." }); return; }
+    if (fileError) return;
     setFeedback(null);
     const form = new FormData(); form.set("file", file); form.set("type", type); if(replacement)form.set("replacementDocumentId",replacement);
     const result = await run(() => act(care.id, form) as Promise<{status:string;reason?:string;warnings?:string[]}>, { work: WORK.upload, retry: true });
@@ -65,7 +68,7 @@ export default function UploadPage() {
             <Upload className="h-7 w-7" />
           </span>
           <span className="text-lg font-semibold text-lead">{file?.name ?? "Choose a photo or PDF"}</span>
-          <span className="text-sm text-ink-2">{file ? "Ready to upload" : "or drop it here"}</span>
+          <span className="text-sm text-ink-2">{file ? (fileError ? "This file can’t be uploaded" : "Ready to upload") : "PDF, PNG or JPEG up to 10 MB"}</span>
           <input type="file" accept="image/png,image/jpeg,.pdf" className="sr-only" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
         </label>
         <div className="mt-4 flex flex-wrap items-center gap-3">
@@ -76,10 +79,11 @@ export default function UploadPage() {
               </button>
             ))}
           </div>
-          <button type="button" className={`${PRIMARY} ml-auto !px-6 !py-3`} onClick={upload} disabled={!file || busy}>
+          <button type="button" className={`${PRIMARY} ml-auto !px-6 !py-3`} onClick={upload} disabled={!file || busy || Boolean(fileError)}>
             {busy ? <><Spinner />Reading document…</> : "Upload"}
           </button>
         </div>
+        <FieldError id="upload-file-error" message={fileError} />
       </Section>
 
       {feedback && <p role="status" className={`rounded-2xl px-5 py-4 text-sm ${feedback.ok ? "bg-ok-soft text-ok-ink" : "bg-warn-soft text-warn-ink"}`}>{feedback.text}</p>}

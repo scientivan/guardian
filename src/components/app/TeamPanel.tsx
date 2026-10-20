@@ -5,6 +5,7 @@ import { Minifig } from "@/components/landing/Minifig";
 import type { AgentState, AgentStatus } from "@/components/office/model";
 import { clock } from "@/lib/format";
 import type { AuditRow } from "@/lib/demo";
+import { actorLabel, describeAction } from "@/lib/audit-labels";
 import { Chip, STATE_CHIP } from "./ui";
 
 // Status labels in the team list: square, all the same width, solid colour with white text.
@@ -75,9 +76,9 @@ export function ActivityLog({ rows, horizontal = false }: { rows: AuditRow[]; ho
           <li key={r.seq} className={horizontal ? "grid w-64 shrink-0 grid-cols-[2.75rem_1fr] gap-2 rounded-xl bg-white/80 px-3 py-2.5" : "grid grid-cols-[2.75rem_1fr] gap-2 py-2.5"}>
             <span className="pt-0.5 text-xs tabular-nums text-ink-2">{clock(r.ts)}</span>
             <span className="min-w-0 text-sm leading-snug text-lead">
-              <b className="font-semibold">{r.actor}</b>
+              <b className="font-semibold">{actorLabel(r.actor)}</b>
               {r.decision === "deny" && <Chip tone="danger" className="ml-2">Blocked</Chip>}
-              <span className={horizontal ? "line-clamp-2 text-ink-2 [@media(max-height:600px)]:hidden" : "block text-ink-2"}>{r.action}</span>
+              <span className={horizontal ? "line-clamp-2 text-ink-2 [@media(max-height:600px)]:hidden" : "block text-ink-2"}>{describeAction(r.action, r.check)}</span>
             </span>
           </li>
         ))}

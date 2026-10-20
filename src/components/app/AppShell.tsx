@@ -64,7 +64,7 @@ export function AppShell({ caseId, children }: { caseId: string; children: React
     <div className={office ? "flex h-dvh flex-col overflow-hidden bg-white pb-[calc(4rem+env(safe-area-inset-bottom))] lg:pb-0" : "min-h-screen bg-white pb-20 lg:pb-0"}>
       <header className="sticky top-0 z-30 shrink-0 border-b border-line bg-white/90 backdrop-blur">
         <div className="flex h-16 items-center gap-3 px-4 sm:gap-4 sm:px-6">
-          <Link href="/projects" className="flex shrink-0 items-center gap-2" aria-label="Your care cases">
+          <Link href="/projects" className="flex shrink-0 items-center gap-2" aria-label="Dashboard">
             <ShieldMark className="h-7 w-7" />
             <span className="hidden font-serif text-xl text-lead sm:inline">Guardian</span>
           </Link>

@@ -8,6 +8,8 @@ import { useCaseData, useWorkspace } from "@/components/app/WorkspaceProvider";
 import { money, share } from "@/lib/format";
 import type { Quote } from "@/server/fx";
 import { ClientError, explainError, Spinner, useFeedback, useTask, WORK } from "@/components/app/Feedback";
+import { INVALID, useFieldErrors } from "@/components/app/FieldError";
+import { amount as amountRule, check, text } from "@/lib/validate";
 
 export default function PledgesPage() {
   const { case: care, requests } = useCaseData();
@@ -20,7 +22,9 @@ export default function PledgesPage() {
   const [amount,setAmount]=useState("");
   const [purpose,setPurpose]=useState("Hospital deposit");
   const {busy,run}=useTask();
+  const rv=useFieldErrors(check({purpose,amount},{purpose:text("what the payment is for",3,120),amount:amountRule("the amount")}),"request");
   async function create() {
+    if(!rv.submit())return;
     const result=await run(()=>call(`/cases/${care.id}/payment-requests`,"POST",{payeeId:care.payees[0]?.id,amount:Math.round(Number(amount)*100),purpose,expiresInMinutes:120},care.id) as Promise<{id:string}>);
     if(result)setSelected(result.id);
   }
@@ -31,7 +35,7 @@ export default function PledgesPage() {
       <p className="mb-4 leading-relaxed text-ink-2">Payments go only to the hospital’s verified account. Each person approves their own share before you review and execute the request.</p>
       <Link href={`/hospitals?caseId=${care.id}`} className="mb-4 inline-flex min-h-11 items-center text-sm font-semibold text-serpent-dark underline">Find this institution in Hospital Directory</Link>
       <div className="flex flex-wrap items-center gap-3"><button type="button" onClick={verify} disabled={busy} className={SECONDARY}>{busy?<><Spinner/>Checking…</>:"Verify hospital account"}</button>{care.payees.map(p=><span key={p.id} className="text-sm text-serpent-dark">{p.name} · {p.accountMasked}</span>)}</div>
-      {care.payees.length>0 && <div className="mt-5 grid gap-3 sm:grid-cols-[1fr_1fr_auto]"><input aria-label="Payment purpose" value={purpose} onChange={e=>setPurpose(e.target.value)} className="rounded-xl border border-line bg-white p-3" /><input aria-label="Requested amount" type="number" min="0.01" step="0.01" value={amount} onChange={e=>setAmount(e.target.value)} placeholder={`Amount in ${care.currency}`} className="rounded-xl border border-line bg-white p-3" /><button type="button" disabled={busy||!amount||Number(amount)<=0} onClick={create} className={PRIMARY}>Create request</button></div>}
+      {care.payees.length>0 && <form noValidate onSubmit={e=>{e.preventDefault();void create();}} className="mt-5 grid items-start gap-3 sm:grid-cols-[1fr_1fr_auto]"><div><input id="request-purpose" aria-label="Payment purpose" value={purpose} onChange={e=>setPurpose(e.target.value)} className={`w-full rounded-xl border border-line bg-white p-3 ${rv.invalid("purpose")?INVALID:""}`} {...rv.field("purpose")} />{rv.error("purpose")}</div><div><input id="request-amount" aria-label="Requested amount" inputMode="decimal" value={amount} onChange={e=>setAmount(e.target.value)} placeholder={`Amount in ${care.currency}`} className={`w-full rounded-xl border border-line bg-white p-3 ${rv.invalid("amount")?INVALID:""}`} {...rv.field("amount")} />{rv.error("amount")}</div><button type="submit" disabled={busy} className={PRIMARY}>Create request</button></form>}
     </Section>}
     {!requests.length ? <Section title="Pledges" agent="gate"><p>No payment request is waiting for approval. A hospital account must be verified before a request can be created.</p></Section> : <>
       <label className="block text-sm font-semibold text-ink-2">Payment request<select value={selected} onChange={e=>setSelected(e.target.value)} className="mt-2 block w-full rounded-xl border border-line bg-white p-3">{requests.map(r=><option key={r.id} value={r.id}>{r.purpose} · {money(r.amount,r.currency)} · {r.status}</option>)}</select></label>
@@ -47,6 +51,11 @@ function PaymentForm({requestId}:{requestId:string}) {
   const mine=request.approvals.find(p=>p.memberId===care.me.id);
   const hasMine=Boolean(mine);
   const [amount,setAmount]=useState(request.remaining);
+  const [typed,setTyped]=useState(String(request.remaining/100));
+  const myLimit=care.members.find(m=>m.id===care.me.id)?.shareLimit??0;
+  const cap=myLimit>0?Math.min(request.remaining,myLimit):request.remaining;
+  const pledgeError=amountRule("your share",{max:cap/100});
+  const pv=useFieldErrors(check({amount:typed},{amount:pledgeError}),"pledge");
   const [quote,setQuote]=useState<(Quote & {quoteId:string;fxRate:string})|null>(null);
   const [quoteError,setQuoteError]=useState("");
   const {busy,run}=useTask();
@@ -76,7 +85,7 @@ function PaymentForm({requestId}:{requestId:string}) {
     </Section>
     {request.status==="pending" && <Section title="Your Pledge" agent="gate">
       {care.me.role==="companion" ? <p>Your companion role can upload documents and ask questions. It cannot approve payments.</p> : mine ? <div className="flex flex-wrap items-center gap-4"><p>You approved {money(mine.amount,request.currency)}.</p><button type="button" disabled={busy} onClick={()=>action(`/payment-requests/${request.id}/approvals/me`,{},"DELETE")} className={SECONDARY}>Withdraw</button></div> : <>
-        <label className="block text-sm font-semibold text-ink-2">Your share in {request.currency}<input aria-label="Your pledge amount" type="number" min="0.01" max={request.remaining/100} step="0.01" value={amount/100} onChange={e=>setAmount(Math.round(Number(e.target.value)*100))} className="mt-2 block w-full rounded-xl border border-line bg-white p-3" /></label>
+        <label className="block text-sm font-semibold text-ink-2">Your share in {request.currency}<input id="pledge-amount" aria-label="Your pledge amount" inputMode="decimal" value={typed} onChange={e=>{setTyped(e.target.value);const ok=!pledgeError(e.target.value);setAmount(ok?Math.round(Number(e.target.value)*100):0);}} className={`mt-2 block w-full rounded-xl border border-line bg-white p-3 ${pv.invalid("amount")?INVALID:""}`} {...pv.field("amount")} /></label>{pv.error("amount")}
         {quote ? <p className="mt-4 text-lead">You pay <b>{money(quote.payAmount,quote.payCurrency)}</b> plus {money(quote.fee,quote.payCurrency)} fee. Rate {quote.fxRate}. Quote expires {new Date(quote.expiresAt).toLocaleTimeString()}.</p> : <p role="status" className="mt-4 text-sm text-ink-2">{amount>0 && amount<=request.remaining ? "Getting your exchange-rate quote…" : "Choose an amount within the remaining balance."}</p>}
         <button type="button" disabled={busy||!quote||new Date(quote.expiresAt).getTime()<=Date.now()} onClick={()=>action(`/payment-requests/${request.id}/approvals`,{amount,quoteId:quote?.quoteId})} className={`${PRIMARY} mt-5`}>Pledge {money(amount,request.currency)}</button>
       </>}

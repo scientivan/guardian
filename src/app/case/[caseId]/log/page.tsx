@@ -6,41 +6,11 @@ import { useState } from "react";
 import { Chip, Section } from "@/components/app/ui";
 import { clock } from "@/lib/format";
 import { CHECKS } from "@/lib/demo";
+import { actorLabel, describeAction } from "@/lib/audit-labels";
 import { Spinner, useTask, WORK } from "@/components/app/Feedback";
 
 // Security log (TASKS 2.9), mainly for the judges: every step in order, whether the gateway
 // allowed it, and the chain status with its FISCO BCOS anchor.
-
-// Backend action codes in plain words, so live rows read like the seeded story rows.
-const ACTIONS: Record<string, string> = {
-  "chat": "Asked the case assistant",
-  "request.create": "Created a payment request",
-  "request.cancel": "Cancelled a payment request",
-  "request.execute": "Paid the approved shares",
-  "request.expire": "A payment request expired",
-  "request.recipient_invalidated": "Request cancelled: the hospital account changed",
-  "fx.quote": "Got an exchange-rate quote",
-  "approval.record": "Approved their own share",
-  "approval.withdraw": "Withdrew their approval",
-  "charge": "Charged an approved share",
-  "gateway.authorize": "Payment Gate allowed the payment",
-  "document.ingest": "Uploaded a document; names hidden and lines read",
-  "document.second_check": "Second model double-checked items",
-  "bill.explain": "Explained the bill with cited lines",
-  "payee.enroll": "Enrolled the hospital’s verified account",
-  "refund.open": "Opened refund shares",
-  "refund.status": "Updated a refund status",
-  "refund.reminder": "Sent a refund reminder",
-  "followup.request": "Asked for a refund follow-up",
-  "member.invite": "Invited a helper",
-  "member.join": "A helper joined the case",
-  "permission.denied": "Tried something their role does not allow",
-};
-function describe(action: string, check?: number) {
-  if (action === "gateway.check") return check ? `Payment Gate blocked it: ${CHECKS[check]?.toLowerCase() ?? "a check failed"}` : "Payment Gate blocked it";
-  return ACTIONS[action] ?? action;
-}
-const ACTORS: Record<string, string> = { gateway: "Payment Gate", system: "Guardian" };
 
 export default function LogPage() {
   const { audit: AUDIT,case:care } = useCaseData();
@@ -90,8 +60,8 @@ export default function LogPage() {
                 <tr key={r.seq} className={r.decision === "deny" ? "bg-danger-soft/40" : undefined}>
                   <td className="py-3 pr-3 tabular-nums text-ink-2">#{r.seq}</td>
                   <td className="px-3 py-3 tabular-nums text-ink-2">{clock(r.ts)}</td>
-                  <td className="px-3 py-3 font-semibold text-lead">{ACTORS[r.actor] ?? r.actor}</td>
-                  <td className="px-3 py-3 text-lead">{describe(r.action, r.check)}</td>
+                  <td className="px-3 py-3 font-semibold text-lead">{actorLabel(r.actor)}</td>
+                  <td className="px-3 py-3 text-lead">{describeAction(r.action, r.check)}</td>
                   <td className="px-3 py-3">
                     {r.decision === "allow" ? <Chip tone="ok">Allowed</Chip> : <Chip tone="danger">{r.check ? `Blocked, check ${r.check}` : "Blocked"}</Chip>}
                   </td>

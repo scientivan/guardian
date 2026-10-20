@@ -199,7 +199,9 @@ Plus a member picker (sets `x-member-id`) to switch roles during the demo. The 1
 - `GET /api/documents/:id/file` downloads the stored original for owner or companion. Upload accepts optional `replacementDocumentId` for an unreadable document.
 - `POST /api/cases/:id/explanation?documentId=...` explicitly recomputes a selected bill.
 - `GET /api/cases/:id/chat` returns the acting member’s stored chat history.
-- `POST /api/cases/:id/invitations` accepts name, email for Google, role, currency and shareLimit. `GET /api/invitations/:token` previews it and `POST` accepts it.
+- `POST /api/cases/:id/invitations` accepts `name`, `delivery` (`email` or `link`), `email` (required for `email`), `role`, `currency` and `shareLimit`. Names and emails are checked with the same rules as the forms (`src/lib/validate.ts`); a failed rule returns `400 INVALID_INPUT` with its message. An `email` invite is bound to that Google address. A `link` invite has no email and can be accepted once by the first Google account that opens it, within 72 hours.
+- `GET /api/invitations` lists pending email invitations addressed to the signed-in account (Dashboard → Invitation Requests). `GET /api/invitations/id/:id` shows one; `POST` with `{ action: "accept" | "decline" }` answers it.
+- `GET /api/invitations/:token` previews a link invitation and `POST` accepts it. Every preview returns the case brief: patient, hospital, country, inviter, role, share limit, payment currency and expiry.
 - `POST /api/cases/:id/refunds/reconcile` accepts documentId. Demo-only `/refunds/status` accepts memberId and status. `/follow-up` records an audit event, without sending external messages.
 - `POST /api/cases/:id/clock` accepts advanceDays for demo owners only.
 - FX quotes use the configured reference table, not a live-market rate feed. Quotes expire after 15 minutes.

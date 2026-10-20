@@ -10,7 +10,7 @@ The administrator portal includes Overview, Hospital Directory, Review Queue and
 
 ## Profile onboarding
 
-1. Open `/hospitals` to suggest an institution, or `/admin/hospitals/new` as an administrator.
+1. Open the Hospital Directory from the Dashboard (`/hospitals`) to suggest an institution, or `/admin/hospitals/new` as an administrator. The case wizard no longer lists directory hospitals. "Start a care case here" on a directory entry pre-fills and links the hospital step.
 2. Search by exact hospital, branch, city and country, or enter the profile manually. Sources accompany the draft. Search results never establish trust.
 3. Submit the profile with HTTPS source URLs. An initial profile is not published as a verified institution.
 4. An administrator compares the proposal with existing data and opens or retrieves its evidence. A separate AI check can identify supported, conflicting and unknown claims.

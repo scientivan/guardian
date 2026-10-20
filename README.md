@@ -96,7 +96,7 @@ npm run fixtures    # regenerates the demo PDFs in fixtures/pdf/
 
 The unit tests replace LLM, Stripe and chain calls with local fakes, so they need no network.
 
-To open the UI, run `npm run dev` and visit `http://localhost:3000`. Open App enters Your Care Cases at `/projects`. Start a care case opens the five-step wizard at `/projects/new`. Sign in with Google for your own private workspace, or use the demo account to explore a seeded case without Google. Keep OAuth credentials in `.env` or `.env.local` following [sign-in setup](docs/GOOGLE-OAUTH.md). The case office fills the available viewport, with the team on the right and activity along the bottom. Other case pages scroll normally.
+To open the UI, run `npm run dev` and visit `http://localhost:3000`. Open App enters the Dashboard at `/projects` (care cases, invitation requests and the hospital directory). Start a care case opens the five-step wizard at `/projects/new`. Sign in with Google for your own private workspace, or use the demo account to explore a seeded case without Google. Keep OAuth credentials in `.env` or `.env.local` following [sign-in setup](docs/GOOGLE-OAUTH.md). The case office fills the available viewport, with the team on the right and activity along the bottom. Other case pages scroll normally.
 
 ### 4.2 With keys (live LLM and Stripe test mode)
 
