@@ -34,7 +34,7 @@ R1 uses the existing synthetic initial-deposit receipt. R2 uses a clearly marked
 
 The capture scripts require Playwright and an isolated local app. `PLAYWRIGHT` and `BASE_URL` can be adapted in the scripts for another workstation. Current development defaults use `/tmp/guardian-browser/node_modules/playwright`, installed Chrome, and localhost port 3001.
 
-- `scripts/capture.cjs` creates a fresh demo session and records setup, bill review, clarification, pledge and withdrawal.
+- `scripts/capture.cjs` creates a fresh seeded test session and records setup, bill review, clarification, pledge and withdrawal.
 - `scripts/capture-finish.cjs` continues that session through payment, role views, reconciliation and closure.
 - `scripts/capture-refund-close.cjs` repeats the refund and closing shots on a fresh synthetic clone, using actual APIs for off-camera setup and actual UI confirmation for closure.
 - `scripts/capture-safety.cjs` records independent attack and recovery cases.

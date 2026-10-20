@@ -213,7 +213,7 @@ para("An AI agent on the patient family's side. It reads a foreign hospital's bi
      "with each person approving their own share.", size=12, color=GREY, after=30)
 table(None, [
     ["Team", "Dien (backend, agents, services) · Aurel (UI and front end)"],
-    ["Live app", "https://guardian.scientivan.dev  (choose “Use demo account”)"],
+    ["Live app", "https://guardian.scientivan.dev  (sign in with Google)"],
     ["Source code", "https://github.com/scientivan/guardian"],
     ["Version", "20 October 2026"],
     ["Status", "Working prototype. Synthetic data. Payments run in a sandbox or Stripe test mode; no real money moves."],
@@ -352,7 +352,7 @@ table(["Agent", "Type", "Does", "Cannot"], [
 h2("Tools and services")
 table(["Need", "Choice"], [
     ["Web", "Next.js 15, React 19, TypeScript, Tailwind"],
-    ["Sign-in", "NextAuth: Google OAuth (8-hour session) and a separate demo account"],
+    ["Sign-in", "NextAuth: Google OAuth (8-hour session)"],
     ["Data", "Supabase Postgres (private schema per account, RLS on) and private Storage; SQLite for local work and tests"],
     ["Models", "Router over free tiers (Groq, OpenRouter, Gemini) with fallback when a model is busy"],
     ["Reading", "PDF text layer; Tesseract OCR for photos"],
@@ -400,7 +400,7 @@ note("Source: npm run eval:chat with live models, 10/10 (18 Oct 2026). The A1 an
 h1("7  Dialogue efficiency, correction and fallback")
 h2("Turns per task, measured in the real web UI")
 para("A user turn is a click, typed value or file the person must give. An agent turn is a response the product shows. "
-     "Measured with a browser script on a fresh demo account (evidence/interaction-2026-10-20).", after=6)
+     "Measured with a browser script on a fresh seeded test workspace (evidence/interaction-2026-10-20).", after=6)
 trows = [[t["id"], t["name"], t["who"], str(t["userTurns"]), str(t["agentTurns"])] for t in turns["tasks"]]
 trows.append(["D6", "Pay a bill by chat in slang", "Owner", "2", "2"])
 table(["Task", "Goal", "Who", "User turns", "Agent turns"], trows, [1.5, 9.0, 2.0, 2.2, 2.3], size=9.5)
@@ -588,7 +588,7 @@ p = para('{"seq":3,"ts":"2026-10-17T18:17:32.095Z","actor":"M_OWNER","action":"r
 # =====================================================================
 h1("14  How judges can verify")
 table(["Goal", "Steps"], [
-    ["Use the app", "Open https://guardian.scientivan.dev → Use demo account → Bill Review → Pledges (use “Viewing as” to act as a payer) → Case History"],
+    ["Use the app", "Open https://guardian.scientivan.dev → Sign in with Google → Bill Review → Case Members (invite a payer by Google email) → Pledges → Case History"],
     ["Run the tests", "git clone https://github.com/scientivan/guardian · npm ci --legacy-peer-deps · npm test (125 tests, no keys)"],
     ["Repeat the sandbox run", "node --import tsx evidence/sandbox-run-2026-10-20/run.mts (no keys, writes a new log)"],
     ["Repeat turn counts", "npm run dev, then node evidence/interaction-2026-10-20/measure.cjs"],
@@ -619,7 +619,7 @@ table(["Item", "Production"], [
     ["URL", "https://guardian.scientivan.dev (HTTPS)"],
     ["Hosting", "Vercel, Node 22, functions in Mumbai next to the database"],
     ["Database and files", "Supabase Postgres and a private Storage bucket"],
-    ["Sign-in", "Google OAuth and the demo account"],
+    ["Sign-in", "Google OAuth"],
     ["Payments", "Sandbox; Stripe test mode for Google cases"],
     ["Blockchain", "Off in production (the FISCO node runs locally); the database hash chain runs"],
     ["Checks", "Data import verified row by row and file by file; unauthenticated API returns 401; cold start 1.5–1.7 s"],

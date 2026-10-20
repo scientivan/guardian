@@ -2,7 +2,7 @@
 
 **An AI agent on the patient family's side** that reads a foreign hospital's bills, explains in plain language why the cost changed from the estimate, and lets a family scattered across countries pay deposits together, only to the hospital's verified account, each person approving their own share.
 
-**Try it:** https://guardian.scientivan.dev → **Use demo account** (no sign-up). Full write-up: **[Technical document](docs/TECHNICAL.md)**.
+**Try it:** https://guardian.scientivan.dev → **Sign in with Google**. Full write-up: **[Technical document](docs/TECHNICAL.md)**.
 
 | | |
 |---|---|
@@ -76,7 +76,7 @@ git clone https://github.com/scientivan/guardian.git && cd guardian
 npm ci --legacy-peer-deps
 npm test                                                   # 131 tests, no keys or network
 node --import tsx evidence/sandbox-run-2026-10-20/run.mts  # full payment lifecycle + attacks in the sandbox
-npm run dev                                                # http://localhost:3000 → Use demo account
+npm run dev                                                # http://localhost:3000 → Sign in with Google
 ```
 
 With keys (`cp .env.example .env`):

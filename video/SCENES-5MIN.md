@@ -167,11 +167,11 @@ Tampilkan tiga kartu bergantian agar masing-masing terbaca.
 2. `Archived 16/16 tasks and attacks · 18 Oct` dengan label model calls, Stripe test, dan local FISCO. Ini hasil historis, bukan pernyataan bahwa semua integrasi web saat ini selalu lulus.
 3. `One synthetic bill · 3 trials · 18 Oct`, Guardian 5/5 causes dan generic chatbot 2–4/5. Catatan kecil menyebut baseline terbatas dan renderer telah diperbarui sejak baseline tersebut.
 
-Tampilkan nama berkas bukti, URL demo, serta satu arahan reproduksi `Use demo account`. Detail 16/16 ada di `evidence/run-2026-10-18-clean-clone/summary.md`. Angka baseline ada di `evidence/baseline-2026-10-18/metrics.json`. Sertakan catatan keterbatasan `Free-tier models may be unavailable. Production anchoring is off.` Jangan menambahkan persentase akurasi umum, waktu hemat, atau jumlah pengguna yang belum diukur.
+Tampilkan nama berkas bukti, URL demo, serta satu arahan reproduksi `Sign in with Google`. Detail 16/16 ada di `evidence/run-2026-10-18-clean-clone/summary.md`. Angka baseline ada di `evidence/baseline-2026-10-18/metrics.json`. Sertakan catatan keterbatasan `Free-tier models may be unavailable. Production anchoring is off.` Jangan menambahkan persentase akurasi umum, waktu hemat, atau jumlah pengguna yang belum diukur.
 
 ### 17 Penutup, 04:50–04:58
 
-URL `guardian.scientivan.dev` besar dan terbaca, dengan tombol ilustratif `Use demo account`. Nama tim dan tautan source code menjadi informasi sekunder. Jangan menyebut repo publik karena akses repo perlu dipastikan untuk juri. Tagline tetap singkat. Tidak ada credit roll atau bumper yang menambah durasi setelah 04:58.
+URL `guardian.scientivan.dev` besar dan terbaca, dengan tombol ilustratif `Sign in with Google`. Nama tim dan tautan source code menjadi informasi sekunder. Jangan menyebut repo publik karena akses repo perlu dipastikan untuk juri. Tagline tetap singkat. Tidak ada credit roll atau bumper yang menambah durasi setelah 04:58.
 
 ## Pemetaan seluruh subkriteria
 

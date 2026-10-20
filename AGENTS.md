@@ -16,7 +16,7 @@ npm test              # vitest, no network needed (131 tests on 20 Oct)
 npm run lint
 npx tsc --noEmit
 npm run build
-npm run dev           # http://localhost:3000, "Use demo account" on /login
+npm run dev           # http://localhost:3000, sign in with Google on /login
 npm run demo:reset    # back to the seeded demo case
 ```
 

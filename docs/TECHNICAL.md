@@ -2,7 +2,7 @@
 
 2026 Shenzhen International FinTech Competition (FinTechathon), International Track (AI), Topic C: Cross-border & Student Finance. Team: Dien (backend, agents, services), Aurel (UI/FE). Version of 20 October 2026, matching `main`.
 
-- **Live app:** https://guardian.scientivan.dev (Vercel, Supabase). Choose **Use demo account** on the sign-in page; no Google account needed.
+- **Live app:** https://guardian.scientivan.dev (Vercel, Supabase). Sign in with Google.
 - **Repository:** https://github.com/scientivan/guardian
 - **Status:** working prototype. All data in the demo is synthetic. Payments are a sandbox (demo) or Stripe test mode (Google accounts); no real money moves and no hospital bank settlement exists. Blockchain anchoring runs on a local FISCO BCOS chain and is switched off in production.
 
@@ -82,7 +82,7 @@ Dashboard (care cases, invitation requests, hospital directory) → case workspa
 | Layer | Technology |
 |---|---|
 | Web | Next.js 15.5 (App Router, Node runtime), React 19, Tailwind v4, TypeScript |
-| Auth | NextAuth (Google OAuth, JWT session 8 h) plus a separate demo account |
+| Auth | NextAuth with Google OAuth, JWT session 8 h |
 | Data | Supabase Postgres in production (private schema per account, RLS on, no public roles); SQLite locally and in tests. Same synchronous engine through a pooled worker (`src/server/postgres.ts`) |
 | Files | Private Supabase Storage bucket, signed upload and 60-second signed download URLs, 10 MB limit; database BLOBs locally |
 | Models | Router over free tiers (Groq, OpenRouter, Gemini) with cooldown fallback (`src/server/llm.ts`) |
@@ -147,7 +147,7 @@ Further boundaries:
 - **Share limit.** Each payer has a per-request limit set by the owner in their own currency and converted at the reference rate; pledges stop at 100% of the request (gateway check 4).
 - **Payee.** Only the hospital's signed registry account. Accounts found in invoices, PDFs or chat are matched against the registry and never enrolled.
 - **Closed case.** Read-only for everyone: every mutating case route except chat returns 409.
-- **Account isolation.** Each Google account has its own private schema; shared cases are reachable only through an accepted invitation (email-bound or single-use link). The demo account is isolated from Google workspaces.
+- **Account isolation.** Each Google account has its own private schema; shared cases are reachable only through an accepted invitation (email-bound or single-use link).
 
 ## 6. Action confirmation
 
@@ -248,12 +248,12 @@ Not anchored: individual log rows (covered by the head), quotes, pledges, chat, 
 | Hosting | Vercel, Node 22, functions in Mumbai (`bom1`) colocated with the database |
 | Database | Supabase Postgres (ap-south-1), transaction pooler, verified TLS, at most 4 pooled connections per process |
 | Files | Private Supabase Storage bucket |
-| Auth | NextAuth with Google OAuth (callback configured) and the demo account |
+| Auth | NextAuth with Google OAuth (callback configured) |
 | Payments | Demo sandbox; Stripe test mode for Google cases |
 | Anchoring | **Disabled** in production by decision (the FISCO node runs locally); hash chains still run |
 | Email | Gmail SMTP when `GMAIL_USER` and `GMAIL_APP_PASSWORD` are set |
 
-[Fact] Nine local SQLite databases and ten files (4,397,584 bytes) were imported with row, hash and audit-chain verification; local sources kept. Production check on commit `2c98f9a`: demo login, unauthenticated API → 401, two simultaneous cold workspace reads → 200 in 1.54 s and 1.74 s, correct Google redirect URI (`evidence/supabase-deployment-2026-10-20/`).
+[Fact] Nine local SQLite databases and ten files (4,397,584 bytes) were imported with row, hash and audit-chain verification; local sources kept. Production check on commit `2c98f9a`: seeded test sign-in (since removed), unauthenticated API → 401, two simultaneous cold workspace reads → 200 in 1.54 s and 1.74 s, correct Google redirect URI (`evidence/supabase-deployment-2026-10-20/`).
 
 Self-hosting on a VPS (SQLite on a persistent volume, Caddy or nginx, systemd, FISCO in Docker) is documented in `docs/DEPLOY.md`; the Supabase migration and rollback in `docs/SUPABASE-MIGRATION.md`; the chain in `docs/FISCO-SETUP.md`; Google sign-in in `docs/GOOGLE-OAUTH.md`.
 
@@ -359,12 +359,12 @@ git clone https://github.com/scientivan/guardian.git && cd guardian
 npm ci --legacy-peer-deps
 npm test                                                   # 125 tests, no keys
 node --import tsx evidence/sandbox-run-2026-10-20/run.mts  # sandbox lifecycle and attacks, no keys
-npm run dev                                                # http://localhost:3000 → Use demo account
+npm run dev                                                # http://localhost:3000 → Sign in with Google
 ```
 
-With keys in `.env` (template `.env.example`): `npm run evidence`, `npm run eval:reader`, `npm run eval:chat`, `npm run baseline`. With a FISCO node: `npm run fisco:deploy` (see `docs/FISCO-SETUP.md`). Or open https://guardian.scientivan.dev and choose **Use demo account**.
+With keys in `.env` (template `.env.example`): `npm run evidence`, `npm run eval:reader`, `npm run eval:chat`, `npm run baseline`. With a FISCO node: `npm run fisco:deploy` (see `docs/FISCO-SETUP.md`). Or open https://guardian.scientivan.dev and sign in with Google.
 
-A short demo path: Agent Office → Bill Review (estimate vs bill, causes, hospital questions, Ask buttons) → Pledges (switch to the Emergency guarantee; view as a payer with **Viewing as**, pledge; back as owner, pay) → Refund Tracking → Case History → Close and Records.
+A short path: sign in with Google → start a care case → upload an estimate and a bill → Bill Review (estimate vs bill, causes, hospital questions, Ask buttons) → Case Members (invite a payer with a second Google account) → Pledges (request, the payer pledges, the owner pays) → Refund Tracking → Case History → Close and Records.
 
 ## 16. Document map
 

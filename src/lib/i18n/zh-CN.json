@@ -876,7 +876,6 @@
   "Open your app": "打开您的应用",
   "Opened emergency guarantee R2, CNY 50,000": "已创建紧急担保 R2，金额 CNY 50,000",
   "Opened refund shares": "已打开退款份额",
-  "Opening account…": "正在打开账户…",
   "Opening hospital records…": "正在打开医院记录…",
   "Opening your care cases…": "正在打开您的护理案例…",
   "Operating theatre use": "手术室使用",
@@ -1165,7 +1164,6 @@
   "Seven agents do the work. The people paying make the call.": "七名 AI 助手协同工作。付款由您做主。",
   "Share this link with": "与此人分享链接：",
   "Sign in": "登录",
-  "Sign in with Google to manage your care cases, or explore Guardian with a demo account.": "使用 Google 登录以管理您的护理案例，或使用演示账户探索 Guardian。",
   "Sign in, and you will come back to where you were.": "登录后，您将返回到之前的位置。",
   "Sign out": "退出登录",
   "Sign-in didn’t finish. Try again with your Google account.": "登录未完成。请使用您的 Google 账号重试。",
@@ -1261,7 +1259,6 @@
   "The case owner needs to confirm the account with the hospital.": "案例负责人需要向医院确认该账户。",
   "the contact check": "联系方式检查",
   "The cost estimate you received before treatment.": "您在治疗前收到的费用预估。",
-  "The demo account can use the demo hospital or a hospital already in the directory. Sign in with Google to add a new one for review.": "演示账户可以使用演示医院或目录中已有的医院。使用 Google 登录以添加新医院进行审核。",
   "The doctor’s note on the bill says the antibiotic course was extended to 5 days.": "账单上的医生备注显示抗生素疗程已延长至 5 天。",
   "The documents don’t say why, so this is a question for the hospital, not an accusation.": "文件未说明原因，因此这是对医院的疑问，而非指控。",
   "The documents to keep for": "需保留的文件：",
@@ -1388,7 +1385,6 @@
   "Urinary catheter": "导尿管",
   "US dollar": "美元",
   "Use an address that starts with https://.": "使用以 https:// 开头的地址。",
-  "Use demo account": "使用演示账户",
   "Use digits, spaces, + ( ) and - only.": "仅使用数字、空格、+ ( ) 和 -。",
   "Use for this care case": "用于此护理案例",
   "Use letters only. Spaces, dots, hyphens and apostrophes are fine.": "仅使用字母。空格、句点、连字符和撇号均可。",
@@ -1517,5 +1513,6 @@
   "yourself": "您自己",
   "Zoom": "缩放",
   "Zoom in": "放大",
-  "Zoom out": "缩小"
+  "Zoom out": "缩小",
+  "Sign in with Google to manage your care cases.": "使用 Google 登录以管理您的护理案例。"
 }

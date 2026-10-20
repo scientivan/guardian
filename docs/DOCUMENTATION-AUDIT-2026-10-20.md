@@ -17,7 +17,7 @@ Fresh checks passed
 - `npm test` — 118 tests in 18 files.
 - `npm run lint` — exit 0.
 - `npx tsc --noEmit --incremental false` — exit 0.
-- Chrome via Playwright on localhost:3000 — demo sign-in, Agent Office, Bill Review, Pledges, Refund Tracking, Case History, Case Members, Close and Records, How It Works, new-case wizard and Hospital Directory all opened.
+- Chrome via Playwright on localhost:3000 — seeded test sign-in (since removed), Agent Office, Bill Review, Pledges, Refund Tracking, Case History, Case Members, Close and Records, How It Works, new-case wizard and Hospital Directory all opened.
 - Browser API check as M_JKT — role was payer, item details were empty and approval arrays contained only that payer's own approvals.
 - Bill Review at 390 × 844 — no horizontal document overflow.
 

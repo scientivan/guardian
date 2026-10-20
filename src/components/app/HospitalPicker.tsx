@@ -152,7 +152,6 @@ function AddHospital({ country, mode, initialName, onCancel, onAdded }: { countr
   if (mode !== "google") return (
     <div className="rounded-2xl bg-white p-5">
       <p className="font-semibold text-lead"><LocalizedText>Adding a hospital needs a Google account</LocalizedText></p>
-      <p className="mt-1 text-sm leading-relaxed text-ink-2"><LocalizedText>The demo account can use the demo hospital or a hospital already in the directory. Sign in with Google to add a new one for review.</LocalizedText></p>
       <button type="button" className={`${SECONDARY} mt-4`} onClick={onCancel}><LocalizedText>Back to the list</LocalizedText></button>
     </div>
   );

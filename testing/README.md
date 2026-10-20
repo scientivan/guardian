@@ -39,7 +39,7 @@ Untuk mencoba penggantian dokumen, upload PDF kosong dahulu. Setelah muncul Reta
 
 ## Uji pembayaran dan refund
 
-Cara tercepat adalah masuk lewat **Use demo account** dan buka kasus C1 yang sudah memiliki data pembayaran awal. R1 mencatat deposit CNY 30.000. R2 meminta tambahan CNY 50.000, dengan CNY 45.000 sudah disetujui anggota contoh.
+Masuk dengan akun Google, lalu buka atau buat kasus yang memiliki data pembayaran awal, misalnya kasus C1 pada data uji. R1 mencatat deposit CNY 30.000. R2 meminta tambahan CNY 50.000, dengan CNY 45.000 sudah disetujui anggota contoh.
 
 1. Di Pledges, setujui bagian CNY 5.000 yang masih kurang sebagai owner.
 2. Pilih Review payment, lalu konfirmasikan eksekusi sandbox.

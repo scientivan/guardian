@@ -8,7 +8,7 @@ Version 1.3 adds `/api/hospitals` and `/api/admin` with the workflow in [Hospita
 
 ## Integration update, 20 October 2026
 
-Version 1.2 supersedes the authentication and fixture conventions below. Both Google and demo sessions are signed. The server resolves the acting case member from the session and accepted membership. `x-member-id` is accepted only inside the current demo account and only for members of that case. Google requests cannot choose a different actor. Workspace snapshots are UI projections of backend tables, not a second payment ledger.
+Version 1.2 supersedes the authentication and fixture conventions below. Sessions are signed Google sessions. The server resolves the acting case member from the session and accepted membership. `x-member-id` is accepted only in seeded test workspaces (no public sign-in path) and only for members of that case. Google requests cannot choose a different actor. Workspace snapshots are UI projections of backend tables, not a second payment ledger.
 
 The existing document, analysis, second-reader, gateway, FX, state-machine, refund, recap and audit modules own their respective operations. Demo execution uses an isolated sandbox charger. Google execution uses the existing Stripe test adapter, which rejects live keys. A case without a pinned hospital key and official channel cannot enroll a payee. No invoice or user-entered account can create payee trust. FISCO anchoring records actual transaction results when available and reports unavailability without claiming an anchor exists.
 
@@ -22,7 +22,7 @@ Historical version 1.1 examples, 17 October 2026. Owner: Dien (backend). Consume
 
 - Base path `/api`. JSON in and out. Route handlers in `src/app/api/`.
 - **Money is an integer in minor units** (fen for CNY: `3000000` = CNY 30,000.00; rupiah has no minor unit in display but is stored ×100 too). Every money field is paired with a `currency` field. FE formats; FE never does money math.
-- Current user comes from the signed session. Only a demo session can select one of its own case members with `x-member-id`.
+- Current user comes from the signed session. Only a seeded test workspace can select one of its own case members with `x-member-id`; there is no public sign-in path to it.
 - Time: ISO 8601 UTC strings.
 - Errors have a flat `error` message, `code`, and optional gateway `check`. The frontend shows the safe message.
 - State-changing responses include `auditSeq` so FE can link to the audit view.

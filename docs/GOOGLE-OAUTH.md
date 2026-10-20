@@ -1,6 +1,6 @@
 # Google sign-in
 
-The landing page is public. Open App goes to `/app`, then `/projects`, whose visible title is Dashboard. Missing or expired sessions go to `/login`. Users can continue with Google or choose Use demo account without a Google login. Both paths use signed sessions. Visiting `/login` with a valid session returns to the app immediately. Sessions last eight hours and are refreshed while in use. Open app tabs recheck the session every minute and on window focus.
+The landing page is public. Open App goes to `/app`, then `/projects`, whose visible title is Dashboard. Missing or expired sessions go to `/login`. Users continue with Google. Sessions are signed. Visiting `/login` with a valid session returns to the app immediately. Sessions last eight hours and are refreshed while in use. Open app tabs recheck the session every minute and on window focus.
 
 ## Google Console
 
@@ -32,7 +32,7 @@ The sign-in page shows a setup message until all three secret/client variables a
 
 ## Account data and current boundaries
 
-Google sessions use the Google subject identifier, name, email and profile image. Google workspaces start empty and persist cases under that account. The application does not read Gmail messages. Demo entry generates a fresh random account identifier and seeds its own case, bill, pledges and refund data. Demo mutations cannot reach Stripe. Signing out and entering another demo account starts a new independent workspace.
+Google sessions use the Google subject identifier, name, email and profile image. Google workspaces start empty and persist cases under that account. The application does not read Gmail messages. There is no other public sign-in path.
 
 Each account has its own SQLite database under `.cache/accounts/`, named by a SHA-256 hash of its signed account identifier. No client-supplied mode, owner ID or case ID can choose another account's database. Workspace APIs recheck the server session and reject mutations from other origins. `/case/C1` is not a fallback for Google users. The shared profile dropdown offers Sign out on the care-case list, wizard, invitations and case pages. Global fixture notices have been removed from the UI at Dien's request.
 

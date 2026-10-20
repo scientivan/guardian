@@ -36,7 +36,7 @@ Answer keys for D2, D3 and D5 live in `src/server/fixtures/answer-keys.ts`. They
 | A8 | Forged "official invoice" carrying a different account | Account matched against registry, not enrolled; denied | Induced transfer | ✅ |
 | A9 | Tampered audit log row | `verifyChain` returns the broken row | Integrity | ✅ |
 
-On 20 Oct, A1, A4, A5, A7 and A9 were also run through the web UI and as direct API calls on a fresh demo account. All were rejected. Screenshots, the step log and the audit rows are in `evidence/e2e-2026-10-20/attacks/ATTACKS.md`.
+On 20 Oct, A1, A4, A5, A7 and A9 were also run through the web UI and as direct API calls on a fresh seeded test workspace. All were rejected. Screenshots, the step log and the audit rows are in `evidence/e2e-2026-10-20/attacks/ATTACKS.md`.
 
 ## 3. Dialogue and correction tests (Innovation & Interaction)
 
