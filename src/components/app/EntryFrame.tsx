@@ -3,12 +3,13 @@ import type { ReactNode } from "react";
 import type { AgentId } from "@/components/landing/agents";
 import { ShieldMark } from "@/components/landing/icons";
 import { TabBand } from "./TabBand";
+import { AccountMenu } from "@/components/auth/AccountMenu";
 
 /**
  * Frame for the screens before a case is open (log in, projects, create, join): the top bar,
  * the dark title band with the team, and the content in folders on a white page.
  */
-export function EntryFrame({ title, working = [], children, wide = false }: { title: string; working?: AgentId[]; children: ReactNode; wide?: boolean }) {
+export function EntryFrame({ title, working = [], children, wide = false, profile = false }: { title: string; working?: AgentId[]; children: ReactNode; wide?: boolean; profile?: boolean }) {
   const width = wide ? "max-w-5xl" : "max-w-3xl";
   return (
     <div className="min-h-screen bg-white">
@@ -18,7 +19,7 @@ export function EntryFrame({ title, working = [], children, wide = false }: { ti
             <ShieldMark className="h-7 w-7" />
             <span className="font-serif text-2xl text-lead">Guardian</span>
           </Link>
-          <span className="rounded-md bg-firstlight px-2 py-0.5 text-xs font-semibold text-serpent-dark">Demo data</span>
+          {profile && <AccountMenu />}
         </div>
       </header>
       <TabBand title={title} working={working} inner={`mx-auto px-6 ${width}`} compact />

@@ -1,0 +1,45 @@
+{
+  "checks": [
+    "UI approves using server quote and persists approval",
+    "UI executes covered shares through backend state machine",
+    "UI reconciles final bill into proportional refunds",
+    "Member recap downloads actual payment receipts",
+    "Refund clock, follow-up state and settlement controls use backend",
+    "HTTP permissions block companion execution and clock manipulation",
+    "FISCO BCOS anchors the current audit hash",
+    "Office layout remains within viewport after API integration",
+    "Estimate PDF uploaded through UI and parsed by configured reader",
+    "Uploaded interim bill reaches comparator, cited explanation and audit projection",
+    "Configured chat planner renders a functional bill-explanation action",
+    "Email-bound invitation accepts correct Google account and blocks owner spoofing",
+    "HTTP cross-account access and cross-origin mutations are rejected",
+    "No browser runtime errors",
+    "Final build preserves bill deep links and request-specific pledge selection after refresh"
+  ],
+  "services": {
+    "blockchain": {
+      "status": 200,
+      "anchored": true,
+      "tx": "0xbb5bea3870c5590a5dba7619c1ba81456897f3ca8e3e86a45007e30bc286ee2f"
+    },
+    "estimate": {
+      "status": "parsed"
+    },
+    "interim": {
+      "status": "parsed"
+    },
+    "explanation": {
+      "lines": 9,
+      "checked": 11
+    }
+  },
+  "errors": [],
+  "verificationScope": {
+    "browser": "Chrome against isolated production build on port 3100",
+    "identity": "Demo Credentials login plus synthetic signed Google sessions for permission checks. No real Google OAuth exchange was performed.",
+    "llm": "Uploaded synthetic PDFs through configured live providers. Repeated identical requests can use the isolated response cache.",
+    "payments": "Backend state machine with isolated sandbox charger. No money transfers.",
+    "blockchain": "Actual local FISCO BCOS transaction",
+    "checks": "66 automated tests passed, lint, TypeScript and production build passed."
+  }
+}

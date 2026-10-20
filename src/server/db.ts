@@ -16,6 +16,10 @@ CREATE TABLE IF NOT EXISTS cases (
   currency TEXT NOT NULL,
   status TEXT NOT NULL DEFAULT 'open'
 );
+CREATE TABLE IF NOT EXISTS hospital_directory_links (
+  hospital_id TEXT PRIMARY KEY REFERENCES hospitals(id),
+  directory_id TEXT NOT NULL
+);
 CREATE TABLE IF NOT EXISTS members (
   id TEXT PRIMARY KEY,
   case_id TEXT NOT NULL REFERENCES cases(id),

@@ -8,7 +8,6 @@ export function Nav() {
         <Link href="/" className="flex items-center gap-2.5">
           <ShieldMark className="h-7 w-7" />
           <span className="font-serif text-2xl text-lead">Guardian</span>
-          <span className="rounded-md bg-firstlight px-2 py-0.5 text-xs font-semibold text-serpent-dark">Demo</span>
         </Link>
         <nav className="hidden items-center gap-8 text-sm font-medium text-ink-2 md:flex">
           <a href="#features" className="transition-colors hover:text-lead">
@@ -22,14 +21,11 @@ export function Nav() {
           </a>
         </nav>
         <div className="flex items-center gap-4">
-        <Link href="/login" className="hidden text-sm font-semibold text-lead transition-colors hover:text-serpent-dark sm:inline">
-          Log in
-        </Link>
         <Link
-          href="/case/C1"
+          href="/app"
           className="whitespace-nowrap rounded-full bg-serpent px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-serpent-dark sm:px-5"
         >
-          Open demo<span className="hidden sm:inline"> case</span>
+          Open App
         </Link>
         </div>
       </div>

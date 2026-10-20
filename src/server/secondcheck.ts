@@ -28,7 +28,7 @@ export interface SecondCheck {
   skipped?: string;
 }
 
-export async function secondCheck(db: DB, a: Analysis, questioned: string[] = [], opts: { fetchImpl?: typeof fetch; waitForCooldownMs?: number } = {}): Promise<SecondCheck> {
+export async function secondCheck(db: DB, a: Analysis, questioned: string[] = [], opts: { fetchImpl?: typeof fetch; waitForCooldownMs?: number; totalTimeoutMs?: number } = {}): Promise<SecondCheck> {
   const doc = db.prepare("SELECT case_id, scrubbed_text, meta FROM documents WHERE id = ?").get(a.documentId) as { case_id: string; scrubbed_text: string | null; meta: string };
   const firstProvider = String(JSON.parse(doc.meta).reader ?? "").split(":")[0] as Provider;
   const ids = selectItems(a, questioned);
@@ -47,7 +47,7 @@ export async function secondCheck(db: DB, a: Analysis, questioned: string[] = []
         },
         { role: "user", content: `Codes: ${ids.join(", ")}\n<document>\n${doc.scrubbed_text}\n</document>` },
       ],
-      { json: true, excludeProviders: firstProvider ? [firstProvider] : [], fetchImpl: opts.fetchImpl, waitForCooldownMs: opts.waitForCooldownMs ?? 70_000, accept: (t) => Reading.safeParse(safeJson(t)).success },
+      { json: true, excludeProviders: firstProvider ? [firstProvider] : [], fetchImpl: opts.fetchImpl, totalTimeoutMs: opts.totalTimeoutMs, waitForCooldownMs: opts.waitForCooldownMs ?? 70_000, accept: (t) => Reading.safeParse(safeJson(t)).success },
     );
   try {
     const r = await call();

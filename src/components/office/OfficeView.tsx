@@ -1,12 +1,13 @@
 "use client";
 
+import { useCaseData } from "@/components/app/WorkspaceProvider";
+
 import { useCallback, useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import { ActivityLog, TeamList } from "@/components/app/TeamPanel";
-import { Section } from "@/components/app/ui";
 import { type AgentId } from "@/components/landing/agents";
 import { Arrow, Door, Minus, Plus } from "@/components/landing/icons";
-import { AUDIT } from "@/lib/demo";
-import { AGENT_ROOM, FULL_VIEW, ROOMS, ROOM_GRID, SAMPLE_STATUS, roomView, type RoomId } from "./model";
+
+import { AGENT_ROOM, FULL_VIEW, ROOMS, ROOM_GRID, roomView, type RoomId } from "./model";
 import { OfficeScene } from "./OfficeScene";
 
 type View = [number, number, number, number];
@@ -20,12 +21,14 @@ const CONTROL = "grid h-10 w-10 place-items-center rounded-xl text-lead transiti
  * During a gesture the view box is written straight to the SVG; React state catches up at the end.
  */
 export function OfficeView() {
+  const { audit: AUDIT, agents: SAMPLE_STATUS } = useCaseData();
   const [selected, setSelected] = useState<AgentId | null>(null);
   const [room, setRoom] = useState<RoomId | null>(null);
   const [inside, setInside] = useState(false);
+  const [teamOpen, setTeamOpen] = useState(false);
   const [view, setView] = useState<View>(FULL_VIEW);
 
-  const box = useRef<HTMLDivElement>(null);
+  const box = useRef<HTMLElement>(null);
   const current = useRef<View>(FULL_VIEW);
   const frame = useRef(0);
   const pointers = useRef(new Map<number, { x: number; y: number }>());
@@ -157,9 +160,36 @@ export function OfficeView() {
   const neighbours = inside && room ? ROOM_GRID[room] : null;
 
   return (
-    <div>
-      <div className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_21rem]">
-        {/* The office runs the full height of the team column. */}
+    <div className="relative isolate flex h-full min-h-0 flex-col overflow-hidden bg-mist">
+      <header className="z-10 flex shrink-0 flex-wrap items-center justify-between gap-2 border-b border-line bg-white/90 px-3 py-2 sm:px-5 sm:py-3 [@media(max-height:600px)]:py-1">
+        <div>
+          <h1 className="font-serif text-xl text-lead sm:text-2xl">Agent Office</h1>
+          <p className="hidden text-xs sm:block [@media(max-height:600px)]:hidden">
+            <span className="font-semibold text-serpent-dark">{working} working</span>
+            <span className="text-ink-2"> · </span>
+            <span className="font-semibold text-warn-ink">{waiting} waiting</span>
+          </p>
+        </div>
+        <div className="flex items-center gap-1 sm:gap-2">
+          <div className="flex rounded-xl bg-mist p-0.5 text-xs font-semibold sm:text-sm" role="group" aria-label="View">
+            <button type="button" aria-pressed={!inside} onClick={leave} className={`min-h-10 rounded-lg px-2 sm:px-3 ${!inside ? "bg-serpent text-white" : "text-ink-2 hover:text-lead"}`}>
+              Whole office
+            </button>
+            <button type="button" aria-pressed={inside} onClick={() => enterRoom(room ?? (selected ? AGENT_ROOM[selected] : "intake"))} className={`flex min-h-10 items-center gap-1 rounded-lg px-2 sm:px-3 ${inside ? "bg-serpent text-white" : "text-ink-2 hover:text-lead"}`}>
+              <Door className="h-4 w-4" />
+              <span className="hidden sm:inline">Step inside</span>
+              <span className="sm:hidden">Inside</span>
+            </button>
+          </div>
+          <div className="hidden rounded-xl bg-mist p-0.5 sm:flex" role="group" aria-label="Zoom">
+            <button type="button" aria-label="Zoom out" className={CONTROL} onClick={() => zoomAt(1.2)}><Minus className="h-5 w-5" /></button>
+            <button type="button" aria-label="Zoom in" className={CONTROL} onClick={() => zoomAt(1 / 1.2)}><Plus className="h-5 w-5" /></button>
+          </div>
+          <button type="button" aria-expanded={teamOpen} aria-controls="office-team" onClick={() => setTeamOpen((open) => !open)} className="min-h-10 rounded-xl bg-firstlight px-3 text-xs font-semibold text-serpent-dark md:hidden">{teamOpen ? "Close" : "Team"}</button>
+        </div>
+      </header>
+
+      <div className="relative grid min-h-0 flex-1 md:grid-cols-[minmax(0,1fr)_18rem] xl:grid-cols-[minmax(0,1fr)_20rem]">
         <section
           ref={box}
           onPointerDown={onPointerDown}
@@ -167,88 +197,49 @@ export function OfficeView() {
           onPointerUp={onPointerUp}
           onPointerCancel={onPointerUp}
           onContextMenu={(e) => e.preventDefault()}
-          className="relative aspect-[3/4] min-w-0 touch-none select-none overflow-hidden rounded-[1.75rem] sm:aspect-[660/600] xl:aspect-auto xl:h-full xl:min-h-[40rem]"
+          className="relative h-full min-h-0 min-w-0 touch-none select-none overflow-hidden"
           style={{ background: "radial-gradient(120% 80% at 30% 10%, #fffaf3 0%, #eef3f6 55%, #dae7ee 100%)" }}
           aria-label="The case office"
         >
-          <OfficeScene
-            status={SAMPLE_STATUS}
-            selected={selected}
-            selectedRoom={room ?? undefined}
-            viewBox={view.join(" ")}
-            onSelectAgent={selectAgent}
-            onSelectRoom={selectRoom}
-          />
-
-          <div className="absolute right-4 top-4 flex flex-wrap justify-end gap-2">
-        <div className="flex rounded-xl bg-white p-1 text-sm font-semibold shadow-sm" role="group" aria-label="View">
-          <button type="button" aria-pressed={!inside} onClick={leave} className={`rounded-lg px-3 py-1.5 ${!inside ? "bg-serpent text-white" : "text-ink-2 hover:text-lead"}`}>
-            Whole office
-          </button>
-          <button
-            type="button"
-            aria-pressed={inside}
-            onClick={() => enterRoom(room ?? (selected ? AGENT_ROOM[selected] : "intake"))}
-            className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 ${inside ? "bg-serpent text-white" : "text-ink-2 hover:text-lead"}`}
-          >
-            <Door className="h-4 w-4" />
-            Step inside
-          </button>
-        </div>
-        <div className="flex rounded-xl bg-white p-1 shadow-sm" role="group" aria-label="Zoom">
-          <button type="button" aria-label="Zoom out" className={CONTROL} onClick={() => zoomAt(1.2)}>
-            <Minus className="h-5 w-5" />
-          </button>
-          <button type="button" aria-label="Zoom in" className={CONTROL} onClick={() => zoomAt(1 / 1.2)}>
-            <Plus className="h-5 w-5" />
-          </button>
-        </div>
-          </div>
-
-          <p className="pointer-events-none absolute left-6 top-6 text-sm font-bold">
-            <span className="text-serpent-dark">{working} working</span>
-            <span className="text-ink-2">, </span>
-            <span className="text-warn-ink">{waiting} waiting</span>
-          </p>
-
+          <OfficeScene status={SAMPLE_STATUS} selected={selected} selectedRoom={room ?? undefined} viewBox={view.join(" ")} onSelectAgent={selectAgent} onSelectRoom={selectRoom} />
           {inside && room && neighbours && (
-            <div className="absolute bottom-14 left-1/2 flex -translate-x-1/2 items-center gap-2 rounded-2xl bg-white/95 p-2 pl-4 shadow-sm sm:bottom-5">
-              <span className="text-base font-bold text-lead">{ROOMS[room].name}</span>
+            <div className="absolute bottom-4 left-1/2 flex max-w-[calc(100%-1rem)] -translate-x-1/2 items-center gap-1 rounded-2xl bg-white/95 p-1 pl-3 shadow-sm sm:gap-2 sm:p-2 sm:pl-4">
+              <span className="truncate text-sm font-bold text-lead">{ROOMS[room].name}</span>
               <div className="flex">
                 {(["left", "up", "down", "right"] as const).map((d) => (
-                  <button
-                    key={d}
-                    type="button"
-                    disabled={!neighbours[d]}
-                    onClick={() => neighbours[d] && enterRoom(neighbours[d]!)}
-                    aria-label={neighbours[d] ? `Go to ${ROOMS[neighbours[d]!].name}` : `No room ${d}`}
-                    className={CONTROL}
-                  >
+                  <button key={d} type="button" disabled={!neighbours[d]} onClick={() => neighbours[d] && enterRoom(neighbours[d]!)} aria-label={neighbours[d] ? `Go to ${ROOMS[neighbours[d]!].name}` : `No room ${d}`} className={CONTROL}>
                     <Arrow className={`h-4 w-4 ${d === "left" ? "rotate-180" : d === "up" ? "-rotate-90" : d === "down" ? "rotate-90" : ""}`} />
                   </button>
                 ))}
               </div>
             </div>
           )}
-
           {!inside && (
-            <p className="pointer-events-none absolute bottom-4 left-5 right-5 text-xs text-ink-2">
-              Tags show work from the case log; movement is decoration.{" "}
-              <span className="hidden sm:inline">Scroll to zoom, right-drag to move.</span>
+            <p className="pointer-events-none absolute bottom-3 left-4 right-4 text-xs text-ink-2">
+              <span className="hidden sm:inline">Scroll to zoom, right-drag to move. Movement is decoration.</span>
               <span className="sm:hidden">Pinch to zoom, drag to move.</span>
             </p>
           )}
         </section>
 
-        <aside className="space-y-10 xl:border-l xl:border-line xl:pl-8">
-          <Section variant="band" inset title="The Team">
-            <TeamList status={SAMPLE_STATUS} selected={selected} onSelect={selectAgent} />
-          </Section>
-          <Section variant="band" inset title="Recent Activity">
-            <ActivityLog rows={AUDIT.rows} />
-          </Section>
+        <aside id="office-team" aria-labelledby="office-team-title" className={`${teamOpen ? "absolute inset-y-0 right-0 z-20 flex w-72 max-w-[calc(100%-1rem)] shadow-lg" : "hidden"} min-h-0 flex-col border-l border-line bg-white/95 backdrop-blur md:static md:flex md:w-auto md:max-w-none md:shadow-none`}>
+          <div className="flex shrink-0 items-center justify-between border-b border-line bg-firstlight px-4 py-3">
+            <h2 id="office-team-title" className="font-semibold text-serpent-dark">The Team</h2>
+            <span className="text-xs text-ink-2">7 agents</span>
+          </div>
+          <div tabIndex={0} aria-label="Agent team members" className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-2">
+            <TeamList status={SAMPLE_STATUS} selected={selected} onSelect={selectAgent} brief />
+          </div>
         </aside>
       </div>
+
+      <section aria-labelledby="office-activity-title" className="z-10 min-w-0 shrink-0 border-t border-line bg-firstlight/70 px-3 pb-1 pt-2 sm:px-5 sm:pt-3">
+        <div className="mb-2 flex items-center justify-between gap-3">
+          <h2 id="office-activity-title" className="text-sm font-semibold text-serpent-dark">Recent Activity</h2>
+
+        </div>
+        <ActivityLog rows={AUDIT.rows} horizontal />
+      </section>
     </div>
   );
 }

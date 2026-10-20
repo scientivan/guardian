@@ -9,11 +9,15 @@ export type Extracted = { ok: true; text: string; method: "pdf_text" | "ocr" } |
 
 export async function extract(data: Uint8Array, mime: string): Promise<Extracted> {
   if (mime === "application/pdf") {
-    const pdf = await getDocumentProxy(new Uint8Array(data));
-    const { text } = await extractText(pdf, { mergePages: true });
-    const t = (Array.isArray(text) ? text.join("\n") : text).trim();
-    if (t.length < 20) return { ok: false, reason: "PDF has no readable text layer; upload a photo or a text PDF" };
-    return { ok: true, text: t, method: "pdf_text" };
+    try {
+      const pdf = await getDocumentProxy(new Uint8Array(data));
+      try {
+        const { text } = await extractText(pdf, { mergePages: true });
+        const t = (Array.isArray(text) ? text.join("\n") : text).trim();
+        if (t.length < 20) return { ok: false, reason: "PDF has no readable text layer; upload a photo or a text PDF" };
+        return { ok: true, text: t, method: "pdf_text" };
+      } finally {await pdf.destroy();}
+    } catch {return {ok:false,reason:"This PDF could not be read. Upload an intact PDF or a clear photo."};}
   }
   if (mime === "image/png" || mime === "image/jpeg") return ocr(data);
   return { ok: false, reason: `unsupported file type ${mime}` };

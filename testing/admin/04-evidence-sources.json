@@ -1,0 +1,14 @@
+[
+  {
+    "url": "https://authority.example/hospitals/shenzhen-testing",
+    "title": "authority.example",
+    "retrievedAt": "2026-10-20T03:29:54.098Z",
+    "excerpt": "Synthetic evidence reference for testing only. No real hospital identity is confirmed."
+  },
+  {
+    "url": "https://hospital.example/contact",
+    "title": "hospital.example",
+    "retrievedAt": "2026-10-20T03:29:54.099Z",
+    "excerpt": "Synthetic evidence reference for testing only. No real hospital identity is confirmed."
+  }
+]

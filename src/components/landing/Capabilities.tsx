@@ -73,7 +73,7 @@ function BillVisual() {
 
 function PayeeVisual() {
   const rows = [
-    { ok: true, name: "Shenzhen International Hospital (demo)", note: "Account •••• 2222, from the official registry" },
+    { ok: true, name: "Shenzhen International Hospital", note: "Account •••• 2222, from the official registry" },
     { ok: false, name: "“Hospital finance” on WhatsApp", note: "Account •••• 9071, sent in a chat" },
   ];
   return (
@@ -137,7 +137,7 @@ function GuaranteeVisual() {
           </li>
         ))}
       </ul>
-      <Foot className="font-semibold text-warn">Still missing CNY 5,000 (demo exchange rates)</Foot>
+      <Foot className="font-semibold text-warn">Still missing CNY 5,000</Foot>
     </Panel>
   );
 }

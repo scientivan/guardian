@@ -38,7 +38,7 @@ export function itemsSum(items: ReaderOutput["items"]): number {
 
 export async function ingestDocument(
   db: DB,
-  args: { caseId: string; actor: string; type: DocType; data: Uint8Array; mime: string; anchor?: boolean },
+  args: { caseId: string; actor: string; type: DocType; data: Uint8Array; mime: string; anchor?: boolean; interactive?: boolean },
   now = new Date(),
 ): Promise<IngestResult> {
   const id = `D_${randomUUID().slice(0, 8)}`;
@@ -67,7 +67,7 @@ export async function ingestDocument(
   storeTokens(db, args.caseId, s);
   scrubbedText = s.text;
 
-  const read = await readDocument(s.text);
+  const read = await readDocument(s.text, args.interactive ? { timeoutMs: 25_000, totalTimeoutMs: 70_000, waitForCooldownMs: 0 } : {});
   if (!read.ok) return { documentId: id, sha256: hash, status: "needs_reupload", reason: read.reason, anchoredTx: null, warnings, auditSeq: finish("needs_reupload", read.reason, { extraction: ex.method }) };
   const d = read.data;
 
@@ -113,8 +113,8 @@ export async function ingestDocument(
     try {
       anchoredTx = await anchorHash(hash, `document:${args.type}`);
       if (anchoredTx) db.prepare("UPDATE documents SET anchored_tx = ? WHERE id = ?").run(anchoredTx, id);
-    } catch (e) {
-      warnings.push(`anchoring failed: ${(e as Error).message.slice(0, 120)}`);
+    } catch {
+      warnings.push("The document is saved with its hash, but blockchain anchoring is currently unavailable.");
     }
   }
   return { documentId: id, sha256: hash, status: "parsed", anchoredTx, warnings, auditSeq: seq };

@@ -6,7 +6,7 @@ import type { DB } from "./db";
 // stored in minor units x100 (IDR included), so the scale cancels out.
 
 export const DEMO_RATES_E4: Record<string, Record<string, number>> = {
-  CNY: { IDR: 22_950_000, MYR: 5_900, AED: 5_100, CNY: 10_000 },
+  CNY: { IDR: 22_950_000, MYR: 5_900, AED: 5_100, SGD: 1_800, USD: 1_400, CNY: 10_000 },
 };
 export const FEE_BPS = 100; // 1.00 %, demo
 export const QUOTE_TTL_MS = 15 * 60_000;
@@ -25,7 +25,7 @@ export interface Quote {
 }
 
 export function convert(amount: number, from: string, to: string): { payAmount: number; rateE4: number; fee: number } {
-  const rateE4 = DEMO_RATES_E4[from]?.[to];
+  const rateE4 = from === to ? 10_000 : DEMO_RATES_E4[from]?.[to];
   if (!rateE4) throw new Error(`no demo rate ${from}->${to}`);
   const payAmount = Math.round((amount * rateE4) / 10_000);
   const fee = from === to ? 0 : Math.round((payAmount * FEE_BPS) / 10_000);

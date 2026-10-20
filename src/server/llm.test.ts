@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { AllModelsUnavailable, chat, resetCooldowns } from "./llm";
 
 const ok = (text: string) => new Response(JSON.stringify({ choices: [{ message: { content: text } }] }), { status: 200 });
@@ -46,5 +46,23 @@ describe("llm router", () => {
   it("throws with reasons when every model is unavailable", async () => {
     const fetchImpl = (async () => limited()) as typeof fetch;
     await expect(chat([{ role: "user", content: "x" }], { fetchImpl })).rejects.toBeInstanceOf(AllModelsUnavailable);
+  });
+
+  it("bounds the entire fallback chain instead of restarting the budget per model", async () => {
+    vi.useFakeTimers();
+    const calls: string[] = [];
+    const fetchImpl = (async (_url: string, init: RequestInit) => {
+      calls.push(JSON.parse(init.body as string).model);
+      return new Promise<Response>((_resolve, reject) => init.signal!.addEventListener("abort", () => reject(new DOMException("Timeout", "AbortError"))));
+    }) as typeof fetch;
+    try {
+      const result = chat([{ role: "user", content: "x" }], { fetchImpl, timeoutMs: 100, totalTimeoutMs: 150, waitForCooldownMs: 60_000 });
+      const assertion = expect(result).rejects.toBeInstanceOf(AllModelsUnavailable);
+      await vi.advanceTimersByTimeAsync(150);
+      await assertion;
+      expect(calls).toEqual(["a", "b"]);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });

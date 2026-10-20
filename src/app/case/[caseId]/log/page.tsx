@@ -1,20 +1,29 @@
 "use client";
 
+import { useCaseData, useWorkspace } from "@/components/app/WorkspaceProvider";
+
 import { useState } from "react";
 import { Chip, Section } from "@/components/app/ui";
 import { clock } from "@/lib/format";
-import { AUDIT, CHECKS } from "@/lib/demo";
+import { CHECKS } from "@/lib/demo";
 
 // Security log (TASKS 2.9), mainly for the judges: every step in order, whether the gateway
 // allowed it, and the chain status with its FISCO BCOS anchor.
 
 export default function LogPage() {
+  const { audit: AUDIT,case:care } = useCaseData();
+  const {call}=useWorkspace();
+  const [feedback,setFeedback]=useState("");
+  const [busy,setBusy]=useState(false);
+  async function anchor(){setBusy(true);setFeedback("");try{await call(`/cases/${care.id}/audit/anchor`,"POST",{},care.id);setFeedback("Audit hash anchored.");}catch(e){setFeedback((e as Error).message);}finally{setBusy(false);}}
   const [onlyBlocked, setOnlyBlocked] = useState(false);
   const rows = onlyBlocked ? AUDIT.rows.filter((r) => r.decision === "deny") : AUDIT.rows;
   const blocked = AUDIT.rows.filter((r) => r.decision === "deny").length;
 
   return (
     <div className="space-y-12">
+      {feedback&&<p role="status" className="text-sm text-ink-2">{feedback}</p>}
+      {care.me.role==="owner"&&<button type="button" disabled={busy} onClick={anchor} className="rounded-full border border-line px-5 py-3 font-semibold text-serpent-dark">{busy?"Anchoring…":"Anchor audit hash"}</button>}
       <Section
         title="All Steps"
         agent="auditor"
@@ -61,7 +70,7 @@ export default function LogPage() {
           </table>
         </div>
         <p className="mt-4 text-sm text-ink-2">
-          Latest fingerprint <span className="font-mono text-lead">{AUDIT.anchoredHead.hash}</span>, anchored on FISCO BCOS in <span className="font-mono text-lead">{AUDIT.anchoredHead.tx}</span>
+          Latest fingerprint <span className="font-mono text-lead">{AUDIT.anchoredHead.hash || "No activity yet"}</span>{AUDIT.anchoredHead.tx && <> · FISCO BCOS <span className="font-mono text-lead">{AUDIT.anchoredHead.tx}</span></>}
         </p>
       </Section>
 

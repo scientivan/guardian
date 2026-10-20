@@ -27,7 +27,7 @@ function Tag({ ok, children }: { ok: boolean; children: ReactNode }) {
 function Example({ children }: { children: ReactNode }) {
   return (
     <div className="rounded-2xl bg-white p-4 text-lead shadow-[0_20px_34px_-24px_rgba(32,33,33,0.7)]">
-      <p className="text-xs font-semibold text-ink-2">From the demo security log</p>
+      <p className="text-xs font-semibold text-ink-2">From the security log</p>
       {children}
     </div>
   );

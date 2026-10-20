@@ -1,0 +1,11 @@
+{
+  "name": "Shenzhen International Hospital",
+  "branch": "Second Testing Campus",
+  "country": "China",
+  "city": "Shenzhen",
+  "address": "1 Testing Avenue, Shenzhen, China",
+  "phone": "+86 755 0000 0000",
+  "website": "https://hospital.example",
+  "billingEmail": "billing@hospital.example",
+  "billingPhone": "+86 755 0000 0001"
+}

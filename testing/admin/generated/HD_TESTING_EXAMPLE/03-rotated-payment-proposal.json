@@ -1,0 +1,18 @@
+{
+  "officialChannel": "https://hospital.example/billing",
+  "publicKey": "MCowBQYDK2VwAyEAEOnRzlmgb0jTFZJnaz5QPDOxORhn2j9LJr4yNjOaJKk=",
+  "bankName": "Guardian Testing Bank",
+  "signedList": {
+    "hospitalId": "HD_TESTING_EXAMPLE",
+    "issuedAt": "2026-10-20T03:29:53.546Z",
+    "payees": [
+      {
+        "id": "main",
+        "name": "Shenzhen International Hospital",
+        "account": "6222 0000 3333 4444"
+      }
+    ],
+    "signature": "7Xo+3zNuY0rimRn0afX3UN5doQhLhtyUtEB/4n2KGQ0yUf4ZIBFxsLJi2mjV/1i4yl8j36xApVVJyANw/cxfDQ=="
+  },
+  "rotationSignature": "Var5+DtJpa5vOlL4v/JY/J9vqRe7V4IGgrcdSceFz1OrMfcnqUhAGNm73DGXe60sjmETkR70nuUSWyjXz3SuDQ=="
+}

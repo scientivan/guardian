@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { chat, type ModelRef } from "./llm";
+import { chat, type ModelRef, type ChatOptions } from "./llm";
 
 // Quarantined reader. It sees only scrubbed document text, has no tools, and
 // returns a fixed schema. Anything outside the schema is dropped. Instructions
@@ -88,14 +88,14 @@ function parse(text: string) {
   }
 }
 
-export async function readDocument(scrubbedText: string): Promise<ReadResult> {
+export async function readDocument(scrubbedText: string, opts: Pick<ChatOptions, "timeoutMs" | "totalTimeoutMs" | "waitForCooldownMs"> = {}): Promise<ReadResult> {
   try {
     const r = await chat(
       [
         { role: "system", content: SYSTEM },
         { role: "user", content: `<document>\n${scrubbedText}\n</document>` },
       ],
-      { json: true, timeoutMs: 120_000, waitForCooldownMs: 70_000, accept: (t) => parse(t)?.success === true },
+      { json: true, timeoutMs: 120_000, totalTimeoutMs: 360_000, waitForCooldownMs: 70_000, ...opts, accept: (t) => parse(t)?.success === true },
     );
     const parsed = parse(r.text);
     if (!parsed?.success) return { ok: false, reason: "reader output failed schema", model: r.used };

@@ -1,0 +1,17 @@
+{
+  "hospitalId": "HD_TESTING_EXAMPLE",
+  "generatedAt": "2026-10-20T03:29:53.546Z",
+  "synthetic": true,
+  "privateKeysSaved": false,
+  "usage": "Use each complete payment-proposal JSON as the source for the corresponding fields in the admin form. Only signedList belongs in Signed account list JSON.",
+  "sequence": [
+    "01 initial activation",
+    "02 account change using the same key",
+    "03 new key with a rotation statement signed by the initial key"
+  ],
+  "negativeCases": {
+    "04": "Account was edited after signing. Signature validation must reject it.",
+    "05": "Correct signature, issued eight days ago. Activation must reject the stale list."
+  },
+  "note": "Regenerating this folder creates new key pairs. Keep all files from one run together. These fixtures do not establish real hospital ownership."
+}

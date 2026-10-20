@@ -1,0 +1,41 @@
+id,category,description,quantity,unit_price_cny,line_total_cny
+I01,room,"Ward bed per day",5,1200.00,6000.00
+I02,room,"Nursing care per day",5,180.00,900.00
+I03,room,"Doctor ward round per day",5,120.00,600.00
+I04,procedure,"Laparoscopic appendectomy",1,18000.00,18000.00
+I05,procedure,"Anaesthesia",1,4500.00,4500.00
+I06,procedure,"Operating theatre use",1,2500.00,2500.00
+I07,procedure,"Post-operative wound dressing",3,150.00,450.00
+I08,other,"Medical record copy fee",1,50.00,50.00
+I09,other,"Patient meals per day",5,60.00,300.00
+I10,drug,"Ceftriaxone 1g injection",10,45.00,450.00
+I11,drug,"Metronidazole 500mg IV",10,30.00,300.00
+I12,drug,"Paracetamol 500mg tablet",20,2.00,40.00
+I13,drug,"Omeprazole 40mg IV",5,38.00,190.00
+I14,drug,"Ondansetron 4mg injection",4,25.00,100.00
+I15,drug,"Ketorolac 30mg injection",6,20.00,120.00
+I16,drug,"Normal saline 500ml",10,12.00,120.00
+I17,drug,"Ringer lactate 500ml",8,14.00,112.00
+I18,drug,"Heparin 5000IU injection",5,28.00,140.00
+I19,drug,"Tramadol 50mg capsule",10,3.00,30.00
+I20,drug,"Amoxicillin-clavulanate 625mg tablet",14,6.00,84.00
+I21,drug,"Lidocaine 2% 5ml",2,8.00,16.00
+I22,lab,"Complete blood count",1,60.00,60.00
+I23,lab,"Complete blood count",1,60.00,60.00
+I24,lab,"C-reactive protein",1,80.00,80.00
+I25,lab,"Electrolytes panel",1,90.00,90.00
+I26,lab,"Liver function test",1,120.00,120.00
+I27,lab,"Renal function test",1,100.00,100.00
+I28,lab,"Coagulation profile",1,110.00,110.00
+I29,lab,"Abdominal ultrasound",1,380.00,380.00
+I30,lab,"Chest X-ray",1,150.00,150.00
+I31,consumable,"IV cannula 22G",3,25.00,75.00
+I32,consumable,"IV infusion set",5,15.00,75.00
+I33,consumable,"Syringe 5ml",20,2.00,40.00
+I34,consumable,"Surgical gauze pack",6,10.00,60.00
+I35,consumable,"Pillow case",5,15.00,75.00
+I36,consumable,"Alcohol swab",40,1.00,40.00
+I37,consumable,"Disposable gloves (pair)",30,2.00,60.00
+I38,consumable,"Urinary catheter",1,45.00,45.00
+I39,consumable,"Wound drain bag",1,60.00,60.00
+I40,consumable,"Bed sheet change",5,20.00,100.00

@@ -12,7 +12,7 @@ export const CASE = {
   id: "C1",
   currency: "CNY",
   patient: { name: "Budi Santoso", token: "[PASIEN_1]" },
-  hospital: { id: "H1", name: "Shenzhen International Hospital (demo)", officialChannel: "https://hospital.example/billing" },
+  hospital: { id: "H1", name: "Shenzhen International Hospital", officialChannel: "https://hospital.example/billing" },
   me: { id: "M_OWNER", role: "owner" as Role },
   members: [
     { id: "M_OWNER", displayName: "Rina (owner)", role: "owner", shareLimit: 0, currency: "IDR" },
@@ -23,7 +23,7 @@ export const CASE = {
     { id: "M_COMP", displayName: "Dewi (at hospital)", role: "companion", shareLimit: 0, currency: "IDR" },
   ] as Member[],
   payees: [
-    { id: "P1", name: "Shenzhen International Hospital (demo)", accountMasked: "•••• 2222", source: "official_registry", verifiedAt: "2026-10-18T05:21:00Z" },
+    { id: "P1", name: "Shenzhen International Hospital", accountMasked: "•••• 2222", source: "official_registry", verifiedAt: "2026-10-18T05:21:00Z" },
   ],
   anomalies: [
     {
@@ -170,6 +170,7 @@ export type Pledge = {
 
 export type PaymentRequest = {
   id: string;
+  payeeId?: string;
   payeeName: string;
   accountMasked: string;
   amount: number;
@@ -186,7 +187,7 @@ export type PaymentRequest = {
 export const REQUESTS: PaymentRequest[] = [
   {
     id: "R2",
-    payeeName: "Shenzhen International Hospital (demo)",
+    payeeName: "Shenzhen International Hospital",
     accountMasked: "•••• 2222",
     amount: 5_000_000,
     currency: "CNY",
@@ -204,7 +205,7 @@ export const REQUESTS: PaymentRequest[] = [
   },
   {
     id: "R1",
-    payeeName: "Shenzhen International Hospital (demo)",
+    payeeName: "Shenzhen International Hospital",
     accountMasked: "•••• 2222",
     amount: 3_000_000,
     currency: "CNY",

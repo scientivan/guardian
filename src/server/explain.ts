@@ -82,7 +82,7 @@ Rules:
 - Never name a medical reason (infection, complication, etc.) unless it appears in statedInDocument. If the facts do not say why the stay was longer, say the bill does not state the reason and suggest asking the hospital.
 - One line per cause, at most 10 lines, each under 40 words.`;
 
-export async function explain(a: Analysis, language: "en" | "id" = "en", opts: { fetchImpl?: typeof fetch } = {}): Promise<Explanation> {
+export async function explain(a: Analysis, language: "en" | "id" = "en", opts: { fetchImpl?: typeof fetch; totalTimeoutMs?: number } = {}): Promise<Explanation> {
   const f = facts(a);
   const itemIds = new Set(a.items.map((i) => i.code));
   const allowedNumbers = new Set<string>();
@@ -112,7 +112,7 @@ export async function explain(a: Analysis, language: "en" | "id" = "en", opts: {
         { role: "system", content: SYSTEM },
         { role: "user", content: userMsg },
       ],
-      { json: true, accept: (t) => Draft.safeParse(safeJson(t)).success, fetchImpl: opts.fetchImpl },
+      { json: true, accept: (t) => Draft.safeParse(safeJson(t)).success, ...opts },
     );
     model = r.used;
     for (const l of Draft.parse(safeJson(r.text)).lines) {

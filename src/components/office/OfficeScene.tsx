@@ -150,11 +150,11 @@ function DecisionBoard() {
         </text>
         <rect x={8} y={58} width={134} height={14} rx={3} fill="#e4f0e9" />
         <text x={13} y={68} fontSize={7.5} fontWeight={700} fill="#3f7d5c">
-          Bill D2 explained, 3 changes
+          Bill explanation
         </text>
         <rect x={8} y={76} width={134} height={14} rx={3} fill="#e4f0e9" />
         <text x={13} y={86} fontSize={7.5} fontWeight={700} fill="#3f7d5c">
-          Estimate D1 read
+          Estimate review
         </text>
       </g>
     </g>
@@ -226,7 +226,7 @@ function CoordinationScreen() {
       <g transform={leftFaceMatrix(x, y + d, z + h, w, h, 160, 88)}>
         <rect x={4} y={4} width={152} height={80} rx={3} fill="#fbfdfe" />
         <text x={10} y={18} fontSize={9} fontWeight={800} fill="#202121">
-          Case C1 plan
+          Care plan
         </text>
         {steps.map((s, i) => (
           <g key={s.t}>
@@ -237,7 +237,7 @@ function CoordinationScreen() {
           </g>
         ))}
         <text x={10} y={66} fontSize={8} fontWeight={700} fill="#202121">
-          Pledged CNY 45,000 of 50,000
+          Contributions and approvals
         </text>
         <rect x={10} y={71} width={140} height={4} rx={2} fill="#e3e9ec" />
         <rect x={10} y={71} width={126} height={4} rx={2} fill="#4875a1" />
@@ -384,7 +384,7 @@ export function OfficeScene({ status, selected = null, highlight = [], selectedR
         );
       })}
       <VaultSign at={[19.5, 1.3]} blocked={status.gate.state === "blocked"} />
-      <Tag x={P(3.4, 9.3, 1.4)[0]} y={P(3.4, 9.3, 1.4)[1]} name="Estimate D1, bill D2" text="" focused={false} />
+      <Tag x={P(3.4, 9.3, 1.4)[0]} y={P(3.4, 9.3, 1.4)[1]} name="Estimates and bills" text="" focused={false} />
       <Tag x={P(20.25, 8.55, 1.85)[0]} y={P(20.25, 8.55, 1.85)[1]} name="FISCO BCOS" text="" focused={false} />
       <Tag x={P(19.6, 12.3, -1.6)[0]} y={P(19.6, 12.3, -1.6)[1]} name="Coordination den" text="" focused={false} />
 

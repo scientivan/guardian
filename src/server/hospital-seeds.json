@@ -1,0 +1,90 @@
+[
+  {
+    "id": "HD_HKU_SHENZHEN",
+    "profile": {
+      "name": "The University of Hong Kong-Shenzhen Hospital",
+      "branch": "",
+      "country": "China",
+      "city": "Shenzhen",
+      "address": "Haiyuan 1st Road, Futian District, Shenzhen, Guangdong 518053, China",
+      "phone": "+86 755 86913333",
+      "website": "https://www.hku-szh.org/xgdxszyy/lxwm/fwzx/",
+      "billingEmail": "",
+      "billingPhone": ""
+    },
+    "sources": [
+      {
+        "url": "https://www.hku-szh.org/xgdxszyy/lxwm/fwzx/",
+        "title": "The University of Hong Kong-Shenzhen Hospital — official contact page",
+        "retrievedAt": "2026-10-20T00:00:00.000Z",
+        "excerpt": "Official contact page lists the institution address and general enquiry telephone. No bank account or signing key is supplied."
+      }
+    ]
+  },
+  {
+    "id": "HD_BUMRUNGRAD_BANGKOK",
+    "profile": {
+      "name": "Bumrungrad International Hospital",
+      "branch": "",
+      "country": "Thailand",
+      "city": "Bangkok",
+      "address": "33 Sukhumvit 3 (Soi Nana Nua), Wattana, Bangkok 10110, Thailand",
+      "phone": "+66 2066 8888",
+      "website": "https://www.bumrungrad.com/en/contact-us/contact-details",
+      "billingEmail": "",
+      "billingPhone": ""
+    },
+    "sources": [
+      {
+        "url": "https://www.bumrungrad.com/en/contact-us/contact-details",
+        "title": "Bumrungrad International Hospital — official contact page",
+        "retrievedAt": "2026-10-20T00:00:00.000Z",
+        "excerpt": "Official contact page lists the institution address and general enquiry telephone. No bank account or signing key is supplied."
+      }
+    ]
+  },
+  {
+    "id": "HD_SGH_SINGAPORE",
+    "profile": {
+      "name": "Singapore General Hospital",
+      "branch": "",
+      "country": "Singapore",
+      "city": "Singapore",
+      "address": "Outram Road, Singapore 169608",
+      "phone": "+65 6222 3322",
+      "website": "https://www.sgh.com.sg/patient-services/contact-us",
+      "billingEmail": "",
+      "billingPhone": ""
+    },
+    "sources": [
+      {
+        "url": "https://www.sgh.com.sg/patient-services/contact-us",
+        "title": "Singapore General Hospital — official contact page",
+        "retrievedAt": "2026-10-20T00:00:00.000Z",
+        "excerpt": "Official contact page lists the institution address and general enquiry telephone. No bank account or signing key is supplied."
+      }
+    ]
+  },
+  {
+    "id": "HD_GLENEAGLES_PENANG",
+    "profile": {
+      "name": "Gleneagles Hospital Penang",
+      "branch": "",
+      "country": "Malaysia",
+      "city": "George Town",
+      "address": "1, Jalan Pangkor, 10050 George Town, Pulau Pinang, Malaysia",
+      "phone": "+60 4 222 9111",
+      "website": "https://gleneagles.com.my/penang/contactus",
+      "billingEmail": "",
+      "billingPhone": ""
+    },
+    "sources": [
+      {
+        "url": "https://gleneagles.com.my/penang/contactus",
+        "title": "Gleneagles Hospital Penang — official contact page",
+        "retrievedAt": "2026-10-20T00:00:00.000Z",
+        "excerpt": "Official contact page lists the institution address and general enquiry telephone. No bank account or signing key is supplied."
+      }
+    ]
+  }
+]

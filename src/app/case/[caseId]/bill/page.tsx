@@ -1,10 +1,16 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { useCaseData, useWorkspace } from "@/components/app/WorkspaceProvider";
+
 import Link from "next/link";
 import { CopyButton } from "@/components/app/CopyButton";
 import { MoneyBreakdown } from "@/components/app/MoneyBreakdown";
 import { Chip, Figure, FoldSection, MoneyFigure, Section, SECONDARY, type Tone } from "@/components/app/ui";
 import type { AgentId } from "@/components/landing/agents";
 import { money, share } from "@/lib/format";
-import { EXPLANATION, ITEMS, type LineType } from "@/lib/demo";
+import type { LineType } from "@/lib/demo";
 
 // Bill Review (TASKS 2.5): the bill against the estimate, the cost breakdown, the questions
 // for the hospital, and the reasons folded away until someone wants them.
@@ -14,17 +20,37 @@ const REASONS: { type: LineType; title: string; tone: Tone; chip: string; agent:
   { type: "stated_in_document", title: "Stated in the Hospital’s Documents", tone: "brown", chip: "In the documents", agent: "reader" },
 ];
 
-// Scale of the estimate bar.
-const LOW = 2_500_000;
-const HIGH = 4_000_000;
-const at = (v: number) => share(v - LOW, HIGH - LOW);
-
 export default function BillPage() {
-  const e = EXPLANATION;
+  const { explanation: e, items: ITEMS,documents,case:care,secondCheckStatus } = useCaseData();
+  const {call}=useWorkspace();
+  const query=useSearchParams();
+  const [selected,setSelected]=useState(query.get("documentId")??e?.documentId??documents.find(d=>d.type!=="estimate"&&d.status==="parsed")?.id??"");
+  const [busy,setBusy]=useState(false);
+  const [error,setError]=useState("");
+  async function refreshExplanation() {
+    setBusy(true);setError("");
+    try{await call(`/cases/${care.id}/explanation?documentId=${encodeURIComponent(selected)}`,"POST",{},care.id);}
+    catch(e){setError((e as Error).message);}finally{setBusy(false);}
+  }
+  useEffect(()=>{if(query.get("documentId"))setSelected(query.get("documentId")!);},[query]);
+  const target=query.get("documentId");
+  useEffect(()=>{
+    if(!target)return;
+    if(target===e?.documentId){setBusy(false);return;}
+    let active=true;setBusy(true);setError("");
+    call(`/cases/${care.id}/explanation?documentId=${encodeURIComponent(target)}`,"POST",{},care.id).catch(error=>{if(active)setError(error.message);}).finally(()=>{if(active)setBusy(false);});
+    return()=>{active=false;};
+  },[target,e?.documentId,care.id,call]);
+  const controls=<div className="space-y-3"><label className="block text-sm font-semibold text-ink-2">Bill to review<select aria-label="Bill to review" value={selected} onChange={event=>setSelected(event.target.value)} className="mt-2 block w-full rounded-xl border border-line bg-white p-3">{documents.filter(d=>d.type!=="estimate").map(d=><option key={d.id} value={d.id}>{d.title} · {d.status}</option>)}</select></label><button type="button" disabled={!selected||busy} onClick={refreshExplanation} className={SECONDARY}>{busy?"Reading and checking…":"Explain selected bill"}</button>{error && <p role="alert" className="text-danger-ink">{error}</p>}</div>;
+  if (!e) return <Section title="Bill Review" agent="reader">{controls}<p className="mt-4">Upload an estimate and a bill to see the comparison.</p><Link href="upload" className="mt-4 inline-block font-semibold text-serpent-dark underline">Upload a bill</Link></Section>;
+  const scale=Math.max(e.estimate.high,e.estimate.low,e.total,1)*1.1;
+  const at=(value:number)=>Math.max(0,Math.min(100,share(value,scale)));
   const questionsText = e.questions.map((q, i) => `${i + 1}. ${q.text}`).join("\n");
 
   return (
     <div className="space-y-12">
+      {controls}
+      {secondCheckStatus && <p className="text-sm text-ink-2">{secondCheckStatus.startsWith("second model unavailable")?"The independent reader is currently unavailable. Review the cited lines with the hospital.":secondCheckStatus}</p>}
       <Section title="Estimate vs. Bill" agent="calculator">
         <div className="flex flex-wrap items-end justify-between gap-6">
           <div>

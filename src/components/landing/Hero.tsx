@@ -14,10 +14,10 @@ export function Hero() {
         </p>
         <div className="mt-8 flex flex-wrap gap-3">
           <Link
-            href="/case/C1"
+            href="/app"
             className="inline-flex items-center gap-2 rounded-full bg-serpent px-6 py-3.5 font-semibold text-white transition-colors hover:bg-serpent-dark"
           >
-            Open the demo case <Arrow className="h-4 w-4" />
+            Open App <Arrow className="h-4 w-4" />
           </Link>
           <a
             href="#how"

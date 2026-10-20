@@ -1,0 +1,99 @@
+{
+  "checks": [
+    "Anonymous admin route preserves login destination",
+    "Ordinary and demo identities cannot enter admin APIs or pages",
+    "Admin UI creates an untrusted profile proposal with source evidence",
+    "Human approval verifies the profile without activating payment authority",
+    "Separate signed-account review activates payment authority through explicit confirmation",
+    "Google case uses approved shared hospital identity and quote-bound payment account",
+    "Incident hold immediately removes payment authority and cancels old approved requests",
+    "Verification digest anchors to the actual local blockchain",
+    "Role spoofing and cross-origin administrative writes are rejected",
+    "Review layout works at desktop, tablet and phone widths without horizontal overflow",
+    "Family directory exposes reviewed contacts while admin evidence remains restricted",
+    "No browser runtime errors",
+    "Final build preserves the reviewed directory institution through the five-step wizard and canonical workspace response",
+    "Actual port-3000 read-only admin access endpoint recognizes the configured identity"
+  ],
+  "errors": [],
+  "services": {
+    "anchor": {
+      "status": 200,
+      "hash": "3b93df7d660e9289c0bda5797190b4ff0f37602b3d98e61d9a69495651f91978",
+      "tx": "0x1c3b31c48e0ba6fac95623d97e59618ab8f8da3b6ba68f799ce71e4bcc0e16b7"
+    },
+    "search": {
+      "status": 200,
+      "model": "groq:openai/gpt-oss-20b",
+      "complete": true,
+      "citations": [
+        {
+          "title": "www.sgh.com.sg - viewing lines [0 - 198] of 198",
+          "url": "https://www.sgh.com.sg/patient-services/contact-us"
+        },
+        {
+          "title": "Visiting Information | Singapore General Hospital",
+          "url": "https://www.sgh.com.sg/patient-services/visiting-information"
+        },
+        {
+          "title": "Singapore General Hospital | Trusted Care, Advancing Medicine",
+          "url": "https://www.sgh.com.sg/"
+        },
+        {
+          "title": "gov.sg | SGH",
+          "url": "https://www.sgdi.gov.sg/ministries/moh/others/sgh"
+        },
+        {
+          "title": "Getting Around SGH Campus | Singapore General Hospital",
+          "url": "https://www.sgh.com.sg/patient-services/visiting-information/getting-around-sgh-campus"
+        },
+        {
+          "title": "Patient Services | Singapore General Hospital",
+          "url": "https://www.sgh.com.sg/patient-services"
+        },
+        {
+          "title": "Media Contact - Singapore General Hospital | Singapore General Hospital",
+          "url": "https://www.sgh.com.sg/about-sgh/news/media-contact.newsdetails"
+        },
+        {
+          "title": "Hospital Overview | Singapore General Hospital",
+          "url": "https://www.sgh.com.sg/about-sgh/corporate-profile/hospital-overview"
+        },
+        {
+          "title": "SingHealth Tower & Outram Community Hospital | Singapore General Hospital",
+          "url": "https://www.sgh.com.sg/patient-services/visiting-information/getting-around-sgh-campus/singhealth-tower-and-outram-community-hospital"
+        },
+        {
+          "title": "Postal Code 169608 - Singapore Baby Bonus Approved Institutions",
+          "url": "https://opengovsg.com/baby-bonus-institution?postal=169608"
+        }
+      ],
+      "profile": {
+        "name": "Singapore General Hospital",
+        "branch": "Outram campus",
+        "country": "Singapore",
+        "city": "Singapore",
+        "address": "Outram Road, Singapore 169608",
+        "phone": "(65) 6222 3322",
+        "website": "https://www.sgh.com.sg",
+        "billingEmail": "",
+        "billingPhone": ""
+      },
+      "uncertainties": []
+    },
+    "independentReviewer": {
+      "model": "groq:openai/gpt-oss-120b",
+      "unavailable": false,
+      "findings": 9,
+      "status": "pending"
+    }
+  },
+  "verificationScope": {
+    "identity": "Signed synthetic Google sessions in isolated production preview. No fresh real Google OAuth exchange.",
+    "data": "Synthetic institutions and signing keys for administrative authorization tests. Live search used public hospital information without approving it.",
+    "isolation": "Separate account and registry databases under /private/tmp. No test hospital was added to the real shared directory.",
+    "payments": "No real or Stripe charge was executed in the browser test. Revocation blocks the request before execution.",
+    "humanEvidence": "Confirmation text in the test is synthetic. No hospital identity or account ownership was established by these tests.",
+    "checks": "88 unit and integration tests passed, plus production compilation, lint and TypeScript."
+  }
+}

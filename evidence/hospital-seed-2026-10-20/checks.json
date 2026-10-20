@@ -1,0 +1,18 @@
+{
+  "date": "2026-10-20",
+  "seeded": 4,
+  "rerunAdded": 0,
+  "checks": [
+    "89 unit tests passed",
+    "TypeScript passed",
+    "ESLint passed",
+    "Local API returned four listed profiles with profileVersion zero and paymentStatus unverified",
+    "Chrome mobile tested country dropdowns, selection, manual entry and stale selection clearing",
+    "Regenerated living document PDF and verified added section text"
+  ],
+  "limits": [
+    "Public contact source checks only, no institutional onboarding or payment activation",
+    "Browser used a synthetic signed Google session, no Google OAuth exchange",
+    "No care case submitted during browser check"
+  ]
+}

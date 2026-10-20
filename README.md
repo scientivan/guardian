@@ -5,9 +5,9 @@ An AI agent on the patient family's side that reads a foreign hospital's bills, 
 - **Track:** 2026 Shenzhen International FinTech Competition (FinTechathon), International Track (AI)
 - **Topic:** C, Cross-border & Student Finance
 - **Team:** Dien (backend, agent, services), Aurel (UI/FE)
-- **Status:** backend, agent and evidence runners work end to end; API routes and UI are in progress.
+- **Status:** backend, agent and frontend work end to end. Google accounts have private care-case data. A separate demo account opens a seeded workspace without Google login. Hospital Directory and the human Verification Desk support proposals, AI evidence checks, separate profile/account approval, holds and verification-hash anchoring. Institutional confirmation still requires human work and hospital cooperation. Payments remain sandbox or Stripe test mode.
 
-> All data in this repository is synthetic and labelled demo. The hospital, patient and accounts are fictional. Payments run in Stripe **test mode** only.
+> Fixture patients, hospitals and account numbers are synthetic. Directory proposals require human verification. Payments use the isolated demo sandbox or Stripe **test mode** only.
 
 ## 1. What it does
 
@@ -73,6 +73,8 @@ Environment variables (`.env`, never committed; template in `.env.example`):
 | `FISCO_BCOS_RPC_URL`, `FISCO_BCOS_CHAIN_ID` | anchoring | local chain, see §4.3 |
 | `FISCO_BCOS_PRIVATE_KEY`, `FISCO_BCOS_CONTRACT_ADDRESS` | anchoring | printed by `npm run fisco:deploy` |
 | `GUARDIAN_DB` | SQLite file (default `guardian.db`) | |
+| `NEXTAUTH_URL`, `NEXTAUTH_SECRET` | app URL and session signing | `.env.local`, see [Google sign-in setup](docs/GOOGLE-OAUTH.md) |
+| `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | Google sign-in | Google Console, Web application OAuth client |
 
 The router uses whichever LLM keys are present and skips a model that is rate-limited, so one key is enough to run.
 
@@ -84,11 +86,13 @@ The router uses whichever LLM keys are present and skips a model that is rate-li
 git clone https://github.com/scientivan/guardian.git
 cd guardian
 npm ci
-npm test            # 45 tests: gateway, payments, FX, enrollment, PII, comparator, guards, refunds
+npm test            # 88 tests covering the core, authentication, isolation and hospital verification
 npm run fixtures    # regenerates the demo PDFs in fixtures/pdf/
 ```
 
 The unit tests replace LLM, Stripe and chain calls with local fakes, so they need no network.
+
+To open the UI, run `npm run dev` and visit `http://localhost:3000`. Open App enters Your Care Cases at `/projects`. Start a care case opens the five-step wizard at `/projects/new`. Sign in with Google for your own private workspace, or use the demo account to explore a seeded case without Google. Keep OAuth credentials in `.env` or `.env.local` following [sign-in setup](docs/GOOGLE-OAUTH.md). The case office fills the available viewport, with the team on the right and activity along the bottom. Other case pages scroll normally.
 
 ### 4.2 With keys (live LLM and Stripe test mode)
 
@@ -127,13 +131,15 @@ Output goes to `logs/evidence/<run>/summary.md` and `logs/baseline/`. Committed 
 npm run dev             # http://localhost:3000
 ```
 
-The UI and API routes (`docs/API.md`) are being built; the scripts above exercise the same server modules directly.
+The UI calls authenticated Next.js API routes described in `docs/API.md`. Backend tables own payment and refund state. Each Google account starts empty, with access to shared cases only after accepting an email-bound invitation. Demo execution uses an isolated sandbox charger. Google execution uses the existing Stripe test adapter, and only hospitals with a pinned official channel and key can enroll payees. Reference FX quotes are not live-market rates.
+
+Hospital profiles are available at `/hospitals`. Human administrators enter `/admin` using a Google account listed in the ignored `GUARDIAN_ADMIN_EMAILS` configuration. Empty configuration denies access. The profile dropdown exposes Verification Desk only to authorized accounts. See [Hospital Directory setup and verification](docs/HOSPITAL-DIRECTORY.md) for onboarding, independent AI review, signed account lists, key rotation, incident holds and trust boundaries.
 
 ## 5. Testing
 
 | Command | Covers | Last result |
 |---|---|---|
-| `npm test` | Unit and scenario tests with fakes | 45 passing |
+| `npm test` | Unit and scenario tests with fakes | 88 passing |
 | `npm run evidence` | D1–D6, D4b, A1–A9 live | 16/16 from a fresh clone (`evidence/run-2026-10-18-clean-clone/summary.md`) |
 | `npm run eval:reader` | 40-item bill reading vs answer key | 40/40 items, total and causes match |
 | `npm run eval:chat` | Clarification, colloquial input, chat attacks | 10/10 |

@@ -1,0 +1,12 @@
+{
+  "hospitalId": "HD_TESTING_EXAMPLE",
+  "issuedAt": "2026-10-12T03:29:53.554Z",
+  "payees": [
+    {
+      "id": "main",
+      "name": "Shenzhen International Hospital",
+      "account": "6222 0000 1111 2222"
+    }
+  ],
+  "signature": "iMSjAP5XGHott+XRKmWAN/h3GD1n/mu+0pYlykjTNECHz9GkdZj4hmtEpeWFAdmGlRwbFm81EDDfNvH3Ba8nBw=="
+}

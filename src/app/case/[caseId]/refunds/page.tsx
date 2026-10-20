@@ -1,64 +1,23 @@
+"use client";
+
+import { useState } from "react";
 import { MemberAvatar } from "@/components/app/people";
-import { Chip, MoneyFigure, SECONDARY, Section, type Tone } from "@/components/app/ui";
-import { day, money } from "@/lib/format";
-import { REFUNDS } from "@/lib/demo";
-
-// Refund Tracking (TASKS 2.8): what comes back after discharge, and each person's share with its
-// status and due date (PRD F18). Shown at the demo's discharge point (simulated clock).
-
-const STATUS: Record<string, { label: string; tone: Tone }> = {
-  received: { label: "Received", tone: "ok" },
-  processing: { label: "Processing", tone: "info" },
-  requested: { label: "Requested", tone: "muted" },
-};
+import { Chip, MoneyFigure, PRIMARY, SECONDARY, Section } from "@/components/app/ui";
+import { useCaseData, useWorkspace } from "@/components/app/WorkspaceProvider";
+import { day,money } from "@/lib/format";
 
 export default function RefundsPage() {
-  const r = REFUNDS;
-  return (
-    <div className="space-y-12">
-      <Section title="Summary" agent="auditor" action={<Chip>Demo: after discharge, day 12</Chip>}>
-        <dl className="grid gap-6 sm:grid-cols-3">
-          <div>
-            <dt className="text-sm text-ink-2">Deposits paid</dt>
-            <dd className="mt-1">
-              <MoneyFigure minor={r.deposits} currency={r.currency} />
-            </dd>
-          </div>
-          <div>
-            <dt className="text-sm text-ink-2">Final bill</dt>
-            <dd className="mt-1">
-              <MoneyFigure minor={r.finalBill} currency={r.currency} />
-            </dd>
-          </div>
-          <div>
-            <dt className="text-sm text-ink-2">Coming back</dt>
-            <dd className="mt-1">
-              <MoneyFigure minor={r.totalRefund} currency={r.currency} />
-            </dd>
-          </div>
-        </dl>
-      </Section>
-
-      <Section title="Refund per Person" agent="auditor">
-        <ul className="divide-y divide-line">
-          {r.items.map((it) => (
-            <li key={it.memberId} className="flex flex-wrap items-center gap-3 py-3.5">
-              <MemberAvatar id={it.memberId} />
-              <div className="min-w-0 flex-1">
-                <p className="font-semibold text-lead">{it.displayName}</p>
-                <p className="text-xs text-ink-2">Due {day(it.dueAt)}</p>
-              </div>
-              <b className="font-num tabular-nums text-serpent-dark">{money(it.amount, r.currency)}</b>
-              {it.overdue ? <Chip tone="danger">Overdue</Chip> : <Chip tone={STATUS[it.status].tone}>{STATUS[it.status].label}</Chip>}
-              {it.overdue && (
-                <button type="button" className={`${SECONDARY} !px-3 !py-1.5`}>
-                  Remind
-                </button>
-              )}
-            </li>
-          ))}
-        </ul>
-      </Section>
-    </div>
-  );
+  const {case:care,refunds,documents}=useCaseData();const {call,mode}=useWorkspace();
+  const [busy,setBusy]=useState(false);const [feedback,setFeedback]=useState("");
+  const final=documents.filter(d=>d.type==="final"&&d.status==="parsed").at(-1);
+  async function action(path:string,body:object) {setBusy(true);setFeedback("");try{const result=await call(`/cases/${care.id}/${path}`,"POST",body,care.id) as {balanceDue?:number};setFeedback(result.balanceDue?`The final bill has an open balance of ${money(result.balanceDue,care.currency)}.`:"Case updated.");}catch(e){setFeedback((e as Error).message);}finally{setBusy(false);}}
+  async function download() {try{const data=await call(`/cases/${care.id}/recap`,"GET",undefined,care.id);const url=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:"application/json"}));const a=document.createElement("a");a.href=url;a.download=`guardian-${care.id}-payment-record.json`;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}catch(e){setFeedback((e as Error).message);}}
+  return <div className="space-y-10">
+    {feedback&&<p role="status" className="rounded-xl bg-mist p-4 text-sm text-lead">{feedback}</p>}
+    <Section title="Final Bill and Deposits" agent="auditor"><div className="grid gap-5 sm:grid-cols-2"><div><p className="text-sm text-ink-2">Deposits paid</p><MoneyFigure minor={care.totals.paid} currency={care.currency}/></div><div><p className="text-sm text-ink-2">Final bill</p>{final?<MoneyFigure minor={final.total??0} currency={care.currency}/>:<p>Upload the final bill after discharge.</p>}</div></div>
+      {care.me.role==="owner"&&final&&!refunds&&<button type="button" disabled={busy} onClick={()=>action("refunds/reconcile",{documentId:final.id})} className={`${PRIMARY} mt-5`}>Reconcile final bill</button>}
+    </Section>
+    <Section title="Refund per Person" agent="auditor">{refunds?<><p className="mb-4"><MoneyFigure minor={refunds.totalRefund} currency={refunds.currency}/><span className="ml-2 text-ink-2">coming back</span></p><ul className="divide-y divide-line">{refunds.items.map(r=><li key={r.memberId} className="flex flex-wrap items-center gap-3 py-4"><MemberAvatar id={r.memberId}/><div className="min-w-0 flex-1"><p className="font-semibold text-lead">{r.displayName}</p><p className="text-xs text-ink-2">Due {day(r.dueAt)}</p></div><b className="font-num text-serpent-dark">{money(r.amount,refunds.currency)}</b><Chip tone={r.overdue?"danger":r.status==="received"?"ok":"info"}>{r.overdue?"Overdue":r.status}</Chip>{r.status!=="received"&&<button type="button" disabled={busy} onClick={()=>action("follow-up",{memberId:r.memberId})} className={SECONDARY}>Request follow-up</button>}{mode==="demo"&&care.me.role==="owner"&&r.status!=="received"&&<button type="button" disabled={busy} onClick={()=>action("refunds/status",{memberId:r.memberId,status:r.status==="requested"?"processing":"received"})} className={SECONDARY}>{r.status==="requested"?"Mark processing":"Mark received"}</button>}</li>)}</ul></>:<p className="text-ink-2">Refund shares appear when deposits exceed the reconciled final bill.</p>}</Section>
+    <Section title="Your Payment Record" agent="auditor"><p className="mb-4 text-ink-2">Download your contributions, purposes, charge receipts, refund share and document hashes.</p><button type="button" onClick={download} className={SECONDARY}>Download payment record</button>{mode==="demo"&&care.me.role==="owner"&&<button type="button" disabled={busy} onClick={()=>action("clock",{advanceDays:30})} className={`${SECONDARY} ml-3`}>Advance 30 days</button>}</Section>
+  </div>;
 }

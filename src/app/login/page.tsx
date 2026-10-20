@@ -1,48 +1,31 @@
-"use client";
-
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import type { FormEvent } from "react";
-import { EntryFrame, INPUT } from "@/components/app/EntryFrame";
-import { PRIMARY, SECONDARY, Section } from "@/components/app/ui";
+import { getServerSession } from "next-auth";
+import { redirect } from "next/navigation";
+import { EntryFrame } from "@/components/app/EntryFrame";
+import { Section } from "@/components/app/ui";
+import { GoogleSignIn } from "@/components/auth/GoogleSignIn";
+import { DemoSignIn } from "@/components/auth/DemoSignIn";
+import { appDestination } from "@/lib/auth-redirect";
+import { authOptions, googleAuthConfigured } from "@/server/auth";
 
-// Demo login (brainstorm/17 §3). Nothing is checked yet; real identity checks belong to the bank
-// or payment app that would run Guardian. The page says so instead of pretending.
+export default async function LoginPage({ searchParams }: { searchParams: Promise<{ callbackUrl?: string; error?: string }> }) {
+  const params = await searchParams;
+  const destination = appDestination(params.callbackUrl);
+  const configured = googleAuthConfigured();
+  if (process.env.NEXTAUTH_SECRET && await getServerSession(authOptions)) redirect(destination);
 
-export default function LoginPage() {
-  const router = useRouter();
-  function submit(e: FormEvent) {
-    e.preventDefault();
-    router.push("/projects");
-  }
   return (
-    <EntryFrame title="Log In" working={["clerk"]}>
-      <Section title="Your Account" agent="clerk">
-        <form onSubmit={submit} className="space-y-4">
-          <label className="block text-sm font-medium text-ink-2">
-            Email
-            <input type="email" required autoComplete="email" defaultValue="rina@example.com" className={INPUT} />
-          </label>
-          <label className="block text-sm font-medium text-ink-2">
-            Password
-            <input type="password" required autoComplete="current-password" defaultValue="demo-password" className={INPUT} />
-          </label>
-          <div className="flex flex-wrap items-center gap-4 pt-2">
-            <button type="submit" className={`${PRIMARY} !px-7 !py-3`}>
-              Log in
-            </button>
-            <span className="text-sm text-ink-2">Demo: any email and password work.</span>
-          </div>
-        </form>
-      </Section>
-
-      <Section title="Just Looking?" agent="planner">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <p className="text-lead">Open the fictional family’s case as Rina, the owner.</p>
-          <Link href="/case/C1" className={SECONDARY}>
-            Try the demo family
-          </Link>
-        </div>
+    <EntryFrame title="Welcome to Guardian" working={["clerk"]}>
+      <Section title="Open your app" agent="clerk">
+        <p className="mb-6 max-w-lg text-lg leading-relaxed text-lead">Sign in with Google to manage your family’s care cases, or explore Guardian with a demo account.</p>
+        {params.error && <p role="alert" className="mb-5 rounded-xl bg-danger-soft p-4 text-sm text-danger-ink">Sign-in didn’t finish. Try again with your Google account.</p>}
+        {configured ? (
+          <GoogleSignIn callbackUrl={destination} />
+        ) : (
+          <p role="status" className="mb-5 rounded-xl bg-warn-soft p-4 text-sm text-warn-ink">Google sign-in is being set up. Please try again once setup is complete.</p>
+        )}
+        <div className="mt-4"><DemoSignIn /></div>
+        <Link href="/" className="mt-6 inline-block text-sm font-semibold text-serpent-dark hover:underline">Back to Guardian</Link>
       </Section>
     </EntryFrame>
   );

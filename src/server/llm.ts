@@ -58,6 +58,8 @@ export type ChatOptions = {
   // Second-model check must come from a different provider than the first answer.
   excludeProviders?: Provider[];
   timeoutMs?: number;
+  // Budget for the whole fallback chain, including any cooldown wait.
+  totalTimeoutMs?: number;
   fetchImpl?: typeof fetch;
   // Reject a reply (e.g. truncated or off-schema JSON): try the next model, do not cache it.
   accept?: (text: string) => boolean;
@@ -89,18 +91,19 @@ function cachePath(messages: ChatMessage[], opts: ChatOptions): string | null {
 }
 
 export async function chat(messages: ChatMessage[], opts: ChatOptions = {}): Promise<ChatResult> {
+  const deadline = Date.now() + (opts.totalTimeoutMs ?? 90_000);
   const cp = cachePath(messages, opts);
   if (cp && existsSync(cp)) return { ...(JSON.parse(readFileSync(cp, "utf8")) as ChatResult), skipped: [] };
   let r: ChatResult;
   try {
-    r = await chatUncached(messages, opts);
+    r = await chatUncached(messages, opts, deadline);
   } catch (e) {
     const now = (opts.now ?? Date.now)();
     const soonest = Math.min(...[...cooldownUntil.values()].filter((t) => t > now));
     const wait = soonest - now;
-    if (!(e instanceof AllModelsUnavailable) || !opts.waitForCooldownMs || !Number.isFinite(wait) || wait > opts.waitForCooldownMs) throw e;
+    if (!(e instanceof AllModelsUnavailable) || !opts.waitForCooldownMs || !Number.isFinite(wait) || wait > opts.waitForCooldownMs || Date.now() + wait + 500 >= deadline) throw e;
     await new Promise((res) => setTimeout(res, wait + 500));
-    r = await chatUncached(messages, opts);
+    r = await chatUncached(messages, opts, deadline);
   }
   if (cp) {
     mkdirSync(dirname(cp), { recursive: true });
@@ -109,12 +112,16 @@ export async function chat(messages: ChatMessage[], opts: ChatOptions = {}): Pro
   return r;
 }
 
-async function chatUncached(messages: ChatMessage[], opts: ChatOptions): Promise<ChatResult> {
+async function chatUncached(messages: ChatMessage[], opts: ChatOptions, deadline: number): Promise<ChatResult> {
   const doFetch = opts.fetchImpl ?? fetch;
   const now = opts.now ?? Date.now;
   const skipped: ChatResult["skipped"] = [];
 
   for (const ref of chain()) {
+    if (Date.now() >= deadline) {
+      skipped.push({ ref, reason: "request time budget exhausted" });
+      break;
+    }
     if (opts.excludeProviders?.includes(ref.provider)) continue;
     const key = apiKey(ref.provider);
     if (!key) {
@@ -128,7 +135,7 @@ async function chatUncached(messages: ChatMessage[], opts: ChatOptions): Promise
     }
 
     const ctrl = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), opts.timeoutMs ?? 60_000);
+    const timer = setTimeout(() => ctrl.abort(), Math.min(opts.timeoutMs ?? 30_000, deadline - Date.now()));
     try {
       const res = await doFetch(ENDPOINTS[ref.provider], {
         method: "POST",

@@ -13,14 +13,14 @@ export function Footer() {
       <div className="mx-auto max-w-6xl px-6 pt-24">
         <div className="grid gap-8 lg:grid-cols-[1.4fr_1fr] lg:items-end">
           <div>
-            <h2 className="text-balance font-serif text-5xl leading-[1.05] text-lead sm:text-6xl">See the agents work on a real case.</h2>
-            <p className="mt-4 max-w-md text-lg text-ink-2">A fictional family, a fictional hospital in Shenzhen, test-mode payments.</p>
+            <h2 className="text-balance font-serif text-5xl leading-[1.05] text-lead sm:text-6xl">Put your family’s care in clearer view.</h2>
+            <p className="mt-4 max-w-md text-lg text-ink-2">Understand the bill, coordinate family contributions, and keep every step together.</p>
           </div>
           <Link
-            href="/case/C1"
+            href="/app"
             className="inline-flex items-center gap-2 justify-self-start rounded-full bg-serpent px-7 py-4 text-lg font-semibold text-white transition-colors hover:bg-serpent-dark lg:justify-self-end"
           >
-            Open the demo case <Arrow className="h-5 w-5" />
+            Open App <Arrow className="h-5 w-5" />
           </Link>
         </div>
 
@@ -41,7 +41,7 @@ export function Footer() {
             <span>Deposit and bill guardian for treatment abroad</span>
           </div>
           <p className="max-w-md sm:text-right">
-            Demo for the 2026 Shenzhen International FinTech Competition. Fictional hospital and people, test-mode payments, no real money.
+            Built for families managing hospital bills across borders.
           </p>
         </div>
       </div>

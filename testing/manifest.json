@@ -1,0 +1,171 @@
+{
+  "synthetic": true,
+  "generatedAt": "2026-10-20T03:29:54.838Z",
+  "files": [
+    {
+      "path": "admin/01-hospital-profile.json",
+      "bytes": 344,
+      "sha256": "ea0ae5fafc658a86995f0cda31f253dea91e2ece32f572ffb2e4e97f1e6f45ea"
+    },
+    {
+      "path": "admin/02-contact-change.json",
+      "bytes": 344,
+      "sha256": "37a2fb8ca3cb9f806813279f13d1f4546681cb8e7b1ffaf771349891d007b4be"
+    },
+    {
+      "path": "admin/03-branch-change.json",
+      "bytes": 337,
+      "sha256": "3de91904d4d95e5c4336c8c54fb9d3493a9b4452a76a54f5c6b8fc6620e994f1"
+    },
+    {
+      "path": "admin/04-evidence-sources.json",
+      "bytes": 504,
+      "sha256": "7caef690f51a8d707d91400daee85e33ddeb592eaf5e841a7a801ac83c4a80fe"
+    },
+    {
+      "path": "admin/generate-payment-fixtures.ts",
+      "bytes": 3947,
+      "sha256": "cce17f0c86bd2d1e39e8fefa47a627d08ff0470938e9d67f1488074b991c71ad"
+    },
+    {
+      "path": "admin/generated/HD_TESTING_EXAMPLE/01-payment-proposal.json",
+      "bytes": 546,
+      "sha256": "4213329eb6df0264e7049faf337a1631c17dfdebdf1d5da8725d896660bbc4c4"
+    },
+    {
+      "path": "admin/generated/HD_TESTING_EXAMPLE/01-public-key.txt",
+      "bytes": 61,
+      "sha256": "de3d9415b4e6e16f2767a85453ea14a8e063430b85982c978dc8f16f88413c15"
+    },
+    {
+      "path": "admin/generated/HD_TESTING_EXAMPLE/01-signed-account-list.json",
+      "bytes": 329,
+      "sha256": "162fab2ae9151a18a7b4dabba124f067914c1164b71133d515f5ed9c32b1dee1"
+    },
+    {
+      "path": "admin/generated/HD_TESTING_EXAMPLE/02-replacement-account-list.json",
+      "bytes": 329,
+      "sha256": "ae5475d1db29ae4223da7ca1fab128cea930110fbe69109a0ae10e1f056aed62"
+    },
+    {
+      "path": "admin/generated/HD_TESTING_EXAMPLE/02-replacement-payment-proposal.json",
+      "bytes": 546,
+      "sha256": "b2789c3fe665287b3c4be4c4c91b421d4fc4604af3814ecde785bbe4b53f031d"
+    },
+    {
+      "path": "admin/generated/HD_TESTING_EXAMPLE/03-rotated-account-list.json",
+      "bytes": 329,
+      "sha256": "9cfc9792576ae8aafce4d27fcdb9c603bc54afb31e40a3077e094cf1864aee7c"
+    },
+    {
+      "path": "admin/generated/HD_TESTING_EXAMPLE/03-rotated-payment-proposal.json",
+      "bytes": 661,
+      "sha256": "30b79d8922aeeb175545c7d0c9efd6cf83df30399ed30e2e090772ad3d9d1c7f"
+    },
+    {
+      "path": "admin/generated/HD_TESTING_EXAMPLE/03-rotated-public-key.txt",
+      "bytes": 61,
+      "sha256": "11461df58bce96bf3cdbfa1c4642bb32b3be521b9590e1b3c098844d59d7025b"
+    },
+    {
+      "path": "admin/generated/HD_TESTING_EXAMPLE/03-rotation-signature.txt",
+      "bytes": 89,
+      "sha256": "9002a730d063adb0812f713c25826589d0a62cd47e85ecca18382fcf44eb8119"
+    },
+    {
+      "path": "admin/generated/HD_TESTING_EXAMPLE/04-tampered-account-list.json",
+      "bytes": 329,
+      "sha256": "492465460313bd261c54e6f9fc2998dd900775b91ac02aea1aaec7143ddbd7f7"
+    },
+    {
+      "path": "admin/generated/HD_TESTING_EXAMPLE/05-stale-account-list.json",
+      "bytes": 329,
+      "sha256": "0ec463d553dc32d097ca2a370317d2401e1a67f95b8ff7c0bbb8cfba7eabff21"
+    },
+    {
+      "path": "admin/generated/HD_TESTING_EXAMPLE/README.json",
+      "bytes": 827,
+      "sha256": "0cf3d7631c94c9544e76f46dfe4d89673a7a490b9be9835baffc7d211bffa320"
+    },
+    {
+      "path": "admin/README.md",
+      "bytes": 6204,
+      "sha256": "d4d9db370f8d731da8c94408a8e3b1167b39b507a86337be7ad9ba7c013aa29b"
+    },
+    {
+      "path": "bills/01-treatment-estimate.pdf",
+      "bytes": 1728,
+      "sha256": "47fb82994cae4d4e15d374f1e07344a126cf9b25bbf781f4af97b32760f6c239"
+    },
+    {
+      "path": "bills/02-interim-bill-items.csv",
+      "bytes": 2003,
+      "sha256": "2f4f17b1aa2f559b5fa1970778e1bdc13b842ba9c5fa8f1850b40a77d312a8d6"
+    },
+    {
+      "path": "bills/02-interim-bill.pdf",
+      "bytes": 3467,
+      "sha256": "e9c39c70b6c0462bfca0855cb41501e6c8d2590a27f889b9520831e40aea1fb9"
+    },
+    {
+      "path": "bills/03-final-bill.pdf",
+      "bytes": 1740,
+      "sha256": "f11fec270a02d6d5ab147dea7ae67703d97cbd494f5ae30ef241cc0bb467c9f3"
+    },
+    {
+      "path": "expected-results.json",
+      "bytes": 1972,
+      "sha256": "5e153a9ec9f43c53e00f413c092e3a0ecdd83b07cfad70694323b1b0a5dfe9c1"
+    },
+    {
+      "path": "images/01-interim-bill.png",
+      "bytes": 420382,
+      "sha256": "74420bbe6fdb80dbf3da32ce37cdefef2eb911b93f717de5cb45f509969ec5ad"
+    },
+    {
+      "path": "images/02-blank-document.png",
+      "bytes": 13943,
+      "sha256": "81690efd46ebb236f21c01d6ebc6a3d5b98c427fbbf227b4a78e6a2f86919c43"
+    },
+    {
+      "path": "README.md",
+      "bytes": 6003,
+      "sha256": "29672e90baa051960e16aed6d9a010273981dd8816e841d434ce25e7f041c0da"
+    },
+    {
+      "path": "references/01-initial-deposit-receipt.pdf",
+      "bytes": 1601,
+      "sha256": "f57bf4926d834a4fa2e9d9f28565668f1ed1475c1e2159a5ff39f8c824a5ef22"
+    },
+    {
+      "path": "references/02-emergency-guarantee-request.pdf",
+      "bytes": 1628,
+      "sha256": "f563f0d88bb389661dd3e86b3dd6a718f3557f4e5e19e09299bceb6b51455617"
+    },
+    {
+      "path": "references/03-hospital-profile-evidence.pdf",
+      "bytes": 1673,
+      "sha256": "901e65f8ec5bf1735248caed08e9b111ed69de4ee15eab28eb0e09cc5b593991"
+    },
+    {
+      "path": "safety/01-hidden-instructions.pdf",
+      "bytes": 3682,
+      "sha256": "6b75f88837fecd5f486c05418ff666b7a095e35a136e03eb0d819f365d711f4d"
+    },
+    {
+      "path": "safety/02-forged-bank-account.pdf",
+      "bytes": 3581,
+      "sha256": "e3d8e13d5538631486bff83128ee62736c233d324793b891212a28c05e0ffe9b"
+    },
+    {
+      "path": "safety/03-total-mismatch.pdf",
+      "bytes": 1444,
+      "sha256": "d6f30a6f3cab9f8e50d6cd8fdc251495ea5572b8046bb1173d0d4e078afa6734"
+    },
+    {
+      "path": "safety/04-blank-document.pdf",
+      "bytes": 680,
+      "sha256": "4673218cc81d075c9b44d4bb077eb0b8d677d879c8d80f02987e7e802de126ed"
+    }
+  ]
+}

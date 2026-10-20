@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import type { DB } from "./db";
 import { appendAudit } from "./audit";
-import { authorizeExecution, type GateResult } from "./gateway";
+import { authorizeExecution, resolvePayee, type GateResult } from "./gateway";
 
 // Payment request state machine:
 //   pending --(approvals cover amount, checks 1-5)--> executing --> paid | failed
@@ -91,7 +91,8 @@ export async function executeRequest(db: DB, requestId: string, actor: string, c
 
   const charges: NonNullable<ExecuteResult["charges"]> = [];
   for (const s of shares) {
-    const out = await charge({
+    const recipient = resolvePayee(db,req.case_id,"gateway",{payeeId:req.payee_id,source:"official_registry"});
+    const out:ChargeOutcome = !recipient.ok ? {ok:false,error:"The hospital payment authority changed. This share was not charged."} : await charge({
       requestId,
       memberId: s.member_id,
       payeeId: req.payee_id,

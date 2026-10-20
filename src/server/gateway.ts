@@ -2,6 +2,7 @@ import type { DB } from "./db";
 import { appendAudit } from "./audit";
 import { getQuote } from "./fx";
 import { hasConfusable, hasInvisible, normalizeAccount, normalizeName } from "./normalize";
+import { syncDirectoryHospital } from "./hospital-directory";
 
 // Deterministic payment gateway. No LLM output can bypass these checks:
 // the planner may only reference a payee_id, never write an account.
@@ -47,6 +48,7 @@ function deny(db: DB, caseId: string, actor: string, check: GateResult["check"],
 export function resolvePayee(db: DB, caseId: string, actor: string, claim: PayeeClaim): GateResult & { payee?: PayeeRow } {
   const c = db.prepare("SELECT hospital_id FROM cases WHERE id = ?").get(caseId) as { hospital_id: string } | undefined;
   if (!c) return deny(db, caseId, actor, 1, "unknown case", [claim.source]);
+  syncDirectoryHospital(db,c.hospital_id);
 
   let payee: PayeeRow | undefined;
   if (claim.payeeId) {

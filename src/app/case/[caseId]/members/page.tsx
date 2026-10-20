@@ -4,8 +4,7 @@ import { useState, type FormEvent } from "react";
 import { CopyButton } from "@/components/app/CopyButton";
 import { MemberAvatar } from "@/components/app/people";
 import { Chip, PRIMARY, SECONDARY, Section, type Tone } from "@/components/app/ui";
-import { People } from "@/components/landing/icons";
-import { CASE } from "@/lib/demo";
+import { useCaseData, useWorkspace } from "@/components/app/WorkspaceProvider";
 
 // Members and invites (brainstorm/17 §4–5). Every person is invited with a personal one-time
 // link and confirms with their own ID number; only a fingerprint and the last 4 digits are kept.
@@ -17,26 +16,34 @@ const ROLE: Record<string, { label: string; tone: Tone; can: string }> = {
 };
 
 // Demo values: the last 4 digits each member confirmed with.
-const ID_END: Record<string, string> = { M_OWNER: "8812", M_JKT: "3307", M_KL: "4521", M_DXB: "1196", M_MOSQUE: "0450", M_COMP: "7734" };
 
 const FIELD = "w-full rounded-xl border border-line bg-white px-3 py-2.5 text-lead outline-none focus:border-serpent";
 
 export default function MembersPage() {
+  const { case: CASE } = useCaseData();
+  const { act,mode,selectMember } = useWorkspace();
+  const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
   const [open, setOpen] = useState(false);
   const [link, setLink] = useState<string | null>(null);
 
-  function create(e: FormEvent) {
+  async function create(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    setLink("https://guardian.demo/join/k7q2-9xfa-31mz");
+    const fields = new FormData(e.currentTarget);
+    setBusy(true); setError("");
+    try { const r = await act(CASE.id, { action: "invite", name: fields.get("name"), role: fields.get("role"), currency: fields.get("currency"), email: String(fields.get("email")??"").trim() || undefined, shareLimit: Math.round(Number(fields.get("shareLimit")??0)*100) }) as { link: string }; setLink(r.link); }
+    catch(e) { setError((e as Error).message); }
+    finally { setBusy(false); }
   }
 
   return (
     <div className="space-y-12">
+      {error && <p role="alert" className="text-danger-ink">{error}</p>}
       {open && (
         <Section title="Invite a Helper" agent="clerk">
           {link ? (
             <div className="space-y-3">
-              <p className="text-sm text-ink-2">Send this link to Hasan yourself, for example on WhatsApp. It works once, for 72 hours, and only for the person you entered: they confirm with their own ID number.</p>
+              <p className="text-sm text-ink-2">Share this invitation with the intended helper. It expires after 72 hours. They must sign in with the Google email you invited before accepting their role.</p>
               <div className="flex flex-wrap items-center gap-2">
                 <code className="min-w-0 flex-1 truncate rounded-xl bg-mist px-3 py-2.5 text-sm text-lead">{link}</code>
                 <CopyButton text={link} label="Copy link" />
@@ -46,40 +53,27 @@ export default function MembersPage() {
             <form onSubmit={create} className="grid gap-3 sm:grid-cols-2">
               <label className="text-sm text-ink-2">
                 Name
-                <input className={`${FIELD} mt-1`} defaultValue="Hasan" required />
+                <input className={`${FIELD} mt-1`} name="name" placeholder="Helper’s name" required />
               </label>
               <label className="text-sm text-ink-2">
                 Role
-                <select className={`${FIELD} mt-1`} defaultValue="payer">
+                <select className={`${FIELD} mt-1`} name="role" defaultValue="payer">
                   <option value="payer">Helper (can pledge)</option>
                   <option value="companion">Companion (uploads bills, can’t pay)</option>
                 </select>
               </label>
-              <label className="text-sm text-ink-2">
-                ID type
-                <select className={`${FIELD} mt-1`} defaultValue="passport">
-                  <option value="passport">Passport</option>
-                  <option value="national">National ID</option>
-                </select>
-              </label>
-              <label className="text-sm text-ink-2">
-                Their ID number
-                <input className={`${FIELD} mt-1`} type="password" autoComplete="off" placeholder="Only a fingerprint is kept" required />
-              </label>
-              <label className="text-sm text-ink-2">
-                Country they live in
-                <input className={`${FIELD} mt-1`} defaultValue="Singapore" />
-              </label>
+              <label className="text-sm text-ink-2">Google email<input type="email" name="email" required={mode === "google"} className={`${FIELD} mt-1`} placeholder="The helper’s Google email" /></label>
+              <label className="text-sm text-ink-2">Maximum share in {CASE.currency}<input type="number" min="0" step="0.01" name="shareLimit" defaultValue="5000" className={`${FIELD} mt-1`} /></label>
               <label className="text-sm text-ink-2">
                 Currency they pay in
-                <select className={`${FIELD} mt-1`} defaultValue="SGD">
+                <select className={`${FIELD} mt-1`} name="currency" defaultValue="SGD">
                   {["IDR", "MYR", "SGD", "AED", "USD"].map((c) => (
                     <option key={c}>{c}</option>
                   ))}
                 </select>
               </label>
               <div className="flex gap-2 sm:col-span-2">
-                <button type="submit" className={PRIMARY}>
+                <button type="submit" className={PRIMARY} disabled={busy}>
                   Create invite link
                 </button>
                 <button type="button" className={SECONDARY} onClick={() => setOpen(false)}>
@@ -91,12 +85,13 @@ export default function MembersPage() {
         </Section>
       )}
 
+      {mode === "demo" && <label className="block text-sm font-semibold text-ink-2">Viewing as<select aria-label="View case as member" value={CASE.me.id} onChange={e=>void selectMember(CASE.id,e.target.value)} className="mt-2 block w-full rounded-xl border border-line bg-white p-3">{CASE.members.map(m=><option key={m.id} value={m.id}>{m.displayName} · {m.role}</option>)}</select></label>}
       <Section title="Patient" agent="clerk">
         <div className="flex flex-wrap items-center gap-3">
           <MemberAvatar id="PATIENT" className="h-12 w-12 rounded-xl" />
           <div className="min-w-0 flex-1">
             <p className="font-semibold text-lead">{CASE.patient.name}</p>
-            <p className="text-xs text-ink-2">Passport ending 4567. The agents only ever see {CASE.patient.token}.</p>
+            <p className="text-xs text-ink-2">The agents only ever see {CASE.patient.token}.</p>
           </div>
           <Chip tone="info">Patient</Chip>
         </div>
@@ -105,10 +100,10 @@ export default function MembersPage() {
       <Section
         title="People"
         agent="clerk"
-        action={
+        action={CASE.me.role === "owner" ?
           <button type="button" className={PRIMARY} onClick={() => setOpen(true)}>
             Invite a helper
-          </button>
+          </button> : undefined
         }
       >
         <ul className="divide-y divide-line">
@@ -123,21 +118,12 @@ export default function MembersPage() {
                     {r.can}. Pays in {m.currency}.
                   </p>
                 </div>
-                <span className="text-xs text-ink-2">ID confirmed, ends {ID_END[m.id]}</span>
+
                 <Chip tone={r.tone}>{r.label}</Chip>
               </li>
             );
           })}
-          <li className="flex flex-wrap items-center gap-3 py-3.5">
-            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-dashed border-wolverine text-ink-2">
-              <People className="h-5 w-5" />
-            </span>
-            <div className="min-w-0 flex-1">
-              <p className="font-semibold text-lead">Hasan (Singapore)</p>
-              <p className="text-xs text-ink-2">Invite sent 2 hours ago. The link expires in 70 hours.</p>
-            </div>
-            <Chip>Invited</Chip>
-          </li>
+
         </ul>
       </Section>
     </div>

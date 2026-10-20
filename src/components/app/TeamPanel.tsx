@@ -67,17 +67,17 @@ export function TeamList({
 }
 
 /** The latest entries of the case log, newest first, in a small scrolling box. */
-export function ActivityLog({ rows }: { rows: AuditRow[] }) {
+export function ActivityLog({ rows, horizontal = false }: { rows: AuditRow[]; horizontal?: boolean }) {
   return (
     <div>
-      <ol className="max-h-64 divide-y divide-line overflow-y-auto pr-1">
+      <ol aria-label="Recent case activity" tabIndex={0} className={horizontal ? "flex gap-3 overflow-x-auto overscroll-x-contain pb-2" : "max-h-64 divide-y divide-line overflow-y-auto pr-1"}>
         {[...rows].reverse().map((r) => (
-          <li key={r.seq} className="grid grid-cols-[2.75rem_1fr] gap-2 py-2.5">
+          <li key={r.seq} className={horizontal ? "grid w-64 shrink-0 grid-cols-[2.75rem_1fr] gap-2 rounded-xl bg-white/80 px-3 py-2.5" : "grid grid-cols-[2.75rem_1fr] gap-2 py-2.5"}>
             <span className="pt-0.5 text-xs tabular-nums text-ink-2">{clock(r.ts)}</span>
             <span className="min-w-0 text-sm leading-snug text-lead">
               <b className="font-semibold">{r.actor}</b>
               {r.decision === "deny" && <Chip tone="danger" className="ml-2">Blocked</Chip>}
-              <span className="block text-ink-2">{r.action}</span>
+              <span className={horizontal ? "line-clamp-2 text-ink-2 [@media(max-height:600px)]:hidden" : "block text-ink-2"}>{r.action}</span>
             </span>
           </li>
         ))}

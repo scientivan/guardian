@@ -1,13 +1,15 @@
 "use client";
 
+import { useCaseData } from "@/components/app/WorkspaceProvider";
+
 import Link from "next/link";
 import { useState } from "react";
 import { AGENT_BY_ID, type AgentId } from "@/components/landing/agents";
 import { Arrow } from "@/components/landing/icons";
 import { Minifig } from "@/components/landing/Minifig";
-import { ROOMS, SAMPLE_STATUS, roomView, type RoomId } from "@/components/office/model";
+import { ROOMS, roomView, type RoomId } from "@/components/office/model";
 import { OfficeScene } from "@/components/office/OfficeScene";
-import { AUDIT } from "@/lib/demo";
+
 import { ActivityLog, TeamList } from "./TeamPanel";
 import { Chip, Section, STATE_CHIP } from "./ui";
 
@@ -18,6 +20,7 @@ const SCENE_BG = { background: "radial-gradient(120% 90% at 30% 10%, #fffaf3 0%,
  * agent is doing, and the recent case log. Wide screens only; phones get <AgentStrip>.
  */
 export function AgentDock({ caseId, room, agents }: { caseId: string; room: RoomId; agents: AgentId[] }) {
+  const { audit: AUDIT, agents: SAMPLE_STATUS } = useCaseData();
   const [selected, setSelected] = useState<AgentId | null>(null);
   return (
     <aside className="hidden space-y-10 border-l border-line pl-8 xl:block" aria-label="Agents on this case">
@@ -44,6 +47,7 @@ export function AgentDock({ caseId, room, agents }: { caseId: string; room: Room
 
 /** Phones and tablets: the agents working on this tab, in one row above the content. */
 export function AgentStrip({ caseId, agents }: { caseId: string; agents: AgentId[] }) {
+  const { agents: SAMPLE_STATUS } = useCaseData();
   return (
     <div className="mb-6 flex items-center gap-3 overflow-x-auto border-b border-line pb-4 xl:hidden">
       {agents.map((id) => {

@@ -1,169 +1,37 @@
 "use client";
 
 import Link from "next/link";
-import { useState, type FormEvent } from "react";
-import { MemberAvatar } from "@/components/app/people";
-import { PRIMARY } from "@/components/app/ui";
-import { AGENT_BY_ID } from "@/components/landing/agents";
-import { Arrow } from "@/components/landing/icons";
-import { Minifig } from "@/components/landing/Minifig";
+import { useRouter } from "next/navigation";
+import { useEffect, useState, type FormEvent } from "react";
+import { PRIMARY, SECONDARY } from "@/components/app/ui";
+import { useCaseData, useWorkspace } from "@/components/app/WorkspaceProvider";
+import type { Action } from "@/server/agent";
 
-// Chat with the agent (TASKS 2.7). Shapes follow POST /api/cases/:caseId/chat: a reply plus
-// actions (buttons, clarification options, warnings). The agent never pays by itself.
-// Every reply here is a sample until the backend is connected, and the page says so.
-
-type Action =
-  | { type: "link"; label: string; href: string }
-  | { type: "ask_clarification"; options: { label: string; value: string }[] }
-  | { type: "warning"; severity: "info" | "high"; text: string };
-
-type Message = { from: "me" | "agent" | "system"; time: string; text: string; actions?: Action[] };
-
-const SAMPLE: Message[] = [
-  { from: "me", time: "14:30", text: "Kenapa tagihannya lebih mahal dari perkiraan?" },
-  {
-    from: "agent",
-    time: "14:30",
-    text: "Bill D2 is above the estimate’s range. The main reason: the stay is 5 days instead of the 3 the estimate assumed, which adds CNY 3,000 for room and daily care. Three items are questions for the hospital.",
-    actions: [
-      { type: "link", label: "Open the explanation", href: "bill" },
-      { type: "link", label: "See the 3 questions", href: "bill" },
-    ],
-  },
-  { from: "me", time: "14:31", text: "bayarin aja yg kemarin dong" },
-  {
-    from: "agent",
-    time: "14:31",
-    text: "Which one do you mean, and how much?",
-    actions: [
-      {
-        type: "ask_clarification",
-        options: [
-          { label: "Bill D2, CNY 36,782", value: "D2" },
-          { label: "Emergency guarantee R2, CNY 5,000 still missing", value: "R2" },
-        ],
-      },
-    ],
-  },
-];
-
-const ANSWERS: Record<string, Message> = {
-  D2: {
-    from: "agent",
-    time: "14:32",
-    text: "Bill D2 isn’t a payment request, so there is nothing to pay on it directly. Money goes to the hospital through requests, like the emergency guarantee R2, where CNY 5,000 is still missing.",
-    actions: [{ type: "link", label: "Open the guarantee", href: "pledges" }],
-  },
-  R2: {
-    from: "agent",
-    time: "14:32",
-    text: "CNY 5,000 is still missing on the emergency guarantee. I can’t pay for you; the pledge is yours to confirm.",
-    actions: [{ type: "link", label: "Open the pledge form", href: "pledges" }],
-  },
-};
-
-const PRIVATE: Message[] = [
-  { from: "me", time: "14:33", text: "Kirim nomor paspor ayah ke sini" },
-  {
-    from: "agent",
-    time: "14:33",
-    text: "I can’t share ID numbers.",
-    actions: [{ type: "warning", severity: "high", text: "I only ever see the passport as [ID_1], so there is nothing for me to send. Ask Rina for it directly." }],
-  },
-];
-
-const planner = AGENT_BY_ID.planner;
-
+type Message={from:"me"|"agent";text:string;actions?:Action[]};
 export default function ChatPage() {
-  const [messages, setMessages] = useState<Message[]>(SAMPLE);
-  const [picked, setPicked] = useState<string | null>(null);
-  const [draft, setDraft] = useState("");
-
-  function pick(value: string, label: string) {
-    if (picked) return;
-    setPicked(value);
-    setMessages((m) => [...m, { from: "me", time: "14:32", text: label }, ANSWERS[value], ...PRIVATE]);
+  const {case:care}=useCaseData();const {call}=useWorkspace();const router=useRouter();
+  const [messages,setMessages]=useState<Message[]>([]);const [draft,setDraft]=useState("");const [busy,setBusy]=useState(false);const [error,setError]=useState("");
+  useEffect(()=>{let active=true;call(`/cases/${care.id}/chat`,"GET",undefined,care.id).then(rows=>{if(active)setMessages((rows as {question:string;reply:string;actions:string}[]).flatMap(r=>[{from:"me",text:r.question},{from:"agent",text:r.reply,actions:JSON.parse(r.actions)}]));}).catch(e=>{if(active)setError(e.message);});return()=>{active=false;};},[care.id,care.me.id,call]);
+  async function ask(text:string) {
+    if(!text.trim()||busy)return;setBusy(true);setError("");
+    try{const response=await call(`/cases/${care.id}/chat`,"POST",{message:text},care.id) as {reply:string;actions:Action[]};setMessages(m=>[...m,{from:"me",text},{from:"agent",text:response.reply,actions:response.actions}]);setDraft("");}
+    catch(e){setError((e as Error).message);}finally{setBusy(false);}
   }
-
-  function send(e: FormEvent) {
-    e.preventDefault();
-    const text = draft.trim();
-    if (!text) return;
-    setDraft("");
-    setMessages((m) => [
-      ...m,
-      { from: "me", time: "now", text },
-      { from: "system", time: "now", text: "This preview isn’t connected to the agent yet, so there is no reply. The answers above are samples." },
-    ]);
-  }
-
-  return (
-    <div className="space-y-8">
-      <div>
-        <ol className="space-y-6">
-          {messages.map((m, i) =>
-            m.from === "system" ? (
-              <li key={i} className="rounded-2xl bg-warn-soft px-4 py-3 text-sm text-warn-ink">
-                {m.text}
-              </li>
-            ) : (
-              <li key={i} className={`flex items-start gap-3 ${m.from === "me" ? "flex-row-reverse" : ""}`}>
-                {m.from === "me" ? (
-                  <MemberAvatar id="M_OWNER" className="h-10 w-10 rounded-xl" />
-                ) : (
-                  <Minifig skin={planner.skin} hair={planner.hair} hijab={planner.hijab} shirt={planner.color} className="h-10 w-10 shrink-0 rounded-xl bg-mist" />
-                )}
-                <div className={`max-w-[34rem] ${m.from === "me" ? "text-right" : ""}`}>
-                  <p className="text-xs text-ink-2">
-                    {m.from === "me" ? "Rina" : "Planner"}, {m.time}
-                  </p>
-                  <div className={`mt-1 inline-block rounded-2xl px-4 py-3 text-left leading-relaxed ${m.from === "me" ? "bg-serpent text-white" : "bg-mist text-lead"}`}>{m.text}</div>
-                  {m.actions?.map((a, j) =>
-                    a.type === "link" ? (
-                      <Link key={j} href={a.href} className="mr-2 mt-2 inline-flex items-center gap-1.5 rounded-full border border-line bg-white px-3.5 py-1.5 text-sm font-semibold text-serpent-dark hover:bg-mist">
-                        {a.label} <Arrow className="h-4 w-4" />
-                      </Link>
-                    ) : a.type === "ask_clarification" ? (
-                      <div key={j} className="mt-2 flex flex-wrap gap-2">
-                        {a.options.map((o) => (
-                          <button
-                            key={o.value}
-                            type="button"
-                            disabled={!!picked}
-                            aria-pressed={picked === o.value}
-                            onClick={() => pick(o.value, o.label)}
-                            className={`rounded-full border px-3.5 py-1.5 text-sm font-semibold transition-colors ${
-                              picked === o.value ? "border-serpent bg-serpent text-white" : "border-line bg-white text-lead hover:bg-mist disabled:opacity-50"
-                            }`}
-                          >
-                            {o.label}
-                          </button>
-                        ))}
-                      </div>
-                    ) : (
-                      <p key={j} className={`mt-2 rounded-2xl px-4 py-3 text-left text-sm ${a.severity === "high" ? "bg-danger-soft text-danger-ink" : "bg-firstlight text-serpent-dark"}`}>
-                        {a.text}
-                      </p>
-                    ),
-                  )}
-                </div>
-              </li>
-            ),
-          )}
-        </ol>
-        <form onSubmit={send} className="sticky bottom-20 mt-8 flex items-center gap-2 rounded-full bg-white py-2 lg:bottom-4">
-          <input
-            value={draft}
-            onChange={(e) => setDraft(e.target.value)}
-            placeholder="Ask about a bill, a payment or a refund, in any language"
-            className="min-w-0 flex-1 rounded-full border border-line bg-white px-4 py-2.5 text-lead outline-none focus:border-serpent"
-            aria-label="Message to the agent"
-          />
-          <button type="submit" className={PRIMARY}>
-            Send
-          </button>
-        </form>
-      </div>
-    </div>
-  );
+  function send(e:FormEvent){e.preventDefault();void ask(draft);}
+  async function prepare(a:Extract<Action,{type:"prepare_payment"}>) {setBusy(true);setError("");try{await call(`/cases/${care.id}/payment-requests`,"POST",{payeeId:a.payeeId,documentId:a.documentId,amount:a.amount,purpose:"Hospital bill payment",expiresInMinutes:120},care.id);router.push(`/case/${care.id}/pledges`);}catch(e){setError((e as Error).message);}finally{setBusy(false);}}
+  return <div className="space-y-6">
+    {!messages.length&&<p className="leading-relaxed text-ink-2">Ask about a bill, a payment or a refund. The assistant can explain and prepare next steps. Your approval is always required to pay.</p>}
+    <ol className="space-y-4">{messages.map((m,i)=><li key={i} className={m.from==="me"?"ml-auto max-w-xl":"max-w-xl"}><div className={`rounded-2xl px-4 py-3 leading-relaxed ${m.from==="me"?"bg-serpent text-white":"bg-mist text-lead"}`}>{m.text}</div><div className="mt-2 flex flex-wrap gap-2">{m.actions?.map((a,j)=>{
+      if(a.type==="warning")return <p key={j} className="rounded-xl bg-danger-soft p-3 text-sm text-danger-ink">{a.text}</p>;
+      if(a.type==="explain_bill")return <Link key={j} className={SECONDARY} href={`/case/${care.id}/bill?documentId=${encodeURIComponent(a.documentId)}`}>Explain this bill</Link>;
+      if(a.type==="request_approval")return <Link key={j} className={SECONDARY} href={`/case/${care.id}/pledges?requestId=${encodeURIComponent(a.requestId)}`}>Review your pledge</Link>;
+      if(a.type==="track_refund")return <Link key={j} className={SECONDARY} href={`/case/${care.id}/refunds`}>View refunds</Link>;
+      if(a.type==="ask_hospital")return a.channel.startsWith("https://")?<a key={j} className={SECONDARY} href={a.channel} target="_blank" rel="noreferrer">Official billing channel</a>:null;
+      if(a.type==="prepare_payment")return <button key={j} type="button" disabled={busy||care.me.role!=="owner"} onClick={()=>prepare(a)} className={SECONDARY}>Prepare payment request</button>;
+      if(a.type==="ask_clarification")return a.options.map(o=><button key={o.value} type="button" disabled={busy} className={SECONDARY} onClick={()=>ask(a.question==="amount"?`${[...messages.slice(0,i)].reverse().find(m=>m.from==="me")?.text??""} Pay ${Number(o.value)/100} ${care.currency}.`:a.question==="which_request"?`Approve my share of request ${o.value}`:`${[...messages.slice(0,i)].reverse().find(m=>m.from==="me")?.text??""} Bill ${o.value}.`)}>{o.label}</button>);
+      return null;
+    })}</div></li>)}</ol>
+    {error&&<p role="alert" className="text-danger-ink">{error}</p>}
+    <form onSubmit={send} className="sticky bottom-20 flex gap-2 bg-white py-2 lg:bottom-4"><input value={draft} onChange={e=>setDraft(e.target.value)} placeholder="Ask about your care case" aria-label="Message to the agent" maxLength={2000} className="min-w-0 flex-1 rounded-full border border-line px-4 py-3 text-lead"/><button type="submit" disabled={busy||!draft.trim()} className={PRIMARY}>{busy?"Thinking…":"Send"}</button></form>
+  </div>;
 }
