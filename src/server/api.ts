@@ -130,7 +130,7 @@ export async function dispatch(request:NextRequest,path:string[]) {
         if(!doc)throw new ApiError("Upload an estimate and a bill first.",409);
         return reply(await api.explanation(doc,request.method==="POST"));
       }
-      if(section==="close" && request.method==="POST")return reply(api.closeCase());
+      if(section==="close" && request.method==="POST")return reply(await api.closeCase());
       if(section==="members" && path[3] && request.method==="POST")return reply(api.setShareLimit(path[3],await body()));
       if(section==="second-check" && request.method==="POST"){const b=z.object({documentId:z.string(),itemIds:z.array(z.string())}).parse(await body());return reply(await api.questionItems(b.documentId,b.itemIds));}
       if(section==="payment-requests" && request.method==="GET")return reply(api.view().requests);

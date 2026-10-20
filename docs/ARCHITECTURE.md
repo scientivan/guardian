@@ -104,7 +104,7 @@ When `executing`, each approved share is a separate Stripe test charge in the he
 
 - Row: `seq, ts, case_id, actor, action, input_sources, decision, result, prev_hash, hash`; `hash = sha256(prev_hash, ts, case_id, actor, action, input_sources, decision, result)`.
 - `verifyChain` recomputes every hash and returns the first broken row.
-- Anchoring: SHA-256 of each uploaded document and the current log head are written to a FISCO BCOS contract (`anchor(bytes32 hash, string kind)`). Tx hash stored in `documents.anchored_tx`.
+- Anchoring: SHA-256 of each uploaded document and hospital invoice, the log head (on demand, after each payment and at closing) and the closing pack are written to a FISCO BCOS contract (`anchor(bytes32 hash, string kind)`). Tx hash stored in `documents.anchored_tx`.
 - Claim limit: an anchor proves a file or log did not change after anchoring. It does not prove who issued the file or that the bill is correct.
 
 ## 4. PII removal (`src/server/pii.ts`)

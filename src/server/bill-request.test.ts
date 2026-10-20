@@ -67,11 +67,14 @@ describe("payment request for an uploaded bill", () => {
       await expect(api.addInvoice(pending.id, pdf())).rejects.toThrow("after the request is paid");
       const inv = await api.addInvoice(paid.id, pdf());
       expect(api.view().requests.find(r => r.id === paid.id)?.invoices?.[0].sha256).toBe(inv.sha256);
-      expect(() => api.closeCase()).toThrow("before closing");
+      await expect(api.closeCase()).rejects.toThrow("before closing");
       api.cancel(pending.id);
-      expect(api.closeCase().case.closed?.at).toBeTruthy();
+      const closed = (await api.closeCase()).case.closed;
+      expect(closed?.at).toBeTruthy();
+      expect(closed?.packSha256).toMatch(/^[0-9a-f]{64}$/);
       expect(api.closed()).toBe(true);
       expect(api.view().audit.rows.at(-1)?.action).toBe("case.closed");
+      expect((api.view().audit.rows.at(-1) as { result?: unknown })?.result).toMatchObject({ packSha256: closed?.packSha256 });
     } finally { c.close(); }
     const helper = caseAccess(demo, "C1", "M_JKT");
     try {

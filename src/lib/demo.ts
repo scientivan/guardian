@@ -36,7 +36,7 @@ export const CASE = {
   ],
   totals: { paid: 3_000_000, billedSoFar: 3_678_200, currency: "CNY" },
   /** Set when the owner ended the case; everything is read-only from then on. */
-  closed: null as { at: string; by: string } | null,
+  closed: null as { at: string; by: string; packSha256?: string | null; packTx?: string | null; auditHash?: string | null; auditTx?: string | null } | null,
 };
 
 export const MEMBER_BY_ID = Object.fromEntries(CASE.members.map((m) => [m.id, m])) as Record<string, Member>;
@@ -191,7 +191,7 @@ export type PaymentRequest = {
   expiresAt: string;
   approvals: Pledge[];
   /** The hospital's invoices or receipts attached after the request was paid. */
-  invoices?: { id: string; filename: string; sha256: string; by: string; ts: string }[];
+  invoices?: { id: string; filename: string; sha256: string; anchoredTx?: string | null; by: string; ts: string }[];
 };
 
 export const REQUESTS: PaymentRequest[] = [

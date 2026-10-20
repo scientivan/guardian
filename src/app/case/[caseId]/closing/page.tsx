@@ -21,7 +21,7 @@ const DOCS: Doc[] = [
   { id: "summary", title: "Case Closing Summary", who: "Owner", why: "PRD §4 steps 1–8: estimate, bills, every payment request, deposits, refunds and hospital invoices in one statement.", roles: ["owner"] },
   { id: "record", title: "Payment Record", who: "Every payer, and the owner for each payer", why: "PRD F19 / step 8: what each person paid, for what, at which rate, the receipts, their refund share and the document fingerprints.", roles: ["owner", "payer"] },
   { id: "questions", title: "Questions for Hospital Billing", who: "Owner and companion", why: "PRD F5–F7, TEST-PLAN §3: the cited items still to ask the hospital about, ready to hand to its billing desk.", roles: ["owner", "companion"] },
-  { id: "proof", title: "Document and Audit Proof", who: "Owner and companion", why: "PRD F20, ARCHITECTURE §3.7: SHA-256 fingerprints of every document and invoice, the hash-chained log, its anchor, and what the records do and don’t prove.", roles: ["owner", "companion"] },
+  { id: "proof", title: "Document and Audit Proof", who: "Owner and companion", why: "PRD F20, ARCHITECTURE §3.7: SHA-256 fingerprints of every document and invoice, the hash-chained log, the closing pack, their blockchain anchors, and what the records do and don’t prove.", roles: ["owner", "companion"] },
 ];
 
 export default function ClosingPage() {
@@ -51,10 +51,11 @@ export default function ClosingPage() {
   return (
     <div className="space-y-10">
       {care.closed ? (
-        <p role="status" className="rounded-2xl bg-firstlight p-5 leading-relaxed text-serpent-dark"><b>This care case was closed on {day(care.closed.at)} by {care.closed.by}.</b> Everyone can still read it and keep the documents below. Nothing can be uploaded, requested, pledged or paid any more.</p>
+        <p role="status" className="rounded-2xl bg-firstlight p-5 leading-relaxed text-serpent-dark"><b>This care case was closed on {day(care.closed.at)} by {care.closed.by}.</b> Everyone can still read it and keep the documents below. Nothing can be uploaded, requested, pledged or paid any more.
+          {care.closed.packSha256 && <span className="mt-3 block break-all text-xs">Closing pack SHA-256 {care.closed.packSha256} · {care.closed.packTx ? `on FISCO BCOS, tx ${care.closed.packTx}` : "not on the blockchain (anchoring not configured)"}<br />Final case history hash {care.closed.auditHash ?? "—"} · {care.closed.auditTx ? `on FISCO BCOS, tx ${care.closed.auditTx}` : "not on the blockchain"}</span>}</p>
       ) : role === "owner" ? (
         <Section title="End This Care Case" agent="auditor">
-          <p className="mb-4 leading-relaxed text-ink-2">When treatment and payments are done, close the case. Every member keeps read access and their documents; nobody, including you, can change anything afterwards. This can’t be undone.</p>
+          <p className="mb-4 leading-relaxed text-ink-2">When treatment and payments are done, close the case. Every member keeps read access and their documents; nobody, including you, can change anything afterwards. This can’t be undone. Closing records the fingerprint of the closing documents and the final case history on the blockchain.</p>
           <ul className="mb-5 space-y-2">{checks.map(c => (
             <li key={c.text} className="flex items-start gap-3 text-sm">
               <Chip tone={c.ok ? "ok" : c.blocking ? "danger" : "warn"}>{c.ok ? "Done" : c.blocking ? "Required" : "Check"}</Chip>
@@ -162,12 +163,13 @@ function Questions() {
 }
 
 function Proof() {
-  const { documents, requests, audit } = useCaseData();
+  const { case: care, documents, requests, audit } = useCaseData();
   return <div>
     <H>Documents</H>
     <ul className="space-y-1.5 text-xs">{documents.map(d => <li key={d.id} className="break-all text-ink-2"><b className="text-lead">{d.title}</b> · {d.type} · SHA-256 {d.sha256 || "pending"}{d.anchoredTx ? ` · anchored ${d.anchoredTx}` : ""}</li>)}</ul>
     <H>Hospital invoices</H>
-    {requests.some(r => (r.invoices ?? []).length) ? <ul className="space-y-1.5 text-xs">{requests.flatMap(r => (r.invoices ?? []).map(i => <li key={i.id} className="break-all text-ink-2"><b className="text-lead">{r.purpose}</b> · {i.filename} · SHA-256 {i.sha256}</li>))}</ul> : <p className="text-xs text-ink-2">None attached.</p>}
+    {requests.some(r => (r.invoices ?? []).length) ? <ul className="space-y-1.5 text-xs">{requests.flatMap(r => (r.invoices ?? []).map(i => <li key={i.id} className="break-all text-ink-2"><b className="text-lead">{r.purpose}</b> · {i.filename} · SHA-256 {i.sha256}{i.anchoredTx ? ` · anchored ${i.anchoredTx}` : ""}</li>))}</ul> : <p className="text-xs text-ink-2">None attached.</p>}
+    {care.closed?.packSha256 && <><H>Closing record</H><Rows rows={[["Closing pack", <span key="p" className="break-all font-mono text-xs">{care.closed.packSha256}{care.closed.packTx ? ` · tx ${care.closed.packTx}` : " · not anchored"}</span>]]} /></>}
     <H>Case history</H>
     <Rows rows={[["Steps recorded", String(audit.rows.length)], ["Hash chain", audit.chainValid ? "Intact" : "Broken"], ["Latest hash", <span key="h" className="break-all font-mono text-xs">{audit.rows.at(-1)?.hash ?? "—"}</span>], ["Anchored hash", <span key="a" className="break-all font-mono text-xs">{audit.anchoredHead.tx ? `${audit.anchoredHead.hash} · tx ${audit.anchoredHead.tx}` : "Not anchored"}</span>]]} />
     <p className="mt-4 text-xs leading-relaxed text-ink-2">What this proves: the documents and log entries have not changed since they were fingerprinted, and the log’s order was not edited. It does not prove that a hospital’s charges were medically necessary or fairly priced.</p>

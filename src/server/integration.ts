@@ -17,6 +17,7 @@ import { createPaymentRequest, cancelRequest, executeRequest, type Charger } fro
 import { openRefunds, setRefundStatus, type RefundStatus } from "./refunds";
 import { anchorHash } from "./anchor";
 import { appendAudit } from "./audit";
+import { recap } from "./recap";
 import { sendMails } from "./notify";
 import { memberEmails } from "./access";
 import { money } from "@/lib/format";
@@ -169,8 +170,12 @@ export class Integration {
     const bytes=Buffer.from(await file.arrayBuffer());
     const id=`INV_${randomUUID().slice(0,8)}`,sha256=createHash("sha256").update(bytes).digest("hex"),ts=now(this.c.db).toISOString();
     this.c.db.prepare("INSERT INTO request_invoices (id,request_id,case_id,filename,mime,bytes,sha256,uploaded_by,ts) VALUES (?,?,?,?,?,?,?,?,?)").run(id,requestId,this.c.caseId,file.name.slice(0,200),file.type,bytes,sha256,this.c.member.id,ts);
-    appendAudit(this.c.db,{caseId:this.c.caseId,actor:this.c.member.id,action:"request.invoice",inputSources:["hospital_doc"],decision:"info",result:{requestId,invoiceId:id,sha256}});
-    return {id,sha256};
+    // Same treatment as bills (PRD F20): the invoice's hash goes on chain when anchoring is configured.
+    let anchoredTx:string|null=null;
+    try{anchoredTx=await anchorHash(sha256,`invoice:${requestId}`);}catch{anchoredTx=null;}
+    if(anchoredTx)this.c.db.prepare("UPDATE request_invoices SET anchored_tx=? WHERE id=?").run(anchoredTx,id);
+    appendAudit(this.c.db,{caseId:this.c.caseId,actor:this.c.member.id,action:"request.invoice",inputSources:["hospital_doc"],decision:"info",result:{requestId,invoiceId:id,sha256,anchoredTx}});
+    return {id,sha256,anchoredTx};
   }
   invoiceFile(requestId:string,invoiceId:string) {
     // Every member may open it: it is the hospital's proof of payment, which payers paid towards.
@@ -181,7 +186,7 @@ export class Integration {
   }
   closed() {return Boolean(this.c.db.prepare("SELECT 1 FROM case_closure WHERE case_id=?").get(this.c.caseId));}
   /** Owner ends the case. Every member keeps read access; nothing can be written afterwards. */
-  closeCase() {
+  async closeCase() {
     requireOwner(this.c);
     if(this.closed())throw new ApiError("This care case is already closed.",409);
     const open=this.view().requests.filter(r=>r.status==="pending"||r.status==="executing");
@@ -190,12 +195,39 @@ export class Integration {
     const noInvoice=this.view().requests.filter(r=>r.status==="paid"&&!(r.invoices??[]).length);
     if(noInvoice.length)throw new ApiError(`Attach the hospital’s invoice to ${noInvoice.map(r=>r.purpose).join(", ")} before closing the case.`,409);
     const at=now(this.c.db).toISOString();
+    const packSha256=createHash("sha256").update(JSON.stringify(this.closingPack(at))).digest("hex");
     this.c.db.transaction(()=>{
-      this.c.db.prepare("INSERT INTO case_closure (case_id,closed_at,closed_by) VALUES (?,?,?)").run(this.c.caseId,at,this.c.member.id);
+      this.c.db.prepare("INSERT INTO case_closure (case_id,closed_at,closed_by,pack_sha256) VALUES (?,?,?,?)").run(this.c.caseId,at,this.c.member.id,packSha256);
       this.c.db.prepare("UPDATE cases SET status='closed' WHERE id=?").run(this.c.caseId);
-      appendAudit(this.c.db,{caseId:this.c.caseId,actor:this.c.member.id,action:"case.closed",inputSources:["user"],decision:"info",result:{closedAt:at}});
+      appendAudit(this.c.db,{caseId:this.c.caseId,actor:this.c.member.id,action:"case.closed",inputSources:["user"],decision:"info",result:{closedAt:at,packSha256}});
     })();
+    // The closing pack and the final log head (which includes the case.closed row) go on chain.
+    let packTx:string|null=null;
+    try{packTx=await anchorHash(packSha256,`closing:${this.c.caseId}`);}catch{packTx=null;}
+    const head=await this.anchorHead();
+    this.c.db.prepare("UPDATE case_closure SET pack_tx=?,audit_hash=?,audit_tx=? WHERE case_id=?").run(packTx,head.hash,head.tx,this.c.caseId);
     return this.view();
+  }
+  /** What the closing documents state, in a fixed order, so anyone can recompute its hash. */
+  closingPack(closedAt:string) {
+    const v=this.view();
+    const payers=v.case.members.filter(m=>m.role!=="companion");
+    return {
+      caseId:this.c.caseId,closedAt,currency:v.case.currency,
+      documents:v.documents.map(d=>({id:d.id,type:d.type,sha256:d.sha256,total:d.total})),
+      requests:v.requests.map(r=>({id:r.id,purpose:r.purpose,amount:r.amount,status:r.status,shares:r.approvals.map(a=>({memberId:a.memberId,amount:a.amount,status:a.status,chargeRef:a.chargeRef??null})),invoices:(r.invoices??[]).map(i=>i.sha256)})),
+      refunds:v.refunds?.items.map(i=>({memberId:i.memberId,amount:i.amount,status:i.status}))??[],
+      records:payers.map(m=>{const r=recap(this.c.db,this.c.caseId,m.id);return {memberId:m.id,paidTotal:r?.paidTotal??0,payments:(r?.payments??[]).map(p=>({requestId:p.requestId,amount:p.amount,chargeRef:p.chargeRef}))};}),
+    };
+  }
+  /** Best effort: anchors the current log head and remembers it. Never fails the action it follows. */
+  private async anchorHead():Promise<{hash:string|null;tx:string|null}> {
+    const hash=this.view().audit.rows.at(-1)?.hash??null;
+    if(!hash)return {hash,tx:null};
+    let tx:string|null=null;
+    try{tx=await anchorHash(hash,`audit:${this.c.caseId}`);}catch{tx=null;}
+    if(tx&&tx!=="already-anchored")this.c.db.prepare("INSERT INTO settings VALUES (?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value").run(`audit_anchor:${this.c.caseId}`,JSON.stringify({hash,tx}));
+    return {hash,tx};
   }
   async execute(requestId:string) {
     requireOwner(this.c);this.request(requestId);
@@ -203,7 +235,8 @@ export class Integration {
     const charge=this.dependencies.charger ?? (this.c.session.user.mode==="demo"?sandbox:stripeCharger());
     const result=await executeRequest(this.c.db,requestId,this.c.member.id,charge,now(this.c.db));
     if(!result.ok && !result.status)gate(result);
-    return result;
+    // Money moved (or failed to): lock the history up to here on chain.
+    return {...result,anchor:await this.anchorHead()};
   }
   async verifyPayees() {
     requireOwner(this.c);

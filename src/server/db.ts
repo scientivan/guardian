@@ -166,6 +166,11 @@ export function openDb(path = process.env.GUARDIAN_DB ?? "guardian.db"): DB {
   db.pragma("journal_mode = WAL");
   db.pragma("foreign_keys = ON");
   db.exec(SCHEMA);
+  // Added 20 Oct: blockchain anchors for invoices and the closing pack.
+  const cols = (t: string) => new Set((db.prepare(`PRAGMA table_info(${t})`).all() as { name: string }[]).map(x => x.name));
+  if (!cols("request_invoices").has("anchored_tx")) db.exec("ALTER TABLE request_invoices ADD COLUMN anchored_tx TEXT");
+  const closure = cols("case_closure");
+  for (const col of ["pack_sha256", "pack_tx", "audit_hash", "audit_tx"]) if (!closure.has(col)) db.exec(`ALTER TABLE case_closure ADD COLUMN ${col} TEXT`);
   return db;
 }
 

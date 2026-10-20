@@ -224,3 +224,17 @@ Plus a member picker (sets `x-member-id`) to switch roles during the demo. The 1
 - `POST /cases/:id/payment-requests` now also emails every payer who joined with a Google account (Gmail SMTP, `GMAIL_USER` + `GMAIL_APP_PASSWORD`; skipped and audited as `notify.email` when not configured). The response carries `notified: {sent, skipped}`. Emails hold no patient name or document content.
 - Invoices on paid requests can be viewed and downloaded by every member.
 - Bill Review's "Explain selected bill" is replaced by "Ask about this bill", answered by the Case Assistant (`context: {kind: "bill", documentId}`).
+
+## v1.6 additions (20 Oct 2026): what goes on chain
+
+Anchored to FISCO BCOS (hash only, best effort; the action never fails when anchoring is unavailable):
+
+| What | When | Kind label |
+|---|---|---|
+| Each estimate, interim and final bill | on upload | `document:<type>` |
+| Each hospital invoice on a paid request | on upload (`request_invoices.anchored_tx`) | `invoice:<requestId>` |
+| Case history head | owner's "Anchor audit hash", after every executed payment, and at closing | `audit:<caseId>` |
+| Closing pack: SHA-256 of the closing statement (documents, requests with shares and receipts, invoice hashes, refunds, each payer's record) | at closing (`case_closure.pack_sha256/pack_tx`; also written into the `case.closed` audit row) | `closing:<caseId>` |
+| Hospital verification snapshot | administrator, Verification Desk | directory |
+
+Not anchored: individual log rows (covered by the head), receipts, quotes, pledges, chat, any personal data or document content.

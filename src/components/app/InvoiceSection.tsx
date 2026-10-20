@@ -42,7 +42,7 @@ export function InvoiceSection({ request }: { request: PaymentRequest }) {
       <p className="mb-4 leading-relaxed text-ink-2">The hospital’s own invoice or receipt for this payment, kept next to the payment receipts as proof the hospital received it.</p>
       {invoices.length > 0 ? <ul className="mb-4 divide-y divide-line rounded-2xl bg-white px-4">{invoices.map(i => (
         <li key={i.id} className="flex flex-wrap items-center gap-x-4 gap-y-1 py-3 text-sm">
-          <span className="min-w-0 flex-1"><span className="block font-semibold text-lead">{i.filename}</span><span className="block break-all text-xs text-ink-2">{day(i.ts)} · {i.by} · SHA-256 {i.sha256}</span></span>
+          <span className="min-w-0 flex-1"><span className="block font-semibold text-lead">{i.filename}</span><span className="block break-all text-xs text-ink-2">{day(i.ts)} · {i.by} · SHA-256 {i.sha256}</span><span className="block break-all text-xs text-ink-2">{i.anchoredTx ? `On FISCO BCOS · tx ${i.anchoredTx}` : "Not on the blockchain yet (anchoring not configured); the case history keeps its hash."}</span></span>
           <div className="flex gap-2"><button type="button" onClick={() => void open(i.id, i.filename, true)} className={SECONDARY}>View</button><button type="button" onClick={() => void open(i.id, i.filename)} className={SECONDARY}>Download</button></div>
         </li>
       ))}</ul> : <p className="mb-4 rounded-xl bg-warn-soft p-3 text-sm text-warn-ink">No invoice from the hospital yet.</p>}
