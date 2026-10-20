@@ -1,6 +1,6 @@
 import type { CareCase } from "./workspace";
 
-// What the owner can ask the family to pay, worked out from the uploaded documents instead of typed
+// What the owner can ask the payers to pay, worked out from the uploaded documents instead of typed
 // in (PRD §4 steps 3, 5, 6). Shared by the Pledges form and the server check in createRequest.
 //
 //  - Initial deposit: the estimate's range. The owner picks its lower or upper end.

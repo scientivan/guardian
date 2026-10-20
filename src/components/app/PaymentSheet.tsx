@@ -9,7 +9,7 @@ import { PRIMARY, SECONDARY } from "./ui";
 // payer confirms when pledging, and the receipt a payer sees once their share was actually paid.
 
 const STAGES = [
-  { key: "requested", label: "Requested", note: "The owner asked the family" },
+  { key: "requested", label: "Requested", note: "The owner asked the payers" },
   { key: "pledging", label: "Pledging", note: "Payers promise shares" },
   { key: "covered", label: "Covered", note: "100% promised" },
   { key: "paid", label: "Paid", note: "Sandbox/test charge completed" },

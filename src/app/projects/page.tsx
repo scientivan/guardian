@@ -71,7 +71,7 @@ export default function DashboardPage() {
         )}
         <ScrollArea label="Your care cases" fade="from-firstlight" boxClassName="max-h-[max(16rem,calc(100dvh-22rem))] pr-1">
         {cases.length === 0 && !draft ? (
-          <div className="py-3"><h2 className="text-xl font-semibold text-lead">Your first care case starts here</h2><p className="mt-2 max-w-lg leading-relaxed text-ink-2">Keep a patient’s hospital bills, family contributions and refunds together. Start a care case when you’re ready.</p></div>
+          <div className="py-3"><h2 className="text-xl font-semibold text-lead">Your first care case starts here</h2><p className="mt-2 max-w-lg leading-relaxed text-ink-2">Keep a patient’s hospital bills, contributions and refunds together. Start a care case when you’re ready.</p></div>
         ) : cases.map(({ case: c, country, requests: payments }) => {
           const g = payments.find(r => r.status === "pending");
           return <Link key={c.id} href={`/case/${c.id}`} className="group mb-3 flex flex-wrap items-center gap-4 rounded-2xl bg-white p-4 transition-colors hover:bg-white/70">
@@ -91,7 +91,7 @@ export default function DashboardPage() {
       <div className="min-w-0 space-y-8">
       <Section title="Invitation Requests" agent="clerk" action={requests && requests.length > 0 ? <Chip tone="info">{requests.length} waiting</Chip> : undefined}>
         {requests === null ? <p role="status" className="flex items-center gap-3 text-ink-2"><Spinner className="h-5 w-5 text-serpent" />Checking for invitations…</p>
-          : requests.length === 0 ? <p className="leading-relaxed text-ink-2">No invitations right now. When a family member invites your Google email to their care case, it appears here. If someone sent you a link, just open it.</p>
+          : requests.length === 0 ? <p className="leading-relaxed text-ink-2">No invitations right now. When someone invites your Google email to their care case, it appears here. If someone sent you a link, just open it.</p>
           : <ul className="space-y-3">{requests.map(r => (
             <li key={r.id}>
               <button type="button" onClick={() => setOpened(r)} className="flex w-full flex-wrap items-center gap-4 rounded-2xl bg-white p-4 text-left transition-colors hover:bg-white/70">

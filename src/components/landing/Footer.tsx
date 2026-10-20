@@ -4,7 +4,7 @@ import { Arrow, ShieldMark } from "./icons";
 import { Minifig } from "./Minifig";
 
 // The closing band runs edge to edge; its content stays on the hero's edges.
-// The whole cast, agents and family, stands along the bottom of it.
+// The whole cast, agents and people, stands along the bottom of it.
 const CAST = [...AGENTS.map((a) => ({ name: a.name, skin: a.skin, hair: a.hair, hijab: a.hijab, shirt: a.color })), ...FAMILY];
 
 export function Footer() {
@@ -13,8 +13,8 @@ export function Footer() {
       <div className="mx-auto max-w-6xl px-6 pt-24">
         <div className="grid gap-8 lg:grid-cols-[1.4fr_1fr] lg:items-end">
           <div>
-            <h2 className="text-balance font-serif text-5xl leading-[1.05] text-lead sm:text-6xl">Put your family’s care in clearer view.</h2>
-            <p className="mt-4 max-w-md text-lg text-ink-2">Understand the bill, coordinate family contributions, and keep every step together.</p>
+            <h2 className="text-balance font-serif text-5xl leading-[1.05] text-lead sm:text-6xl">Put a patient’s care in clearer view.</h2>
+            <p className="mt-4 max-w-md text-lg text-ink-2">Understand the bill, coordinate everyone’s contributions, and keep every step together.</p>
           </div>
           <Link
             href="/app"
@@ -41,7 +41,7 @@ export function Footer() {
             <span>Deposit and bill guardian for treatment abroad</span>
           </div>
           <p className="max-w-md sm:text-right">
-            Built for families managing hospital bills across borders.
+            Built for patients and the people who help them pay, across borders.
           </p>
         </div>
       </div>

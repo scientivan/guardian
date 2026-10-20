@@ -1,9 +1,306 @@
 [
-  {"id": "s0-1", "scene": "disclaimer", "text": "This demo uses synthetic data, and no real money moves."},
-  {"id": "s1-1", "scene": "problem", "text": "When a parent is treated abroad, the family pays from far away."},
-  {"id": "s1-2", "scene": "problem", "text": "In 2023, 28% of one Singapore hospital's bills missed the estimate.", "say": "In 2023, 28 percent of one Singapore hospital's bills missed the estimate."},
-  {"id": "s1-3", "scene": "problem", "text": "Some hospitals billed pillowcases separately and marked up drugs by up to 300%.", "say": "Some hospitals billed pillowcases separately, and marked up drugs by up to 300 percent."},
-  {"id": "s1-4", "scene": "problem", "text": "In Malaysia, foreign patients pay a deposit before admission."},
-  {"id": "s2-1", "scene": "intro", "text": "Guardian is an AI agent on the family's side."},
-  {"id": "s2-2", "scene": "intro", "text": "It explains the bill and pays only the hospital's verified account."}
+ {
+  "id": "s0-1",
+  "scene": "disclaimer",
+  "text": "This demo uses synthetic data, and no real money moves."
+ },
+ {
+  "id": "s1-1",
+  "scene": "problem",
+  "text": "When a patient is treated abroad, the people who help pay are far away."
+ },
+ {
+  "id": "s1-2",
+  "scene": "problem",
+  "text": "In 2023, 28% of one Singapore hospital's bills missed the estimate.",
+  "say": "In 2023, 28 percent of one Singapore hospital's bills missed the estimate."
+ },
+ {
+  "id": "s1-3",
+  "scene": "problem",
+  "text": "Some hospitals billed pillowcases separately and marked up drugs by up to 300%.",
+  "say": "Some hospitals billed pillowcases separately, and marked up drugs by up to 300 percent."
+ },
+ {
+  "id": "s1-4",
+  "scene": "problem",
+  "text": "And one in four online fundraisers asks others to help with medical bills."
+ },
+ {
+  "id": "s2-1",
+  "scene": "intro",
+  "text": "Guardian is an AI agent on the patient's side."
+ },
+ {
+  "id": "s2-2",
+  "scene": "intro",
+  "text": "It explains the bill and pays only the hospital's verified account."
+ },
+ {
+  "id": "s3-1",
+  "scene": "setup",
+  "role": "Owner",
+  "text": "Rina opens a care case for Budi, a patient in Shenzhen.",
+  "callout": [
+   "Care case",
+   "One place for bills, payments and records"
+  ]
+ },
+ {
+  "id": "s3-2",
+  "scene": "setup",
+  "role": "Owner",
+  "text": "Friends, relatives and a mosque fund join as payers.",
+  "callout": [
+   "Case members",
+   "Each payer has a share limit"
+  ]
+ },
+ {
+  "id": "s3-3",
+  "scene": "setup",
+  "role": "Owner",
+  "text": "The hospital's account comes from its signed list, never from a document.",
+  "callout": [
+   "Payment Gate",
+   "Only the verified account can be paid"
+  ]
+ },
+ {
+  "id": "s4-1",
+  "scene": "bill",
+  "role": "Owner",
+  "text": "Before a file is read, Guardian checks its document type.",
+  "callout": [
+   "Upload",
+   "Estimate, interim or final bill"
+  ]
+ },
+ {
+  "id": "s4-2",
+  "scene": "bill",
+  "role": "Owner",
+  "text": "The interim bill is higher than the estimate, and Guardian shows why.",
+  "callout": [
+   "Calculator",
+   "Bill compared with the estimate"
+  ]
+ },
+ {
+  "id": "s4-3",
+  "scene": "bill",
+  "role": "Owner",
+  "text": "The stay was two days longer, which adds 3,000 yuan.",
+  "say": "The stay was two days longer, which adds three thousand yuan.",
+  "callout": [
+   "Cited lines",
+   "Every reason points to bill lines"
+  ]
+ },
+ {
+  "id": "s4-4",
+  "scene": "bill",
+  "role": "Owner",
+  "text": "A blood test billed twice becomes a question for the hospital.",
+  "callout": [
+   "Questions",
+   "Ask the hospital, don't accuse"
+  ]
+ },
+ {
+  "id": "s4-5",
+  "scene": "bill",
+  "role": "Owner",
+  "text": "Anyone can ask why, and the assistant answers with the case numbers.",
+  "callout": [
+   "Case Assistant",
+   "Numbers come from code, not guesses"
+  ]
+ },
+ {
+  "id": "s5-1",
+  "scene": "pay",
+  "role": "Owner",
+  "text": "For an emergency guarantee, the amount comes from the hospital's letter.",
+  "callout": [
+   "Payment request",
+   "Amount from the hospital's letter"
+  ]
+ },
+ {
+  "id": "s5-2",
+  "scene": "pay",
+  "role": "Owner",
+  "text": "Three payers have already pledged 45,000 of the 50,000 yuan.",
+  "callout": [
+   "Pledges",
+   "Each payer sees only their own share"
+  ],
+  "say": "Three payers have already pledged forty five thousand of the fifty thousand yuan."
+ },
+ {
+  "id": "s5-3",
+  "scene": "pay",
+  "role": "Payer",
+  "text": "A mosque fund in Jakarta sees the rest in rupiah, with the rate and fee.",
+  "callout": [
+   "FX quote",
+   "Own currency, rate and fee shown"
+  ]
+ },
+ {
+  "id": "s5-4",
+  "scene": "pay",
+  "role": "Payer",
+  "text": "A pledge is a promise, and nothing is charged yet.",
+  "callout": [
+   "Sandbox checkout",
+   "Charged only when the owner pays"
+  ]
+ },
+ {
+  "id": "s5-5",
+  "scene": "pay",
+  "role": "Owner",
+  "text": "At 100%, Rina reviews the payment and confirms it.",
+  "callout": [
+   "Payment Gate",
+   "Five checks run again before paying"
+  ]
+ },
+ {
+  "id": "s5-6",
+  "scene": "pay",
+  "role": "Owner",
+  "text": "Each share is charged on its own, with its own receipt.",
+  "callout": [
+   "Receipts",
+   "One receipt per payer"
+  ]
+ },
+ {
+  "id": "s6-1",
+  "scene": "refund",
+  "role": "Owner",
+  "text": "After discharge, the final bill decides what was overpaid.",
+  "callout": [
+   "Refund tracking",
+   "Final bill against deposits"
+  ]
+ },
+ {
+  "id": "s6-2",
+  "scene": "refund",
+  "role": "Owner",
+  "text": "The extra comes back, split by what each person paid.",
+  "callout": [
+   "Refunds",
+   "Split by share paid"
+  ]
+ },
+ {
+  "id": "s6-3",
+  "scene": "refund",
+  "role": "Companion",
+  "text": "The hospital's invoice is kept with the payment, with its fingerprint.",
+  "callout": [
+   "Hospital invoice",
+   "SHA-256 fingerprint kept"
+  ]
+ },
+ {
+  "id": "s7-1",
+  "scene": "security",
+  "role": "Companion",
+  "text": "Now someone posts a new bank account in the chat.",
+  "callout": [
+   "Attack",
+   "Changed account message"
+  ]
+ },
+ {
+  "id": "s7-2",
+  "scene": "security",
+  "role": "Companion",
+  "text": "Guardian warns everyone and pauses all payments.",
+  "callout": [
+   "Payment Gate",
+   "Payments paused for everyone"
+  ]
+ },
+ {
+  "id": "s7-3",
+  "scene": "security",
+  "role": "Owner",
+  "text": "Even the owner cannot pay while the warning is open.",
+  "callout": [
+   "Blocked at check 5",
+   "No override, not even the owner"
+  ]
+ },
+ {
+  "id": "s7-4",
+  "scene": "security",
+  "role": "Owner",
+  "text": "Asking for medical records and card numbers is refused too.",
+  "callout": [
+   "Privacy",
+   "Private data is never shared"
+  ]
+ },
+ {
+  "id": "s7-5",
+  "scene": "security",
+  "role": "Owner",
+  "text": "Every action, allowed or blocked, goes into a hash-chained log.",
+  "callout": [
+   "Auditor",
+   "Edits to the log are detected"
+  ]
+ },
+ {
+  "id": "s8-1",
+  "scene": "close",
+  "role": "Owner",
+  "text": "When everything is settled, Rina closes the case.",
+  "callout": [
+   "Closing checklist",
+   "Final bill and invoices first"
+  ]
+ },
+ {
+  "id": "s8-2",
+  "scene": "close",
+  "role": "Owner",
+  "text": "It becomes read-only, with records for every person.",
+  "callout": [
+   "Closing documents",
+   "Summary, payment records, proof"
+  ]
+ },
+ {
+  "id": "s9-1",
+  "scene": "results",
+  "text": "One hundred twenty five automated tests pass."
+ },
+ {
+  "id": "s9-2",
+  "scene": "results",
+  "text": "Sixteen of sixteen live tasks and attacks pass."
+ },
+ {
+  "id": "s9-3",
+  "scene": "results",
+  "text": "A generic chatbot found two to four causes and invented an infection."
+ },
+ {
+  "id": "s9-4",
+  "scene": "results",
+  "text": "Guardian found all five causes and invented none."
+ },
+ {
+  "id": "s10-1",
+  "scene": "end",
+  "text": "Understand the bill. Pay together. Only to the hospital."
+ }
 ]

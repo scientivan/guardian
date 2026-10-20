@@ -76,7 +76,7 @@ export class Integration {
     return this.presentExplanation(explanation);
   }
   /**
-   * PRD F6 / ARCHITECTURE §3.5: a family member questions bill items, and a second model from a
+   * PRD F6 / ARCHITECTURE §3.5: a case member questions bill items, and a second model from a
    * different provider re-reads just those. A disagreement becomes a question for the hospital.
    */
   async questionItems(documentId:string,itemIds:unknown) {
@@ -156,7 +156,7 @@ export class Integration {
     const emails=memberEmails(this.c.ownerId,this.c.caseId);
     const mails=v.case.members.filter(m=>m.role==="payer"&&emails[m.id]).map(m=>({to:emails[m.id],
       subject:`Payment request: ${r.purpose} (${money(r.amount,r.currency)})`,
-      text:[`Hi ${m.displayName},`,"",`${this.c.member.displayName} asked the family to cover “${r.purpose}” for ${v.case.hospital.name}: ${money(r.amount,r.currency)}.`,`It expires ${new Date(r.expiresAt).toUTCString()}. Nothing is charged until the request is fully pledged and the owner pays the hospital.`,"",`Pledge your share: ${origin}/case/${this.c.caseId}/pledges?requestId=${r.id}`,"","Guardian never asks you to pay an account by email. Pay only inside Guardian."].join("\n")}));
+      text:[`Hi ${m.displayName},`,"",`${this.c.member.displayName} asked the payers to cover “${r.purpose}” for ${v.case.hospital.name}: ${money(r.amount,r.currency)}.`,`It expires ${new Date(r.expiresAt).toUTCString()}. Nothing is charged until the request is fully pledged and the owner pays the hospital.`,"",`Pledge your share: ${origin}/case/${this.c.caseId}/pledges?requestId=${r.id}`,"","Guardian never asks you to pay an account by email. Pay only inside Guardian."].join("\n")}));
     const result=await sendMails(mails);
     appendAudit(this.c.db,{caseId:this.c.caseId,actor:"system",action:"notify.email",inputSources:["system"],decision:"info",result:{requestId,recipients:mails.length,sent:result.sent,skipped:result.skipped}});
     return result;

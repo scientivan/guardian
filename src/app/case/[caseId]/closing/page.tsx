@@ -72,7 +72,7 @@ export default function ClosingPage() {
       )}
 
       <Section title="Closing Documents" agent="auditor">
-        <p className="mb-5 leading-relaxed text-ink-2">The documents to keep for {role === "owner" ? "the family and each payer" : "yourself"}. Each one can be printed or saved as a PDF{care.closed ? "" : ", now or after closing"}.</p>
+        <p className="mb-5 leading-relaxed text-ink-2">The documents to keep for {role === "owner" ? "the owner and each payer" : "yourself"}. Each one can be printed or saved as a PDF{care.closed ? "" : ", now or after closing"}.</p>
         <div className="space-y-6">{mine.map(d => <Printable key={d.id} doc={d}>{d.id === "summary" ? <Summary /> : d.id === "record" ? <Records /> : d.id === "questions" ? <Questions /> : <Proof />}</Printable>)}</div>
         {plannedNote(role)}
       </Section>

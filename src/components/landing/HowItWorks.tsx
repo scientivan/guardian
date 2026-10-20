@@ -22,7 +22,7 @@ const agentPeople = (ids: AgentId[], ticking: AgentId[] = []): Person[] =>
 
 const PHASES: { id: Phase; label: string; span: string; tint: string; bar: string; ink: string }[] = [
   { id: "agents", label: "The agents prepare", span: "md:col-span-2", tint: "bg-serpent/6", bar: "bg-serpent", ink: "text-serpent-dark" },
-  { id: "family", label: "Your family decides", span: "", tint: "bg-chocolate/8", bar: "bg-chocolate", ink: "text-chocolate" },
+  { id: "family", label: "People decide", span: "", tint: "bg-chocolate/8", bar: "bg-chocolate", ink: "text-chocolate" },
   { id: "code", label: "Plain code pays", span: "", tint: "bg-mist", bar: "bg-lead", ink: "text-lead" },
 ];
 const PHASE_BY_ID = Object.fromEntries(PHASES.map((p) => [p.id, p])) as Record<Phase, (typeof PHASES)[number]>;
@@ -88,7 +88,7 @@ export function HowItWorks() {
       <div className="mx-auto max-w-6xl px-6">
         {/* Headings alternate sides down the page: features left, this one right, security left. */}
         <h2 className="max-w-3xl text-balance font-serif text-4xl leading-tight text-lead sm:text-5xl md:ml-auto md:text-right">
-          Seven agents do the work. Your family makes the call.
+          Seven agents do the work. The people paying make the call.
         </h2>
 
         <div

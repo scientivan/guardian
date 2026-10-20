@@ -53,10 +53,10 @@ export function Disclaimer() {
 }
 
 const PEOPLE = [
-  { look: FAMILY[0], name: "Rina", city: "Jakarta · owner", x: CX - 470, y: CY - 210 },
-  { look: FAMILY[1], name: "Adi", city: "Jakarta · IDR", x: CX - 470, y: CY + 170 },
-  { look: FAMILY[2], name: "Sari", city: "Kuala Lumpur · MYR", x: CX + 470, y: CY - 210 },
-  { look: FAMILY[3], name: "Fajar", city: "Dubai · AED", x: CX + 470, y: CY + 170 },
+  { look: FAMILY[0], name: "Rina", city: "Case owner · Jakarta", x: CX - 470, y: CY - 210 },
+  { look: FAMILY[1], name: "Adi", city: "Friend · Jakarta · IDR", x: CX - 470, y: CY + 170 },
+  { look: FAMILY[2], name: "Sari", city: "Relative · Kuala Lumpur · MYR", x: CX + 470, y: CY - 210 },
+  { look: FAMILY[3], name: "Fajar", city: "Colleague · Dubai · AED", x: CX + 470, y: CY + 170 },
 ];
 
 function FamilyMap({ scene }: { scene: Scene }) {
@@ -74,7 +74,7 @@ function FamilyMap({ scene }: { scene: Scene }) {
           <div style={{ width: 110, height: 110, color: C.white }}><Hospital className="fill" /></div>
         </div>
       </div>
-      <Label x={hospital[0]} y={hospital[1] + 130} text="Hospital in Shenzhen" sub="Bills in CNY" delay={4} />
+      <Label x={hospital[0]} y={hospital[1] + 130} text="Budi, patient in Shenzhen" sub="Hospital bills in CNY" delay={4} />
       {PEOPLE.map((p, i) => (
         <div key={p.name}>
           <Tile x={p.x} y={p.y} delay={10 + i * 6}><Minifig {...p.look} className="fill" /></Tile>
@@ -108,7 +108,7 @@ export function Problem({ scene }: { scene: Scene }) {
       <FamilyMap scene={scene} />
       <Fact i={0} at={l2.from} icon={<Doc className="fill" />} big="28%" title="of bills missed the estimate" detail="Average estimate accuracy was 72% at a Singapore private hospital in 2023." source="Hospital Management Asia, 2026, on Mount Elizabeth Novena Hospital" />
       <Fact i={1} at={l3.from} icon={<Hospital className="fill" />} big="300%" title="drug mark-up, at most" detail="Basic items such as pillowcases and alcohol swabs were billed on their own." source="Malaysia Public Accounts Committee, June 2026 (The Star, NST, Malay Mail)" />
-      <Fact i={2} at={l4.from} icon={<Coins className="fill" />} big="Deposit" title="before admission" detail="Foreign patients in Malaysian public hospitals pay a deposit before they enter the ward." source="Malaysian Ministry of Health, via Bernama and Asia News Network" />
+      <Fact i={2} at={l4.from} icon={<Coins className="fill" />} big="1 in 4" title="fundraisers is for medical bills" detail="26.7% of 1,056,455 GoFundMe fundraisers (2010–2018) asked for help with health care costs." source="Angraal et al., JAMA Network Open, 2021" />
     </Stage>
   );
 }

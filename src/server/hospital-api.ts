@@ -29,7 +29,7 @@ export async function hospitalDispatch(request:NextRequest,path:string[],session
       const result=await discoverHospital(z.string().trim().min(3).max(300).parse((await body()).query));
       return reply({...result,discoveryId:directory.saveDiscovery(session,result)});
     }
-    // Care case wizard: the family gives name, country and city; AI drafts the rest with sources,
+    // Care case wizard: the owner gives name, country and city; AI drafts the rest with sources,
     // and the draft goes to the human review queue. Nothing is selectable until an admin approves it.
     if(!admin && path[1]==="request" && request.method==="POST") {
       if(session.user.mode!=="google")throw new ApiError("Sign in with Google to add a hospital.",403);

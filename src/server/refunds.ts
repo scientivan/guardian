@@ -2,7 +2,7 @@ import type { DB } from "./db";
 import { appendAudit } from "./audit";
 import { lineTotal, splitRefund } from "./compare";
 
-// Refund tracking (light scope). Refund = what the family paid - final bill,
+// Refund tracking (light scope). Refund = what the payers paid - final bill,
 // split in proportion to what each member paid. The hospital's refund process
 // is simulated; status changes come from the hospital side (demo endpoint).
 

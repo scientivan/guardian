@@ -19,7 +19,7 @@ const GROUPS: { id: string; label: string; color: string; ink: string }[] = [
 
 const FLAG: Record<string, string> = { duplicate: "Billed twice?", basic_item_billed: "Basic item", above_reference: "Above reference" };
 
-/** `onQuestion`: lets a family member send a line to the independent second reader (PRD F6). */
+/** `onQuestion`: lets a case member send a line to the independent second reader (PRD F6). */
 export function MoneyBreakdown({ byCategory, total, currency, items, checked = [], onQuestion, busy = false }: { byCategory: Record<string, number>; total: number; currency: string; items: Item[]; checked?: string[]; onQuestion?: (itemId: string) => void; busy?: boolean }) {
   const [hover, setHover] = useState<string | null>(null);
   const [open, setOpen] = useState<string | null>(null);

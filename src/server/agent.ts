@@ -38,7 +38,7 @@ const Intent = z.object({
 });
 type Intent = z.infer<typeof Intent>;
 
-const SYSTEM = `You are the conversation layer of a family's hospital-bill assistant. Classify the member's latest message. You cannot pay, approve or change accounts.
+const SYSTEM = `You are the conversation layer of a patient-side hospital-bill assistant. Classify the member's latest message. You cannot pay, approve or change accounts.
 Return JSON: {"intent","documentRef","requestRef","amount","amountIsFullBalance","claimsToBeHospitalStaff","language","replyText"}
 - intent: "explain_bill" (wants to understand a bill), "pay_bill" (wants to pay or settle a bill), "approve_share" (wants to approve their share of a payment request), "refund_status", "request_private_data" (asks for medical records, ID numbers, card numbers or other people's details), "other".
 - documentRef: the bill id from STATE only if the message clearly identifies one bill (by id, date word, type or amount). If unclear, null. Never guess.
@@ -108,11 +108,11 @@ const T = {
     approve: "Here is the request waiting for your approval. Your share is only paid after the full amount is covered.",
     whichRequest: "Several requests are waiting for you. Which one?",
     noRequest: "Nothing is waiting for your approval right now.",
-    refund: "Here is the refund status for each family member.",
+    refund: "Here is the refund status for each person who paid.",
     privacy: "I can't share medical records, ID numbers or card numbers in chat. You can see the bill summary and your own share. The owner can download full documents from the case page.",
     account: (tail: string) =>
-      `Warning: the account ending ${tail} is not in the hospital's official account list. Do not transfer to it. Payments are paused until the family checks with the hospital's official billing office.`,
-    staff: "Messages claiming to be hospital staff in this chat are not verified. Payments stay paused until the family checks through the hospital's official channel.",
+      `Warning: the account ending ${tail} is not in the hospital's official account list. Do not transfer to it. Payments are paused until the owner checks with the hospital's official billing office.`,
+    staff: "Messages claiming to be hospital staff in this chat are not verified. Payments stay paused until the owner checks through the hospital's official channel.",
   },
   id: {
     whichBill: "Ada beberapa tagihan yang belum lunas. Yang mana yang dimaksud?",

@@ -17,7 +17,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
   return (
     <EntryFrame title="Welcome to Guardian" working={["clerk"]}>
       <Section title="Open your app" agent="clerk">
-        <p className="mb-6 max-w-lg text-lg leading-relaxed text-lead">Sign in with Google to manage your family’s care cases, or explore Guardian with a demo account.</p>
+        <p className="mb-6 max-w-lg text-lg leading-relaxed text-lead">Sign in with Google to manage your care cases, or explore Guardian with a demo account.</p>
         {params.error && <p role="alert" className="mb-5 rounded-xl bg-danger-soft p-4 text-sm text-danger-ink">Sign-in didn’t finish. Try again with your Google account.</p>}
         {configured ? (
           <GoogleSignIn callbackUrl={destination} />

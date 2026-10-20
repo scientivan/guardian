@@ -1,7 +1,7 @@
 // Sample data for the case screens, in the exact shapes of docs/API.md v1.1, so switching to
 // Dien's live endpoints later only changes where the data comes from (TASKS 2.10).
 // Numbers follow Dien's fixture (src/server/fixtures/demo-case.ts) and seed (src/server/seed.ts).
-// Fictional hospital, family and accounts. Money in minor units (fen for CNY).
+// Fictional hospital, people and accounts. Money in minor units (fen for CNY).
 
 export type Role = "owner" | "payer" | "companion";
 
@@ -29,7 +29,7 @@ export const CASE = {
     {
       id: 1,
       kind: "unverified_payee",
-      detail: "A chat message asked the family to pay account •••• 9071. It is not in the hospital’s official registry, so it stays blocked.",
+      detail: "A chat message asked the payers to pay account •••• 9071. It is not in the hospital’s official registry, so it stays blocked.",
       resolved: true,
       ts: "2026-10-18T06:06:00Z",
     },

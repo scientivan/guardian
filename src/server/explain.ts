@@ -84,13 +84,13 @@ function facts(a: Analysis) {
   };
 }
 
-const SYSTEM = `You explain a foreign hospital bill to the patient's family in plain, calm language. You do not accuse the hospital and you give no medical advice.
+const SYSTEM = `You explain a foreign hospital bill to the patient and the people helping pay, in plain, calm language. You do not accuse the hospital and you give no medical advice.
 You receive FACTS as JSON computed by code. Use only these facts.
 
 Return JSON: {"lines":[{"type","causeRef","statedRef","itemIds","text"}]}
 - "arithmetic_fact": explains one entry of facts.causes. Set causeRef to its ref. Use its amount exactly as given.
 - "stated_in_document": repeats one entry of facts.statedInDocument. Set statedRef and the itemIds it concerns.
-- "unknown_ask_hospital": something the facts cannot explain; tell the family what to ask the hospital.
+- "unknown_ask_hospital": something the facts cannot explain; tell them what to ask the hospital.
 Rules:
 - Every line cites itemIds from facts.items.
 - Use only numbers that appear in FACTS. Do not add, subtract or estimate.

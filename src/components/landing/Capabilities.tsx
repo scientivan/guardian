@@ -268,7 +268,7 @@ const SLIDES: Slide[] = [
   { title: "Pay only the real hospital", text: "The gateway validates the intended recipient against the hospital’s signed account list. Charges are simulated.", visual: <PayeeVisual />, tone: "serpent" },
   {
     title: "Raise an emergency guarantee together",
-    text: "Family, friends and the mosque community pledge from different countries towards the verified hospital recipient in the sandbox.",
+    text: "Friends, relatives, colleagues and a mosque fund pledge from different countries towards the verified hospital recipient in the sandbox.",
     visual: <GuaranteeVisual />,
     tone: "chocolate",
   },
@@ -291,7 +291,7 @@ export function Capabilities() {
   return (
     <section id="features" className="mt-20 scroll-mt-20 overflow-x-clip bg-mist py-24">
       <div className="mx-auto max-w-6xl px-6">
-        <h2 className="max-w-3xl text-balance font-serif text-4xl leading-tight text-lead sm:text-5xl">Everything your family needs, in one place.</h2>
+        <h2 className="max-w-3xl text-balance font-serif text-4xl leading-tight text-lead sm:text-5xl">Everything the people helping a patient need, in one place.</h2>
         <FeatureCarousel slides={SLIDES} label="What you can do with Guardian, step by step" />
       </div>
     </section>

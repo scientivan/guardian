@@ -39,7 +39,7 @@ const CHECK_WHY: Record<number, string> = {
 export default function GuidePage() {
   return (
     <div className="space-y-12">
-      <p className="max-w-3xl leading-relaxed text-ink-2">Guardian works for the patient’s family. It explains foreign hospital bills and simulates payments for a verified hospital recipient after each person approves their own share. This page explains how, in plain words.</p>
+      <p className="max-w-3xl leading-relaxed text-ink-2">Guardian works for the patient and the people who help pay. It explains foreign hospital bills and simulates payments for a verified hospital recipient after each person approves their own share. This page explains how, in plain words.</p>
 
       <Section title="What Happens to a Bill" agent="reader">
         <ol className="flex flex-col items-stretch gap-2 sm:flex-row sm:items-start">

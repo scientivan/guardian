@@ -46,7 +46,7 @@ export function enrollFromSignedList(db: DB, caseId: string, actor: string, list
       if (!listed.has(p.id)) db.prepare("UPDATE payees SET source = 'revoked' WHERE id = ?").run(p.id);
     }
     for (const p of list.payees) upsert.run(p.id, c.hospital_id, p.account, normalizeName(p.name), now.toISOString());
-    // The family checked with the official channel; payee anomalies are closed.
+    // The owner checked with the official channel; payee anomalies are closed.
     // A disputed account that is not on the list stays outside the registry.
     return resolvePayeeAnomalies(db, caseId);
   });

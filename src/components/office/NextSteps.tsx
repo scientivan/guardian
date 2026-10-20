@@ -24,9 +24,9 @@ export function NextSteps() {
     { title: "Upload the hospital’s estimate", detail: "The cost estimate you received before treatment.", done: hasEstimate, href: `${base}/upload`, action: "Upload estimate" },
     { title: "Upload a bill", detail: "An interim or final bill, as a PDF or photo.", done: hasBill, href: `${base}/upload`, action: "Upload bill" },
     { title: "Read the bill explanation", detail: "Why the cost changed, and questions to ask the hospital.", done: Boolean(explanation), href: `${base}/bill`, action: "Open Bill Review" },
-    { title: "Invite the people who will help pay", detail: "Family or friends, each with their own share limit.", done: c.members.length > 1, href: `${base}/members`, action: "Invite payers" },
+    { title: "Invite the people who will help pay", detail: "Friends, relatives or anyone helping, each with their own share limit.", done: c.members.length > 1, href: `${base}/members`, action: "Invite payers" },
     { title: "Verify the hospital’s account", detail: "Guardian only pays the hospital’s verified account.", done: c.payees.length > 0, href: `${base}/pledges`, action: "Verify account" },
-    { title: "Ask the family for a payment", detail: "You set what is needed: a deposit from the estimate, a bill balance, or a guarantee. Nothing is charged yet.", done: requests.length > 0, href: `${base}/pledges`, action: "Create request" },
+    { title: "Ask the payers for a payment", detail: "You set what is needed: a deposit from the estimate, a bill balance, or a guarantee. Nothing is charged yet.", done: requests.length > 0, href: `${base}/pledges`, action: "Create request" },
     { title: "Payers pledge, then you pay", detail: "Each payer approves their own share. When the pledges reach 100%, you confirm and each share goes to the hospital.", done: requests.some(r => r.status === "paid"), href: `${base}/pledges`, action: "Open Pledges" },
     { title: "Track refunds after the final bill", detail: "Unused deposits go back in proportion to what each person paid.", done: Boolean(refunds), href: `${base}/refunds`, action: "Refund Tracking" },
   ] : c.me.role === "payer" ? [

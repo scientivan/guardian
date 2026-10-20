@@ -1,6 +1,8 @@
 import { AbsoluteFill, Composition, Sequence } from "remotion";
 import { Background, SpeakerFrames, Subtitles } from "./Frame";
 import { Disclaimer, Intro, Problem } from "./scenes/Opening";
+import { Recorded } from "./scenes/Recorded";
+import { End, Results } from "./scenes/Closing";
 import { FPS, H, W } from "./theme";
 import { SCENES, TOTAL } from "./timeline";
 
@@ -10,6 +12,14 @@ const VIEWS: Record<string, (p: { scene: (typeof SCENES)[number] }) => React.Rea
   disclaimer: () => <Disclaimer />,
   problem: ({ scene }) => <Problem scene={scene} />,
   intro: ({ scene }) => <Intro scene={scene} />,
+  setup: ({ scene }) => <Recorded scene={scene} />,
+  bill: ({ scene }) => <Recorded scene={scene} />,
+  pay: ({ scene }) => <Recorded scene={scene} />,
+  refund: ({ scene }) => <Recorded scene={scene} />,
+  security: ({ scene }) => <Recorded scene={scene} />,
+  close: ({ scene }) => <Recorded scene={scene} />,
+  results: ({ scene }) => <Results scene={scene} />,
+  end: ({ scene }) => <End scene={scene} />,
 };
 
 export function GuardianDemo({ speaker1Src, speaker2Src, speaker1Name, speaker2Name }: Props) {

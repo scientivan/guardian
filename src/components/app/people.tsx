@@ -2,7 +2,7 @@ import { FAMILY } from "@/components/landing/agents";
 import { Building } from "@/components/landing/icons";
 import { Minifig, type Look } from "@/components/landing/Minifig";
 
-// Family members drawn as the same toy figures as the agents. The mosque fund is an organisation, so it gets a building.
+// Case members drawn as the same toy figures as the agents. The mosque fund is an organisation, so it gets a building.
 
 const BY_NAME = Object.fromEntries(FAMILY.map((p) => [p.name, p])) as Record<string, Look & { name: string }>;
 
