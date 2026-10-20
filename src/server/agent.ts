@@ -197,7 +197,7 @@ export async function handleMessage(db: DB, caseId: string, memberId: string, me
       if (st.open.length === 1) return st.open[0];
       return null;
     };
-    // Payers and helpers do not pay bills; "pay my part" means approving their share.
+    // Payers and payers do not pay bills; "pay my part" means approving their share.
     if (intent.intent === "pay_bill" && member.role === "payer" && st.requests.length) intent = { ...intent, intent: "approve_share" };
 
     switch (intent.intent) {

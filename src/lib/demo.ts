@@ -231,7 +231,7 @@ export const REQUESTS: PaymentRequest[] = [
   },
 ];
 
-/** Demo FX table, labelled as demo (API F16): units of the helper's currency per 1 CNY, 1% fee. */
+/** Demo FX table, labelled as demo (API F16): units of the payer's currency per 1 CNY, 1% fee. */
 export const FX: Record<string, number> = { IDR: 2295, MYR: 0.65, AED: 0.51 };
 
 /* ---------- Refunds (after discharge, simulated clock) ---------- */

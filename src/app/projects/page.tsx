@@ -98,7 +98,7 @@ export default function DashboardPage() {
                 <MemberAvatar id="PATIENT" className="h-12 w-12 rounded-xl" />
                 <span className="min-w-0 flex-1">
                   <span className="block font-bold text-lead">{r.inviter} invited you to help with {r.patientName}’s treatment</span>
-                  <span className="block text-sm text-ink-2">{r.hospitalName}, {r.country} · as {r.role === "payer" ? "helper" : "companion"} · expires {new Date(r.expiresAt).toLocaleDateString()}</span>
+                  <span className="block text-sm text-ink-2">{r.hospitalName}, {r.country} · as {r.role === "payer" ? "payer" : "companion"} · expires {new Date(r.expiresAt).toLocaleDateString()}</span>
                 </span>
                 <span className="text-sm font-semibold text-serpent-dark">View</span>
                 <Arrow className="h-5 w-5 text-serpent-dark" />

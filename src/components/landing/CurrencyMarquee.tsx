@@ -18,10 +18,10 @@ export function CurrencyMarquee() {
   // No tiles: each currency floats on the page, with a thin line between neighbours.
   const loop = [...CURRENCIES, ...CURRENCIES];
   return (
-    <section aria-label="Currencies helpers can pay in" className="mx-auto mt-6 max-w-6xl px-6">
+    <section aria-label="Currencies payers can pay in" className="mx-auto mt-6 max-w-6xl px-6">
       {/* Left and right halves mark the edges the strip runs between. */}
       <div className="flex flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between sm:gap-6">
-        <p className="font-serif text-2xl text-lead">Helpers pay in their own currency.</p>
+        <p className="font-serif text-2xl text-lead">Payers pay in their own currency.</p>
         <p className="text-ink-2 sm:text-right">The hospital receives its own.</p>
       </div>
       <div className="marquee mt-4 overflow-hidden [mask-image:linear-gradient(90deg,transparent,#000_6%,#000_94%,transparent)]">

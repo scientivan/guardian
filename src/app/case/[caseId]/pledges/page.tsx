@@ -4,7 +4,7 @@ import { Select } from "@/components/app/Select";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { Chip, MoneyFigure, PRIMARY, SECONDARY, Section } from "@/components/app/ui";
+import { MoneyFigure, PRIMARY, SECONDARY, Section } from "@/components/app/ui";
 import { useCaseData, useWorkspace } from "@/components/app/WorkspaceProvider";
 import { converted, money, rateLine, share } from "@/lib/format";
 import { Arrow, Refund } from "@/components/landing/icons";
@@ -14,7 +14,9 @@ import { ClientError, explainError, Spinner, useFeedback, useTask, WORK } from "
 import { INVALID, useFieldErrors } from "@/components/app/FieldError";
 import { amount as amountRule, check, text } from "@/lib/validate";
 import { paymentPlan } from "@/lib/payment-plan";
+import { fromCaseCurrency } from "@/lib/fx-rates";
 import { PaidReceipt, RequestStages, SandboxCheckout } from "@/components/app/PaymentSheet";
+import { ROLE_LABEL } from "@/components/app/AppShell";
 import { HospitalMenu } from "@/components/app/HospitalMenu";
 import { InvoiceSection } from "@/components/app/InvoiceSection";
 
@@ -48,33 +50,31 @@ export default function PledgesPage() {
   return <div className="space-y-10">
     <div className="flex flex-wrap items-center justify-between gap-3"><p className="text-sm text-ink-2">Requests, pledges and payments to the hospital. Refunds of unused deposits are tracked on their own page.</p><Link href={`/case/${care.id}/refunds`} className={SECONDARY}><Refund className="h-4 w-4" />Refund Tracking<Arrow className="h-4 w-4" /></Link></div>
     {care.me.role==="owner" && <Section title="Payment Requests" agent="gate">
-      <p className="mb-4 leading-relaxed text-ink-2">Payments go only to the hospital’s verified account. Each person approves their own share before you review and execute the request.</p>
+      <p className="mb-4 text-ink-2">Payments go only to the hospital’s verified account.</p>
       <HospitalMenu name={care.hospital.name} account={care.payees[0]?.accountMasked} source={care.payees[0]?.source} directoryHref={`/hospitals?caseId=${care.id}`} busy={busy} onVerify={verify} canVerify={!care.closed}/>
       {!care.payees.length&&<p className="mt-3 text-sm text-ink-2">No verified account yet. Open the hospital above and choose Verify hospital account before requesting a payment.</p>}
       {care.payees.length>0 && !care.closed && <form noValidate onSubmit={e=>{e.preventDefault();void create();}} className="mt-6 space-y-4 rounded-2xl bg-white p-5">
         <div className="grid gap-1 rounded-xl bg-mist p-1 text-sm font-semibold sm:grid-cols-3" role="radiogroup" aria-label="What is this request for">
-          {([["deposit","Initial deposit","from the estimate"],["bill","Bill balance","from the latest bill"],["guarantee","Emergency guarantee","amount the hospital asked"]] as const).map(([value,label,hint])=><button key={value} type="button" role="radio" aria-checked={kind===value} onClick={()=>setKind(value)} className={`rounded-lg px-3 py-2 text-left ${kind===value?"bg-serpent text-white":"text-ink-2 hover:text-lead"}`}><span className="block">{label}</span><span className={`block text-xs font-normal ${kind===value?"text-cerulean":"text-ink-2"}`}>{hint}</span></button>)}
+          {([["deposit","Initial deposit"],["bill","Bill balance"],["guarantee","Emergency guarantee"]] as const).map(([value,label])=><button key={value} type="button" role="radio" aria-checked={kind===value} onClick={()=>setKind(value)} className={`rounded-lg px-3 py-2 text-left ${kind===value?"bg-serpent text-white":"text-ink-2 hover:text-lead"}`}>{label}</button>)}
         </div>
         {kind==="deposit"&&(plan.deposit?<div className="space-y-3">
-          <p className="text-sm leading-relaxed text-ink-2">From <b className="text-lead">{plan.deposit.title}</b>: the hospital estimated {money(plan.deposit.low,care.currency)} to {money(plan.deposit.high,care.currency)}{plan.deposit.assumedStayDays?` for ${plan.deposit.assumedStayDays} days`:""}. Choose which end the hospital asked for.</p>
+          <p className="text-sm text-ink-2">From <b className="text-lead">{plan.deposit.title}</b>{plan.deposit.assumedStayDays?` · ${plan.deposit.assumedStayDays} days`:""}</p>
           <div className="flex flex-wrap gap-2" role="radiogroup" aria-label="Deposit amount">{(["low","high"] as const).map(e=><button key={e} type="button" role="radio" aria-checked={end===e} onClick={()=>setEnd(e)} className={`rounded-xl border px-4 py-2.5 text-left ${end===e?"border-serpent bg-firstlight":"border-line hover:border-cerulean"}`}><span className="block text-xs text-ink-2">{e==="low"?"Lower end":"Upper end"}</span><b className="font-num text-serpent-dark">{money(plan.deposit![e],care.currency)}</b></button>)}</div>
-        </div>:<p className="rounded-xl bg-warn-soft p-3 text-sm text-warn-ink">Upload the hospital’s estimate first. The deposit is taken from its range.</p>)}
+        </div>:<p className="rounded-xl bg-warn-soft p-3 text-sm text-warn-ink">Upload the hospital’s estimate first.</p>)}
         {kind==="bill"&&(plan.bill?<div className="space-y-2 text-sm leading-relaxed">
           <dl className="divide-y divide-line rounded-xl border border-line px-4">
             <div className="flex justify-between gap-4 py-2.5"><dt className="text-ink-2">{plan.bill.type==="final"?"Final bill":"Latest interim bill"} · {plan.bill.title}</dt><dd className="font-semibold text-lead">{money(plan.bill.total,care.currency)}</dd></div>
-            <div className="flex justify-between gap-4 py-2.5"><dt className="text-ink-2">Deposits paid or already requested</dt><dd className="font-semibold text-lead">− {money(plan.bill.committed,care.currency)}</dd></div>
+            <div className="flex justify-between gap-4 py-2.5"><dt className="text-ink-2">Already requested</dt><dd className="font-semibold text-lead">− {money(plan.bill.committed,care.currency)}</dd></div>
             <div className="flex justify-between gap-4 py-2.5"><dt className="font-semibold text-lead">{plan.bill.balance>0?"Still to pay":"Nothing to pay"}</dt><dd className="font-num text-lg font-extrabold text-serpent-dark">{money(Math.max(0,plan.bill.balance),care.currency)}</dd></div>
           </dl>
-          {plan.bill.balance<0&&<p className="text-ok-ink">Deposits are {money(-plan.bill.balance,care.currency)} more than the bill. That comes back as a refund: <Link href={`/case/${care.id}/refunds`} className="font-semibold underline">Refund Tracking</Link>.</p>}
-          {plan.superseded.length>0&&<p className="text-xs text-ink-2">{plan.bill.type==="final"?"The final bill covers the whole stay, so it replaces":"The latest bill replaces"} {plan.superseded.map(b=>b.title).join(", ")}.</p>}
-        </div>:<p className="rounded-xl bg-warn-soft p-3 text-sm text-warn-ink">Upload an interim or final bill first. The amount is taken from it.</p>)}
+          {plan.bill.balance<0&&<p className="text-ok-ink">{money(-plan.bill.balance,care.currency)} comes back as a <Link href={`/case/${care.id}/refunds`} className="font-semibold underline">refund</Link>.</p>}
+          {plan.superseded.length>0&&<p className="text-xs text-ink-2">Replaces {plan.superseded.map(b=>b.title).join(", ")}.</p>}
+        </div>:<p className="rounded-xl bg-warn-soft p-3 text-sm text-warn-ink">Upload an interim or final bill first.</p>)}
         {kind==="guarantee"&&<div className="grid items-start gap-3 sm:grid-cols-2">
-          <p className="text-xs leading-relaxed text-ink-2 sm:col-span-2">For a guarantee or top-up the hospital asks for in writing, before there is a bill for it. Enter exactly what their letter says.</p>
-          <div className="text-sm text-ink-2"><label htmlFor="request-purpose">What the hospital asked for</label><input id="request-purpose" value={purpose} onChange={e=>setPurpose(e.target.value)} className={`mt-1 w-full rounded-xl border border-line bg-white p-3 text-lead ${rv.invalid("purpose")?INVALID:""}`} {...rv.field("purpose")} />{rv.error("purpose")}</div>
+          <div className="text-sm text-ink-2"><label htmlFor="request-purpose">Purpose, as in the hospital’s letter</label><input id="request-purpose" value={purpose} onChange={e=>setPurpose(e.target.value)} className={`mt-1 w-full rounded-xl border border-line bg-white p-3 text-lead ${rv.invalid("purpose")?INVALID:""}`} {...rv.field("purpose")} />{rv.error("purpose")}</div>
           <div className="text-sm text-ink-2"><label htmlFor="request-amount">Amount in {care.currency}</label><input id="request-amount" inputMode="decimal" value={amount} onChange={e=>setAmount(e.target.value)} className={`mt-1 w-full rounded-xl border border-line bg-white p-3 text-lead ${rv.invalid("amount")?INVALID:""}`} {...rv.field("amount")} />{rv.error("amount")}</div>
         </div>}
-        {taken&&<p className="rounded-xl bg-warn-soft p-3 text-sm text-warn-ink">{kind==="deposit"?"The deposit from this estimate was already requested.":"A request for this bill is still open."} <button type="button" onClick={()=>setSelected(taken)} className="font-semibold underline">Open that request</button>. Each document is paid through one request.</p>}
-        <p className="text-xs leading-relaxed text-ink-2">The money goes only to the hospital’s verified account, never to an account printed on a document.</p>
+        {taken&&<p className="rounded-xl bg-warn-soft p-3 text-sm text-warn-ink">Already requested. <button type="button" onClick={()=>setSelected(taken)} className="font-semibold underline">Open it</button></p>}
         <button type="submit" disabled={busy||(kind!=="guarantee"&&!fixed)} className={PRIMARY}>{fixed?`Ask for ${money(fixed.amount,care.currency)}`:"Create request"}</button>
       </form>}
     </Section>}
@@ -102,15 +102,18 @@ function PaymentForm({requestId}:{requestId:string}) {
   const {busy,run}=useTask();
   const {showError}=useFeedback();
   const [confirm,setConfirm]=useState(false);
-  // The owner asks and pays; helpers pledge. An owner who also puts in their own money opts in here.
+  // The owner asks and pays; payers pledge. An owner who also puts in their own money opts in here.
   const [ownShare,setOwnShare]=useState(false);
   const [checkout,setCheckout]=useState(false);
-  // A helper whose share was charged sees the receipt once (remembered per browser).
+  // A payer whose share was charged sees the receipt once (remembered per browser).
   const seenKey=`guardian:paid:${request.id}:${care.me.id}`;
   const [receipt,setReceipt]=useState(false);
   useEffect(()=>{if(mine?.status!=="charged"||!mine.chargeRef)return;try{if(!localStorage.getItem(seenKey))setReceipt(true);}catch{setReceipt(true);}},[mine?.status,mine?.chargeRef,seenKey]);
   function closeReceipt(){setReceipt(false);try{localStorage.setItem(seenKey,"1");}catch{}}
   const sandbox=mode==="demo"?"Payment sandbox":"Stripe test mode";
+  // The viewer's own currency next to the hospital amount: what they actually paid, or the reference rate.
+  const myCurrency=care.members.find(m=>m.id===care.me.id)?.currency??request.currency;
+  const local=mine&&mine.payCurrency!==request.currency?{amount:mine.payAmount,currency:mine.payCurrency,paid:mine.status==="charged",mine:true}:myCurrency!==request.currency&&fromCaseCurrency(request.amount,request.currency,myCurrency)!==null?{amount:fromCaseCurrency(request.amount,request.currency,myCurrency)!,currency:myCurrency,paid:false,mine:false}:null;
   useEffect(()=>{
     let active=true;setQuote(null);
     if(hasMine || request.status!=="pending" || amount<=0 || amount>request.remaining || care.me.role==="companion")return;
@@ -128,18 +131,18 @@ function PaymentForm({requestId}:{requestId:string}) {
       rows={[["Request",request.purpose],["Your share",converted(mine.payAmount,mine.payCurrency,mine.amount,request.currency)],...(mine.payCurrency!==request.currency?[["Rate",rateLine(mine.fxRate,request.currency,mine.payCurrency)] as [string,string]]:[]),["Fee",money(mine.fee,mine.payCurrency)],["Paid to",`${request.payeeName} ${request.accountMasked}`]]}/>}
     {quoteError && <p role="alert" className="rounded-xl bg-warn-soft p-3 text-sm text-warn-ink">{quoteError}</p>}
     {request.status==="cancelled" && !care.payees.some(p=>p.id===request.payeeId) && <p role="status" className="rounded-xl bg-warn-soft p-4 text-sm leading-relaxed text-warn-ink">The hospital’s payment authority changed or was put on hold. This request’s approvals cannot be reused. Review the institution and create a new request after its account is verified again.</p>}
-    <Section title={request.purpose} agent="gate" action={<><AskButton question={`How does “${request.purpose}” work?`} context={{ kind: "request", requestId: request.id }} /><Chip tone={request.status==="paid"?"ok":request.status==="pending"?"warn":"muted"}>{request.status==="pending"?(request.remaining?`${money(request.remaining,request.currency)} still missing`:"Covered"):request.status}</Chip></>}>
+    <Section title={request.purpose} agent="gate" action={<><AskButton question={`How does “${request.purpose}” work?`} context={{ kind: "request", requestId: request.id }} /></>}>
       <RequestStages status={request.status} approved={request.approved} amount={request.amount}/>
       {request.documentId && <p className="mb-3 text-sm text-ink-2">{documents.find(d=>d.id===request.documentId)?.type==="estimate"?"Deposit based on the estimate":"Pays the bill"} <b className="font-semibold text-lead">{documents.find(d=>d.id===request.documentId)?.title ?? "on file"}</b>.</p>}
-      <MoneyFigure minor={request.approved} currency={request.currency} /><span className="ml-2 text-ink-2">of {money(request.amount,request.currency)}</span>
+      <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1"><span><MoneyFigure minor={request.approved} currency={request.currency} /><span className="ml-2 text-ink-2">of {money(request.amount,request.currency)}</span></span>{local&&<span className="rounded-full bg-white px-3 py-1 text-sm font-semibold text-serpent-dark">{local.mine?"":"≈ "}{money(local.amount,local.currency)}<span className="ml-1 font-normal text-ink-2">{local.mine?(local.paid?"your share, paid":"your share"):"demo rate"}</span></span>}</div>
       <div className="mt-5 h-5 overflow-hidden rounded-full bg-white"><div className="h-full bg-serpent transition-all" style={{width:`${share(request.approved,request.amount)}%`}} /></div>
       <p className="mt-3 text-xs text-ink-2">{request.status==="pending"?<>Expires in <Countdown to={request.expiresAt}/> · {new Date(request.expiresAt).toLocaleString()}. Nothing is charged if it isn’t covered by then.</>:`Expiry ${new Date(request.expiresAt).toLocaleString()}`}</p>
-      <ul className="mt-5 divide-y divide-line">{request.approvals.map(p=><li key={p.memberId} className="flex flex-wrap justify-between gap-2 py-3"><span className="font-semibold text-lead">{p.displayName}</span><span className="text-sm text-ink-2">{converted(p.payAmount,p.payCurrency,p.amount,request.currency)}{p.payCurrency!==request.currency&&<> at {rateLine(p.fxRate,request.currency,p.payCurrency)}</>} + {money(p.fee,p.payCurrency)} fee · {p.status==="charged"?"paid":p.status==="charge_failed"?"charge failed":p.status==="approved"?"pledged, not charged yet":p.status}</span>{p.chargeRef&&<span className="w-full text-xs text-ok-ink">Receipt {p.chargeRef} · paid straight to {request.payeeName} {request.accountMasked}</span>}</li>)}</ul>
-      {care.me.role==="payer" ? <p className="mt-4 text-xs text-ink-2">Other helpers’ pledges are private. The bar shows how much of the request is covered.</p> : care.me.role==="owner" && request.status==="pending" && !care.closed && <Link href="members" className="mt-4 inline-block text-sm font-semibold text-serpent-dark underline">Invite more helpers</Link>}
+      <ul className="mt-5 divide-y divide-line">{request.approvals.map(p=><li key={p.memberId} className="flex flex-wrap justify-between gap-2 py-3"><span className="font-semibold text-lead">{p.displayName} <span className="ml-1 rounded-full bg-white px-2 py-0.5 text-xs font-semibold text-ink-2">{ROLE_LABEL[care.members.find(m=>m.id===p.memberId)?.role??"payer"]}</span></span><span className="text-sm text-ink-2">{converted(p.payAmount,p.payCurrency,p.amount,request.currency)}{p.payCurrency!==request.currency&&<> at {rateLine(p.fxRate,request.currency,p.payCurrency)}</>} + {money(p.fee,p.payCurrency)} fee · {p.status==="charged"?"paid":p.status==="charge_failed"?"charge failed":p.status==="approved"?"pledged, not charged yet":p.status}</span>{p.chargeRef&&<span className="w-full text-xs text-ok-ink">Receipt {p.chargeRef} · paid straight to {request.payeeName} {request.accountMasked}</span>}</li>)}</ul>
+      {care.me.role==="payer" ? <p className="mt-4 text-xs text-ink-2">Other payers’ pledges are private. The bar shows how much of the request is covered.</p> : care.me.role==="owner" && request.status==="pending" && !care.closed && <Link href="members" className="mt-4 inline-block text-sm font-semibold text-serpent-dark underline">Invite more payers</Link>}
     </Section>
     {request.status==="paid" && <InvoiceSection request={request}/>}
     {request.status==="pending" && !care.closed && <Section title={care.me.role==="owner"?"Your Own Share":"Your Pledge"} agent="gate">
-      {care.me.role==="owner"&&!mine&&!ownShare ? <div className="space-y-3"><p className="leading-relaxed text-ink-2">Your helpers pledge their shares of this request. You don’t have to pledge: when it is covered, you review and pay it below.</p><button type="button" onClick={()=>setOwnShare(true)} className={SECONDARY}>I’m also paying part of this myself</button></div> : care.me.role==="companion" ? <p>Your companion role can upload documents and ask questions. It cannot approve payments.</p> : mine ? <div className="flex flex-wrap items-center gap-4"><p>You pledged {converted(mine.payAmount,mine.payCurrency,mine.amount,request.currency)}. Your card is charged only when the owner pays the hospital.</p><button type="button" disabled={busy} onClick={()=>action(`/payment-requests/${request.id}/approvals/me`,{},"DELETE")} className={SECONDARY}>Withdraw</button></div> : <>
+      {care.me.role==="owner"&&!mine&&!ownShare ? <div className="space-y-3"><p className="leading-relaxed text-ink-2">Payers pledge their shares of this request. You don’t have to pledge: when it is covered, you review and pay it below.</p><button type="button" onClick={()=>setOwnShare(true)} className={SECONDARY}>I’m also paying part of this myself</button></div> : care.me.role==="companion" ? <p>Your companion role can upload documents and ask questions. It cannot approve payments.</p> : mine ? <div className="flex flex-wrap items-center gap-4"><p>You pledged {converted(mine.payAmount,mine.payCurrency,mine.amount,request.currency)}. Your card is charged only when the owner pays the hospital.</p><button type="button" disabled={busy} onClick={()=>action(`/payment-requests/${request.id}/approvals/me`,{},"DELETE")} className={SECONDARY}>Withdraw</button></div> : <>
         <label className="block text-sm font-semibold text-ink-2">Your share in {request.currency}<input id="pledge-amount" aria-label="Your pledge amount" inputMode="decimal" value={typed} onChange={e=>{setTyped(e.target.value);const ok=!pledgeError(e.target.value);setAmount(ok?Math.round(Number(e.target.value)*100):0);}} className={`mt-2 block w-full rounded-xl border border-line bg-white p-3 ${pv.invalid("amount")?INVALID:""}`} {...pv.field("amount")} /></label>{pv.error("amount")}
         {quote ? <div className="mt-4 space-y-1 text-lead"><p>You pay <b>{converted(quote.payAmount,quote.payCurrency,quote.amount,quote.currency)}</b> plus a {money(quote.fee,quote.payCurrency)} fee, so <b>{money(quote.payAmount+quote.fee,quote.payCurrency)}</b> in total.</p>{quote.payCurrency!==quote.currency&&<p className="text-sm text-ink-2">Demo reference rate {rateLine(quote.fxRate,quote.currency,quote.payCurrency)}. The hospital receives {money(quote.amount,quote.currency)}. Quote expires {new Date(quote.expiresAt).toLocaleTimeString()}.</p>}</div> : <p role="status" className="mt-4 text-sm text-ink-2">{amount>0 && amount<=request.remaining ? "Getting your exchange-rate quote…" : "Choose an amount within the remaining balance."}</p>}
         <button type="button" disabled={busy||!quote||new Date(quote.expiresAt).getTime()<=Date.now()} onClick={()=>setCheckout(true)} className={`${PRIMARY} mt-5`}>Pledge {money(amount,request.currency)}</button>

@@ -50,6 +50,9 @@ const WARNING: Record<string, string> = {
   document_instructions: "An uploaded document contained hidden instructions to the assistant. They were ignored.",
 };
 
+/** Role names from PRD §2. */
+export const ROLE_LABEL: Record<string, string> = { owner: "Owner", payer: "Payer", companion: "Companion" };
+
 const TITLE: Record<NavId, string> = {
   office: "Agent Office",
   bill: "Bill Review",
@@ -88,7 +91,8 @@ export function AppShell({ caseId, children }: { caseId: string; children: React
           <span className="hidden h-7 w-px bg-line sm:block" />
           <CaseSwitcher />
           <div className="ml-auto flex shrink-0 items-center gap-2">
-            {mode === "demo" && <div className="hidden items-center text-xs text-ink-2 sm:flex">Viewing as<Select label="Viewing as" className="ml-2 w-52" value={CASE.me.id} onChange={v=>void selectMember(CASE.id,v)} options={CASE.members.map(m=>({value:m.id,label:m.displayName,hint:m.role}))}/></div>}
+            {mode === "demo" && <div className="hidden items-center text-xs text-ink-2 sm:flex">Viewing as<Select label="Viewing as" className="ml-2 w-52" value={CASE.me.id} onChange={v=>void selectMember(CASE.id,v)} options={CASE.members.map(m=>({value:m.id,label:m.displayName,hint:ROLE_LABEL[m.role]}))}/></div>}
+            <span title="Your role in this care case (PRD §2)" className="hidden rounded-full bg-firstlight px-3 py-1 text-xs font-semibold text-serpent-dark md:inline">{ROLE_LABEL[CASE.me.role]}</span>
             <AccountMenu />
           </div>
         </div>

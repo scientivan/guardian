@@ -24,7 +24,7 @@ const figures = Plus_Jakarta_Sans({
 export const metadata: Metadata = {
   title: "Guardian, the deposit and bill guardian",
   description:
-    "An AI agent team that explains foreign hospital bills and pays deposits only to the hospital’s verified account, with each helper choosing what they can give.",
+    "An AI agent team that explains foreign hospital bills and pays deposits only to the hospital’s verified account, with each payer choosing what they can give.",
 };
 
 export default function RootLayout({

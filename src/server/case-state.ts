@@ -111,7 +111,7 @@ export function projectCase(db: DB, source: CareCase, memberId: string): CareCas
     data.documents=data.documents.map(d=>({...d,title:`${d.type} bill`}));
     if (data.explanation) data.explanation = { ...data.explanation, lines: data.explanation.lines.filter(l => l.type === "arithmetic_fact"), questions: [] };
     if (data.refunds) data.refunds.items = data.refunds.items.filter(r => r.memberId === me.id);
-    // PRD §2: a helper sees the bill summary and their own share, not other helpers' money.
+    // PRD §2: a payer sees the bill summary and their own share, not other payers' money.
     data.requests = data.requests.map(r => ({ ...r, approvals: r.approvals.filter(a => a.memberId === me.id) }));
     data.case.members = data.case.members.map(m => (m.id === me.id || m.role === "owner" ? m : { ...m, shareLimit: 0 }));
     const others = data.case.members.filter(m => m.id !== me.id && m.role !== "owner").flatMap(m => [m.displayName, m.displayName.split(" (")[0]]);

@@ -112,7 +112,7 @@ function GuaranteeVisual() {
       <p className="mt-0.5 tabular-nums text-ink-2">
         <b className="text-xl font-extrabold text-lead">CNY 45,000</b> of 50,000
       </p>
-      {/* Where the money comes from: one segment per helper, the waiting share hatched. */}
+      {/* Where the money comes from: one segment per payer, the waiting share hatched. */}
       <div className="mt-3 flex h-9 gap-1 overflow-hidden rounded-xl">
         {HELPERS.map((h) => (
           <div
@@ -142,7 +142,7 @@ function GuaranteeVisual() {
   );
 }
 
-// Helpers are never billed a fixed share: each one picks an amount (a pledge). Rina only suggests.
+// Payers are never billed a fixed share: each one picks an amount (a pledge). Rina only suggests.
 const PLEDGE_OPTIONS = ["5,000", "10,000", "20,000"];
 
 function PledgeVisual() {
@@ -269,7 +269,7 @@ const SLIDES: Slide[] = [
   },
   {
     title: "Give what you can",
-    text: "Each helper chooses their own amount and sees it in their own currency, with the rate and fee, before saying yes.",
+    text: "Each payer chooses their own amount and sees it in their own currency, with the rate and fee, before saying yes.",
     visual: <PledgeVisual />,
     tone: "cerulean",
   },

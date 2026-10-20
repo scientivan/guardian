@@ -91,7 +91,7 @@ export default function BillPage() {
         {!helper && <p className="mt-3 text-xs leading-relaxed text-ink-2">Open a group to see its lines. “Double-check” asks a second AI from a different provider to re-read a line you’re unsure about; if it reads it differently, it becomes a question for the hospital.</p>}
       </Section>
 
-      {helper && <p className="text-sm leading-relaxed text-ink-2">As a helper you see the bill summary and the calculated reasons. Bill lines, documents and the questions for the hospital stay with the case owner.</p>}
+      {helper && <p className="text-sm leading-relaxed text-ink-2">As a payer you see the bill summary and the calculated reasons. Bill lines, documents and the questions for the hospital stay with the case owner.</p>}
       {e.referenceNote && !helper && <p className="text-xs leading-relaxed text-ink-2">{e.referenceNote}</p>}
       {e.questions.length > 0 && <FoldSection title={`Questions for the Hospital (${e.questions.length})`} agent="planner">
         <ol className="space-y-3">

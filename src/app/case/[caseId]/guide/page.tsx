@@ -31,7 +31,7 @@ const BILL_FLOW: { id: AgentId; text: string }[] = [
 const CHECK_WHY: Record<number, string> = {
   1: "Only accounts from the hospital’s signed list, never one typed in chat or printed on an invoice.",
   2: "Look-alike letters and hidden characters in the account name are rejected.",
-  3: "Owners create requests, helpers approve their own share, companions can’t approve.",
+  3: "Owners create requests, payers approve their own share, companions can’t approve.",
   4: "No one approves more than their limit, and approvals never pass 100% of the request.",
   5: "A suspicious message, such as “our account changed”, pauses every payment until the hospital confirms.",
 };
@@ -74,8 +74,8 @@ export default function GuidePage() {
       <Section title="How the Money Moves" agent="gate">
         <ol className="space-y-4 leading-relaxed text-lead">
           <li><b>1. A request.</b> The owner asks for an amount the hospital needs, such as a deposit or an emergency guarantee.</li>
-          <li><b>2. Pledges.</b> Each helper chooses their own share, up to their limit, in their own currency. They see the exchange rate and fee first. Nothing is charged yet, and a pledge can be withdrawn.</li>
-          <li><b>3. Payment.</b> When the pledges cover 100%, the owner confirms. Each share is charged separately and goes <b>straight to the hospital’s verified account</b>. Every helper gets their own receipt.</li>
+          <li><b>2. Pledges.</b> Each payer chooses their own share, up to their limit, in their own currency. They see the exchange rate and fee first. Nothing is charged yet, and a pledge can be withdrawn.</li>
+          <li><b>3. Payment.</b> When the pledges cover 100%, the owner confirms. Each share is charged separately and goes <b>straight to the hospital’s verified account</b>. Every payer gets their own receipt.</li>
           <li><b>4. Refund.</b> If the final bill is lower than the deposits, the hospital returns the difference, split by what each person paid. Guardian tracks it and reminds when it’s late.</li>
         </ol>
         <p className="mt-5 text-sm leading-relaxed text-ink-2">Guardian never holds money: there is no wallet, vault or escrow. A share limit is only a ceiling, not an amount that is taken. Payments in this version run in a sandbox or Stripe test mode, and exchange rates come from a reference table.</p>
@@ -102,7 +102,7 @@ export default function GuidePage() {
       <FoldSection title="Your Privacy" agent="clerk">
         <ul className="list-disc space-y-2 pl-5 leading-relaxed text-lead">
           <li>Names, passport, medical record and card numbers are replaced with tokens such as [PASIEN_1] before any AI reads a document.</li>
-          <li>Helpers see the bill summary and their own share, not full medical documents or ID numbers. Only the owner sees card numbers.</li>
+          <li>Payers see the bill summary and their own share, not full medical documents or ID numbers. Only the owner sees card numbers.</li>
           <li>Medicine and procedure names stay visible so the bill can be explained, so a diagnosis could still be guessed. That is why role limits are the second layer of protection.</li>
         </ul>
       </FoldSection>

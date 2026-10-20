@@ -10,7 +10,7 @@ export const DEMO_RATES_E4: Record<string, Record<string, number>> = Object.from
   Object.entries(PER_CNY_E4).map(([from, f]) => [from, Object.fromEntries(Object.entries(PER_CNY_E4).map(([to, t]) => [to, Math.round((t * 10_000) / f)]))]),
 );
 
-/** Currencies a helper can pay a case in: the ones with a reference rate from its hospital currency. */
+/** Currencies a payer can pay a case in: the ones with a reference rate from its hospital currency. */
 export function payCurrencies(caseCurrency: string): string[] {
   return Object.keys(DEMO_RATES_E4[caseCurrency] ?? { [caseCurrency]: 10_000 });
 }

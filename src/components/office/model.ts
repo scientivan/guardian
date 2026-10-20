@@ -62,7 +62,7 @@ export const SAMPLE_STATUS: Record<AgentId, AgentStatus> = {
   reader: { state: "done", text: "read D2, 40 items", detail: "Read bill D2 behind glass: 40 items that add up to the stated total." },
   calculator: { state: "done", text: "D2 compared", detail: "Compared bill D2 with the estimate: CNY 2,782 above its top, mostly the 2 extra days." },
   second: { state: "done", text: "4 items checked", detail: "Double-checked 4 items with a second model. Both agree, 3 became questions." },
-  planner: { state: "working", text: "CNY 5,000 missing", detail: "Following the emergency guarantee: CNY 5,000 still missing, 1 helper hasn’t replied." },
+  planner: { state: "working", text: "CNY 5,000 missing", detail: "Following the emergency guarantee: CNY 5,000 still missing, 1 payer hasn’t replied." },
   gate: { state: "waiting", text: "waiting for pledges", detail: "Holding guarantee R2 until pledges cover CNY 50,000. Blocked a fake account today." },
   auditor: { state: "working", text: "19 steps recorded", detail: "Recorded 19 steps. The chain is intact and its head is anchored on FISCO BCOS." },
 };

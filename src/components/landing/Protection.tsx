@@ -71,13 +71,13 @@ const POINTS: { title: string; text: string; icon: ReactNode; tone: Tone; exampl
   },
   {
     title: "Only you can pledge your money",
-    text: "Each helper chooses and confirms their own amount, and can withdraw until the payment runs. The AI can only prepare a request, and nobody can pledge for someone else.",
+    text: "Each payer chooses and confirms their own amount, and can withdraw until the payment runs. The AI can only prepare a request, and nobody can pledge for someone else.",
     icon: <People className="h-5 w-5" />,
     tone: LIGHT_ON_DARK("bg-chocolate"),
     example: (
       <Example>
         <ul className="mt-1 divide-y divide-line">
-          <LogRow time="14:03" title="Sari tried to pledge for Fajar" note="Helpers pledge only for themselves (check 3)" tag="Blocked" ok={false} />
+          <LogRow time="14:03" title="Sari tried to pledge for Fajar" note="Payers pledge only for themselves (check 3)" tag="Blocked" ok={false} />
           <LogRow time="14:04" title="Fajar pledged CNY 10,000" note="From Fajar’s own account, AED 5,100" tag="Pledged" ok />
         </ul>
       </Example>

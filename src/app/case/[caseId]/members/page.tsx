@@ -17,7 +17,7 @@ import { useCaseData, useWorkspace } from "@/components/app/WorkspaceProvider";
 
 const ROLE: Record<string, { label: string; tone: Tone; can: string }> = {
   owner: { label: "Owner", tone: "info", can: "Invites people, opens requests, pledges" },
-  payer: { label: "Helper", tone: "brown", can: "Sees the bill summary, pledges what they can" },
+  payer: { label: "Payer", tone: "brown", can: "Sees the bill summary, pledges what they can" },
   companion: { label: "Companion", tone: "muted", can: "Uploads bills and asks questions, can’t pay" },
 };
 
@@ -39,11 +39,11 @@ export default function MembersPage() {
   const set = (key: keyof typeof form) => (e: { target: { value: string } }) => setForm(f => ({ ...f, [key]: e.target.value }));
   const errors = check(form, {
     name: memberName(),
-    ...(delivery === "email" ? { email: email("the helper’s Google email") } : {}),
+    ...(delivery === "email" ? { email: email("the payer’s Google email") } : {}),
     ...(form.role === "payer" ? { shareLimit: amount("a maximum share", { min: 0 }) } : {}),
   });
   const v = useFieldErrors(errors, "invite");
-  // Changing a helper's limit later (PRD §2: the owner sets share limits).
+  // Changing a payer's limit later (PRD §2: the owner sets share limits).
   const [editing, setEditing] = useState<string | null>(null);
   const [newLimit, setNewLimit] = useState("");
   const lv = useFieldErrors(check({ value: newLimit }, { value: amount("the new limit", { min: 0 }) }), "limit");
@@ -67,7 +67,7 @@ export default function MembersPage() {
   return (
     <div className="space-y-12">
       {open && !CASE.closed && (
-        <Section title="Invite a Helper" agent="clerk">
+        <Section title="Invite a Payer" agent="clerk">
           {sent ? (
             <div className="space-y-3">
               {sent.delivery === "email"
@@ -92,12 +92,12 @@ export default function MembersPage() {
               </fieldset>
               <label className="text-sm text-ink-2">
                 Name
-                <input id="invite-name" className={`${FIELD} mt-1 ${v.invalid("name") ? INVALID : ""}`} value={form.name} onChange={set("name")} placeholder="Helper’s name" {...v.field("name")} />
+                <input id="invite-name" className={`${FIELD} mt-1 ${v.invalid("name") ? INVALID : ""}`} value={form.name} onChange={set("name")} placeholder="Payer’s name" {...v.field("name")} />
                 {v.error("name")}
               </label>
               <div className="text-sm text-ink-2">
                 Role
-                <Select className="mt-1" label="Role" value={form.role} onChange={role => setForm(f => ({ ...f, role }))} options={[{ value: "payer", label: "Helper", hint: "Can pledge a share" }, { value: "companion", label: "Companion", hint: "Uploads bills, can’t pay" }]} />
+                <Select className="mt-1" label="Role" value={form.role} onChange={role => setForm(f => ({ ...f, role }))} options={[{ value: "payer", label: "Payer", hint: "Can pledge a share" }, { value: "companion", label: "Companion", hint: "Uploads bills, can’t pay" }]} />
               </div>
               {delivery === "email" && <label className="text-sm text-ink-2">Google email<input id="invite-email" type="email" autoComplete="off" value={form.email} onChange={set("email")} className={`${FIELD} mt-1 ${v.invalid("email") ? INVALID : ""}`} placeholder="name@gmail.com" {...v.field("email")} />{v.error("email")}</label>}
               {form.role === "payer" && <label className="text-sm text-ink-2 sm:col-span-2">Maximum share in {limitCurrency}<input id="invite-shareLimit" inputMode="decimal" value={form.shareLimit} onChange={set("shareLimit")} placeholder={limitCurrency === "IDR" ? "e.g. 10000000" : "e.g. 5000"} className={`${FIELD} mt-1 ${v.invalid("shareLimit") ? INVALID : ""}`} {...v.field("shareLimit")} />{v.error("shareLimit")}
@@ -132,7 +132,7 @@ export default function MembersPage() {
         agent="clerk"
         action={CASE.me.role === "owner" && !CASE.closed ?
           <button type="button" className={PRIMARY} onClick={() => setOpen(true)}>
-            Invite a helper
+            Invite a payer
           </button> : undefined
         }
       >

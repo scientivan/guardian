@@ -6,11 +6,11 @@ import { Spinner } from "./Feedback";
 import { PRIMARY, SECONDARY } from "./ui";
 
 // What happens to the money, made visible: the stage strip on a request card, the sandbox checkout a
-// helper confirms when pledging, and the receipt a helper sees once their share was actually paid.
+// payer confirms when pledging, and the receipt a payer sees once their share was actually paid.
 
 const STAGES = [
   { key: "requested", label: "Requested", note: "The owner asked the family" },
-  { key: "pledging", label: "Pledging", note: "Helpers promise shares" },
+  { key: "pledging", label: "Pledging", note: "Payers promise shares" },
   { key: "covered", label: "Covered", note: "100% promised" },
   { key: "paid", label: "Paid", note: "Charged and sent to the hospital" },
 ] as const;
@@ -61,7 +61,7 @@ const Row = ({ k, v, strong = false }: { k: string; v: string; strong?: boolean 
   <div className="flex justify-between gap-4 py-2"><dt className="text-ink-2">{k}</dt><dd className={`text-right ${strong ? "font-num text-lg font-extrabold text-serpent-dark" : "font-semibold"}`}>{v}</dd></div>
 );
 
-/** Sandbox checkout a helper confirms when pledging. The card is Stripe's test card; it is charged at execution. */
+/** Sandbox checkout a payer confirms when pledging. The card is Stripe's test card; it is charged at execution. */
 export function SandboxCheckout({ rows, total, hospital, sandbox, busy, onConfirm, onClose }: {
   rows: [string, string][]; total: string; hospital: string; sandbox: string; busy: boolean; onConfirm: () => void; onClose: () => void;
 }) {
@@ -82,7 +82,7 @@ export function SandboxCheckout({ rows, total, hospital, sandbox, busy, onConfir
   );
 }
 
-/** Shown once to a helper whose share was charged. */
+/** Shown once to a payer whose share was charged. */
 export function PaidReceipt({ rows, total, receipt, hospital, onClose }: { rows: [string, string][]; total: string; receipt: string; hospital: string; onClose: () => void }) {
   return (
     <Sheet title="Your share was paid" kicker="Payment complete" onClose={onClose}>

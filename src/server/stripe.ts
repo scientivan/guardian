@@ -1,7 +1,7 @@
 import Stripe from "stripe";
 import type { Charger } from "./payments";
 
-// Stripe test mode only. Refuses to run with a live key. Each helper share is
+// Stripe test mode only. Refuses to run with a live key. Each payer share is
 // one PaymentIntent confirmed with Stripe's test card token, so judges can look
 // up the IDs in the test dashboard. No real money moves.
 

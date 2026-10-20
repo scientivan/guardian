@@ -7,7 +7,7 @@ import { authorizeExecution, resolvePayee, type GateResult } from "./gateway";
 //   pending --(approvals cover amount, checks 1-5)--> executing --> paid | failed
 //   pending --(expiry)--> expired          pending --(owner)--> cancelled
 // Nothing is charged while pending. Each approved share is its own charge to the
-// registry payee, in the helper's currency at the locked quote.
+// registry payee, in the payer's currency at the locked quote.
 
 export type RequestStatus = "pending" | "executing" | "paid" | "expired" | "cancelled" | "failed";
 
@@ -16,7 +16,7 @@ export interface ChargeInput {
   memberId: string;
   payeeId: string;
   currency: string;
-  /** Minor units in the helper's currency, quote amount plus fee. */
+  /** Minor units in the payer's currency, quote amount plus fee. */
   amount: number;
   idempotencyKey: string;
   description: string;

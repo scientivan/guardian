@@ -1,4 +1,4 @@
-// Display helpers. Money arrives from the API as an integer in minor units (fen, cents;
+// Display payers. Money arrives from the API as an integer in minor units (fen, cents;
 // rupiah is stored ×100 too). The frontend only formats it and never does money math (docs/API.md).
 
 export function money(minor: number, currency: string): string {

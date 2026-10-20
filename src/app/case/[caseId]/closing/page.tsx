@@ -13,13 +13,13 @@ import { paymentPlan } from "@/lib/payment-plan";
 // Closing the case (owner) and the documents each role keeps afterwards. Which documents, and what
 // is in them, follows the docs: PRD §4 steps 6–8 (reconciliation, refunds, recap), F19 (per-payer
 // record with receipts and hashes), F20 and ARCHITECTURE §3.7 (hash-chained log, anchors, what they
-// prove), F5–F7 and TEST-PLAN §3 (questions exported for hospital billing), and PRD §2 (a helper
+// prove), F5–F7 and TEST-PLAN §3 (questions exported for hospital billing), and PRD §2 (a payer
 // only sees the bill summary and their own share).
 
 type Doc = { id: string; title: string; who: string; why: string; roles: string[] };
 const DOCS: Doc[] = [
   { id: "summary", title: "Case Closing Summary", who: "Owner", why: "PRD §4 steps 1–8: estimate, bills, every payment request, deposits, refunds and hospital invoices in one statement.", roles: ["owner"] },
-  { id: "record", title: "Payment Record", who: "Every helper, and the owner for each helper", why: "PRD F19 / step 8: what each person paid, for what, at which rate, the receipts, their refund share and the document fingerprints.", roles: ["owner", "payer"] },
+  { id: "record", title: "Payment Record", who: "Every payer, and the owner for each payer", why: "PRD F19 / step 8: what each person paid, for what, at which rate, the receipts, their refund share and the document fingerprints.", roles: ["owner", "payer"] },
   { id: "questions", title: "Questions for Hospital Billing", who: "Owner and companion", why: "PRD F5–F7, TEST-PLAN §3: the cited items still to ask the hospital about, ready to hand to its billing desk.", roles: ["owner", "companion"] },
   { id: "proof", title: "Document and Audit Proof", who: "Owner and companion", why: "PRD F20, ARCHITECTURE §3.7: SHA-256 fingerprints of every document and invoice, the hash-chained log, its anchor, and what the records do and don’t prove.", roles: ["owner", "companion"] },
 ];
@@ -71,7 +71,7 @@ export default function ClosingPage() {
       )}
 
       <Section title="Closing Documents" agent="auditor">
-        <p className="mb-5 leading-relaxed text-ink-2">The documents to keep for {role === "owner" ? "the family and each helper" : "yourself"}. Each one can be printed or saved as a PDF{care.closed ? "" : ", now or after closing"}.</p>
+        <p className="mb-5 leading-relaxed text-ink-2">The documents to keep for {role === "owner" ? "the family and each payer" : "yourself"}. Each one can be printed or saved as a PDF{care.closed ? "" : ", now or after closing"}.</p>
         <div className="space-y-6">{mine.map(d => <Printable key={d.id} doc={d}>{d.id === "summary" ? <Summary /> : d.id === "record" ? <Records /> : d.id === "questions" ? <Questions /> : <Proof />}</Printable>)}</div>
         {plannedNote(role)}
       </Section>
@@ -79,7 +79,7 @@ export default function ClosingPage() {
   );
 }
 
-const plannedNote = (role: string) => role === "payer" ? <p className="mt-5 text-xs leading-relaxed text-ink-2">As a helper you get the bill summary and your own share only. The original medical documents and other helpers’ shares stay with the owner.</p> : null;
+const plannedNote = (role: string) => role === "payer" ? <p className="mt-5 text-xs leading-relaxed text-ink-2">As a payer you get the bill summary and your own share only. The original medical documents and other payers’ shares stay with the owner.</p> : null;
 
 /** One document card, printable on its own. */
 function Printable({ doc, children }: { doc: Doc; children: ReactNode }) {
@@ -144,7 +144,7 @@ function Records() {
   const payers = care.members.filter(m => m.role === "payer" || m.role === "owner");
   const [member, setMember] = useState(care.me.role === "owner" ? payers.find(m => m.role === "payer")?.id ?? care.me.id : care.me.id);
   return <div>
-    {care.me.role === "owner" && <div className="print-hide mb-4 max-w-sm"><Select label="Whose record" value={member} onChange={setMember} options={payers.map(m => ({ value: m.id, label: m.displayName, hint: m.role === "owner" ? "you" : "helper" }))} /></div>}
+    {care.me.role === "owner" && <div className="print-hide mb-4 max-w-sm"><Select label="Whose record" value={member} onChange={setMember} options={payers.map(m => ({ value: m.id, label: m.displayName, hint: m.role === "owner" ? "you" : "payer" }))} /></div>}
     <p className="mb-3 font-semibold text-lead">{care.members.find(m => m.id === member)?.displayName}</p>
     <PaymentRecord key={member} caseId={care.id} memberId={member} print />
   </div>;

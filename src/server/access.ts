@@ -19,7 +19,7 @@ function directory() {
   db.pragma("journal_mode=WAL");
   db.exec(`CREATE TABLE IF NOT EXISTS memberships (account_id TEXT, owner_id TEXT, case_id TEXT, member_id TEXT, PRIMARY KEY(account_id,owner_id,case_id));
     CREATE TABLE IF NOT EXISTS invitations (hash TEXT PRIMARY KEY,owner_id TEXT,case_id TEXT,mode TEXT,name TEXT,email TEXT,role TEXT,currency TEXT,share_limit INTEGER,expires_at TEXT,used_by TEXT);`);
-  // Added 20 Oct: how the invite was sent, who sent it, and a helper's "not now".
+  // Added 20 Oct: how the invite was sent, who sent it, and a payer's "not now".
   const columns=new Set((db.prepare("PRAGMA table_info(invitations)").all() as {name:string}[]).map(c=>c.name));
   if(!columns.has("delivery"))db.exec("ALTER TABLE invitations ADD COLUMN delivery TEXT NOT NULL DEFAULT 'email'");
   if(!columns.has("inviter"))db.exec("ALTER TABLE invitations ADD COLUMN inviter TEXT NOT NULL DEFAULT ''");
@@ -69,7 +69,7 @@ export type Delivery="email"|"link";
  */
 /**
  * `shareLimit` is in `limitCurrency` (the owner's own currency by default) and is stored in the
- * hospital currency at the reference rate, rounded down. The helper picks the currency they pay in
+ * hospital currency at the reference rate, rounded down. The payer picks the currency they pay in
  * when accepting; `currency` is only kept for older callers.
  */
 export function invite(c: CaseAccess, input: { name:string;email?:string;role:"payer"|"companion";currency?:string;shareLimit:number;limitCurrency?:string;delivery?:Delivery }) {
@@ -79,7 +79,7 @@ export function invite(c: CaseAccess, input: { name:string;email?:string;role:"p
   if(limit===null) throw new ApiError(`There is no reference rate from ${input.limitCurrency} to ${caseCurrency}. Enter the limit in ${caseCurrency}.`);
   const delivery:Delivery=input.delivery ?? "email";
   const email=input.email?.trim().toLowerCase() ?? "";
-  if(c.session.user.mode==="google" && delivery==="email" && !email) throw new ApiError("Enter the helper’s Google email address.");
+  if(c.session.user.mode==="google" && delivery==="email" && !email) throw new ApiError("Enter the payer’s Google email address.");
   if(email && email===c.session.user.email?.toLowerCase()) throw new ApiError("You can’t invite your own account.");
   const token=randomUUID();
   const index=directory();
@@ -122,7 +122,7 @@ export function invitationById(session: Session, hash:string, action:"view"|"acc
       const memberId=`M_invite_${hash.slice(0,24)}`;
       const choices=payCurrencies(data.case.currency);
       if(action==="accept" && !row.used_by) {
-        // The helper chooses the currency they pay in; it must have a reference rate for this case.
+        // The payer chooses the currency they pay in; it must have a reference rate for this case.
         const pays=currency ?? (row.currency || data.case.currency);
         if(!choices.includes(pays)) throw new ApiError(`Choose one of: ${choices.join(", ")}.`);
         db.prepare("INSERT OR IGNORE INTO members (id,case_id,display_name,role,share_limit,currency) VALUES (?,?,?,?,?,?)").run(memberId,row.case_id,session.user.mode==="google" ? session.user.name ?? row.name : row.name,row.role,row.share_limit,pays);

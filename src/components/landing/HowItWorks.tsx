@@ -43,7 +43,7 @@ const STEPS: { title: string; text: string; phase: Phase; who: Person[]; status:
     status: "3 changes explained",
   },
   {
-    title: "Each helper chooses what to give",
+    title: "Each payer chooses what to give",
     text: "In their own currency, with the exchange rate and fee shown up front. Nobody can pledge for someone else.",
     phase: "family",
     who: FAMILY.map((p) => ({ ...p, ticks: p.name !== "Rina" })),

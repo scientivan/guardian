@@ -17,8 +17,8 @@ export const personName = (label = "the name"): Rule => v => {
   return null;
 };
 
-/** A helper's display name: a person or a group such as "Masjid community fund (Jakarta)". */
-export const memberName = (label = "the helper’s name"): Rule => v => {
+/** A payer's display name: a person or a group such as "Masjid community fund (Jakarta)". */
+export const memberName = (label = "the payer’s name"): Rule => v => {
   const s = v.trim();
   if (!s) return `Enter ${label}.`;
   if (DIGIT.test(s)) return "A name can’t contain numbers.";

@@ -1,4 +1,4 @@
-// Isometric drawing helpers for the agent office (plain SVG, no 3D library).
+// Isometric drawing payers for the agent office (plain SVG, no 3D library).
 // World axes: x runs down-right on screen, y runs down-left, z runs up. One unit = K px.
 
 export const K = 22;

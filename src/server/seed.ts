@@ -37,7 +37,7 @@ export function seed(db: DB, now = new Date()): void {
   if (!r.ok) throw new Error(`seed enrollment failed: ${r.reason}`);
 }
 
-/** Test helper: inserts a pending request directly (bypasses the owner check in createPaymentRequest). */
+/** Test payer: inserts a pending request directly (bypasses the owner check in createPaymentRequest). */
 export function createRequest(db: DB, id: string, amount: number, purpose: string, payeeId: string = DEMO.payee.id, now = new Date(), ttlMinutes = 120): void {
   db.prepare("INSERT INTO payment_requests (id, case_id, payee_id, amount, purpose, created_at, expires_at) VALUES (?, ?, ?, ?, ?, ?, ?)").run(
     id, DEMO.case.id, payeeId, amount, purpose, now.toISOString(), new Date(now.getTime() + ttlMinutes * 60_000).toISOString(),

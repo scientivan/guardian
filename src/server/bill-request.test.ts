@@ -52,7 +52,7 @@ describe("payment request for an uploaded bill", () => {
     try {
       const r = new Integration(owner).setShareLimit("M_JKT", { shareLimit: 459_000_000, limitCurrency: "IDR" }); // IDR 4,590,000
       expect(r.shareLimit).toBe(200_000); // CNY 2,000
-      expect(() => new Integration(owner).setShareLimit("M_COMP", { shareLimit: 100 })).toThrow("Only helpers");
+      expect(() => new Integration(owner).setShareLimit("M_COMP", { shareLimit: 100 })).toThrow("Only payers");
     } finally { owner.close(); }
     const helper = caseAccess(demo, "C1", "M_KL");
     try { expect(() => new Integration(helper).setShareLimit("M_JKT", { shareLimit: 1 })).toThrow(); } finally { helper.close(); }

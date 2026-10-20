@@ -230,13 +230,13 @@ export class Integration {
     return result;
   }
   messages() {return this.c.db.prepare("SELECT question,reply,actions,ts FROM web_messages WHERE case_id=? AND member_id=? ORDER BY rowid").all(this.c.caseId,this.c.member.id);}
-  /** PRD §2: the owner sets each helper's share limit; given in the owner's currency, stored in the hospital's. */
+  /** PRD §2: the owner sets each payer's share limit; given in the owner's currency, stored in the hospital's. */
   setShareLimit(memberId:string,input:unknown) {
     requireOwner(this.c);
     const v=z.object({shareLimit:z.number().int().nonnegative().max(100_000_000_00),limitCurrency:z.string().max(5).optional()}).parse(input);
     const m=this.c.db.prepare("SELECT role FROM members WHERE id=? AND case_id=?").get(memberId,this.c.caseId) as {role:string}|undefined;
     if(!m)throw new ApiError("Member not found.",404);
-    if(m.role!=="payer")throw new ApiError("Only helpers have a share limit.",409);
+    if(m.role!=="payer")throw new ApiError("Only payers have a share limit.",409);
     const caseCurrency=this.view().case.currency;
     const limit=toCaseCurrency(v.shareLimit,v.limitCurrency??caseCurrency,caseCurrency);
     if(limit===null)throw new ApiError(`There is no reference rate from ${v.limitCurrency} to ${caseCurrency}.`,409);

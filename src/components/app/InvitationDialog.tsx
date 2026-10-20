@@ -20,7 +20,7 @@ export type InvitationBrief = {
   role: "payer" | "companion";
   name: string;
   currency: string;
-  /** Currencies this helper can pay in (those with a reference rate for the case). */
+  /** Currencies this payer can pay in (those with a reference rate for the case). */
   currencies?: string[];
   shareLimit: number;
   delivery: "email" | "link";
@@ -30,7 +30,7 @@ export type InvitationBrief = {
 };
 
 const ROLE: Record<InvitationBrief["role"], { label: string; can: string; cannot: string }> = {
-  payer: { label: "Helper", can: "See the bill summary and approve or withdraw your own share.", cannot: "You can’t see full medical documents or approve for anyone else." },
+  payer: { label: "Payer", can: "See the bill summary and approve or withdraw your own share.", cannot: "You can’t see full medical documents or approve for anyone else." },
   companion: { label: "Companion", can: "Upload estimates and bills and ask the assistant questions.", cannot: "You can’t approve payments." },
 };
 

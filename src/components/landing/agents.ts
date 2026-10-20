@@ -135,7 +135,7 @@ export const AGENTS: Agent[] = [
 
 export const AGENT_BY_ID = Object.fromEntries(AGENTS.map((a) => [a.id, a])) as Record<AgentId, Agent>;
 
-/** The family from the demo seed, drawn as the same toy figures. Rina owns the case; the others are helpers abroad. */
+/** The family from the demo seed, drawn as the same toy figures. Rina owns the case; the others are payers abroad. */
 export const FAMILY: (Look & { name: string })[] = [
   { name: "Rina", skin: "#d9a77c", hair: "#7d6a74", hijab: true, shirt: "#6e5e52" },
   { name: "Adi", skin: "#c68e62", hair: "#1f1c1a", shirt: "#6e5e52" },
