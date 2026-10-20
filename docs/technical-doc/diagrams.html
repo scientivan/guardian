@@ -1,0 +1,50 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+body{margin:0;font-family:Carlito,Calibri,sans-serif;color:#202121;background:#fff}
+.d{width:1400px;padding:30px;box-sizing:border-box}
+.row{display:flex;gap:18px;align-items:stretch;justify-content:center}
+.b{border-radius:14px;padding:14px 16px;font-size:22px;text-align:center;flex:1}
+.b small{display:block;font-size:17px;color:#4e5659;margin-top:4px}
+.code{background:#dae7ee;border:2px solid #4875a1}
+.llm{background:#f6ecdc;border:2px solid #9a6212}
+.ext{background:#f3f7f9;border:2px dashed #91999c}
+.user{background:#fff;border:2px solid #202121}
+.arrow{font-size:30px;color:#4875a1;display:flex;align-items:center}
+.down{text-align:center;font-size:30px;color:#4875a1;margin:6px 0}
+.legend{display:flex;gap:24px;font-size:18px;margin-top:18px;justify-content:center}
+.legend span{display:inline-block;width:18px;height:18px;border-radius:4px;vertical-align:middle;margin-right:6px}
+.label{font-size:17px;color:#4e5659;text-align:center;margin:4px 0}
+.state{display:flex;gap:14px;align-items:center;justify-content:center;font-size:22px}
+.s{border-radius:999px;padding:10px 22px;background:#dae7ee;border:2px solid #4875a1}
+.s.ok{background:#e4f0e9;border-color:#3f7d5c}.s.no{background:#f7e4e2;border-color:#b4443c}
+</style></head><body>
+<div class="d" id="arch">
+ <div class="row">
+  <div class="b user">Family member<small>upload · chat · Ask · approve</small></div>
+  <div class="arrow">→</div>
+  <div class="b code">Privacy Clerk<small>names and IDs → tokens</small></div>
+  <div class="arrow">→</div>
+  <div class="b llm">Reader<small>LLM, no tools, fixed schema</small></div>
+  <div class="arrow">→</div>
+  <div class="b code">Calculator<small>totals, causes, flags</small></div>
+ </div>
+ <div class="down">↓</div>
+ <div class="row">
+  <div class="b llm">Second Opinion<small>other provider, selected items</small></div>
+  <div class="b llm">Planner<small>fixed intents, prepares only</small></div>
+  <div class="b code">Payment Gate<small>5 checks, no override</small></div>
+  <div class="b code">Auditor<small>hash-chained log</small></div>
+ </div>
+ <div class="down">↓</div>
+ <div class="row">
+  <div class="b ext">Signed hospital registry<small>Ed25519 list + human Verification Desk</small></div>
+  <div class="b ext">Sandbox / Stripe test mode<small>one charge per payer share</small></div>
+  <div class="b ext">FISCO BCOS<small>hashes only</small></div>
+  <div class="b ext">Supabase<small>private Postgres + Storage</small></div>
+ </div>
+ <div class="legend"><div><span style="background:#dae7ee;border:2px solid #4875a1"></span>Code (decides)</div><div><span style="background:#f6ecdc;border:2px solid #9a6212"></span>LLM (reads, words only)</div><div><span style="background:#f3f7f9;border:2px dashed #91999c"></span>External service</div></div>
+</div>
+<div class="d" id="state">
+ <div class="state"><div class="s">Requested</div><div class="arrow">→</div><div class="s">Pledging</div><div class="arrow">→</div><div class="s">Covered (100%)</div><div class="arrow">→</div><div class="s">Owner confirms · 5 checks</div><div class="arrow">→</div><div class="s ok">Paid · receipt per share</div></div>
+ <div class="label" style="margin-top:16px">At any point before payment: payer withdraws · owner cancels · timer expires → <b>nothing is charged</b>. A failed share is shown as failed, never hidden.</div>
+</div>
+</body></html>

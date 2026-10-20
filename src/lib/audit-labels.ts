@@ -7,6 +7,8 @@ const ACTIONS: Record<string, string> = {
   "request.cancel": "Cancelled a payment request",
   "request.execute": "Paid the approved shares",
   "request.expire": "A payment request expired",
+  "request.paid": "Payment completed: every share charged",
+  "request.failed": "Payment stopped: a share could not be charged",
   "request.recipient_invalidated": "Request cancelled: the hospital account changed",
   "fx.quote": "Got an exchange-rate quote",
   "approval.record": "Approved their own share",

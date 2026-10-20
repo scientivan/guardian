@@ -145,6 +145,7 @@ Full list with mitigations: [known risks](docs/TECHNICAL.md#14-known-risks-and-l
 | Document | For |
 |---|---|
 | [TECHNICAL.md](docs/TECHNICAL.md) | Complete technical document (problem to evidence) |
+| [Technical documentation PDF](docs/technical-doc/AI-Guardian-TechnicalDocumentation.pdf) | Submission version with the judging-criteria map, screenshots and measured turns |
 | [PRD.md](docs/PRD.md) | Scope, roles, requirements, honest claims |
 | [ARCHITECTURE.md](docs/ARCHITECTURE.md) | Components, gateway, data model |
 | [API.md](docs/API.md) | Web API |

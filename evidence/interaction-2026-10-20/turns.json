@@ -1,0 +1,99 @@
+{
+  "runAt": "2026-10-20T10:19:02.896Z",
+  "base": "http://localhost:3000",
+  "pageErrors": [],
+  "note": "User turn = a click, typed value or file the person must provide. Agent turn = a response the product shows. Switching the demo viewer is not counted.",
+  "tasks": [
+    {
+      "id": "D2–D3",
+      "name": "Understand why the bill is higher than the estimate",
+      "who": "Owner",
+      "userTurns": 2,
+      "agentTurns": 2,
+      "user": [
+        "Open Bill Review",
+        "Ask “Why is it different?”"
+      ],
+      "agent": [
+        "Estimate vs bill, cost breakdown, cited reasons and hospital questions shown",
+        "Case Assistant answers with the numbers"
+      ]
+    },
+    {
+      "id": "D4a",
+      "name": "Ask the family for an emergency guarantee",
+      "who": "Owner",
+      "userTurns": 4,
+      "agentTurns": 1,
+      "user": [
+        "Open Pledges",
+        "Choose “Emergency guarantee”",
+        "Type the amount from the hospital's letter",
+        "Click “Ask for …”"
+      ],
+      "agent": [
+        "Request card with stages, expiry and payee shown"
+      ]
+    },
+    {
+      "id": "D4b",
+      "name": "Pledge my share (each payer)",
+      "who": "Payer",
+      "userTurns": 3,
+      "agentTurns": 3,
+      "user": [
+        "Open Pledges",
+        "Click “Pledge …”",
+        "Click “Authorize pledge”"
+      ],
+      "agent": [
+        "Request, own currency and FX quote shown (amount prefilled with what is missing)",
+        "Sandbox checkout: share, rate, fee, card, “not charged now”",
+        "Pledge recorded, request covered"
+      ]
+    },
+    {
+      "id": "D4c",
+      "name": "Pay the covered request",
+      "who": "Owner",
+      "userTurns": 3,
+      "agentTurns": 3,
+      "user": [
+        "Open Pledges (request already selected)",
+        "Click “Review payment”",
+        "Click “Confirm and pay approved shares”"
+      ],
+      "agent": [
+        "“Review payment” enabled beside the total",
+        "Confirmation: amount, hospital, account",
+        "Paid; receipt per share"
+      ]
+    },
+    {
+      "id": "D5",
+      "name": "Work out refunds after the final bill",
+      "who": "Owner",
+      "userTurns": 1,
+      "agentTurns": 1,
+      "user": [
+        "Open Refund Tracking"
+      ],
+      "agent": [
+        "Refund per person already shown"
+      ]
+    },
+    {
+      "id": "Close",
+      "name": "Close the case and keep the records",
+      "who": "Owner",
+      "userTurns": 1,
+      "agentTurns": 1,
+      "user": [
+        "Open Close and Records"
+      ],
+      "agent": [
+        "Checklist: what still blocks closing"
+      ]
+    }
+  ]
+}
