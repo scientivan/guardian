@@ -145,8 +145,7 @@ export function AppShell({ caseId, children }: { caseId: string; children: React
               );
             })}
           </ul>
-          <div className="mt-auto pt-4"><AssistantLauncher /></div>
-          {guarantee && guarantee.status === "pending" && <Link href={`${base}/pledges`} className="mt-3 block rounded-2xl bg-mist p-4 text-sm transition-colors hover:bg-firstlight/60">
+          {guarantee && guarantee.status === "pending" && <Link href={`${base}/pledges`} className="mt-4 block rounded-2xl bg-mist p-4 text-sm transition-colors hover:bg-firstlight/60">
             <p className="text-xs text-ink-2">{guarantee.purpose}</p>
             <p className="mt-0.5 tabular-nums text-ink-2">
               <b className="font-num text-lg font-extrabold text-serpent-dark">{money(guarantee.approved, guarantee.currency)}</b> of {money(guarantee.amount, "").trim()}
@@ -154,8 +153,9 @@ export function AppShell({ caseId, children }: { caseId: string; children: React
             <div className="mt-2 h-2 rounded-full bg-firstlight">
               <div className="h-2 rounded-full bg-serpent" style={{ width: `${share(guarantee.approved, guarantee.amount)}%` }} />
             </div>
-            <p className="mt-2 text-xs font-semibold text-warn-ink">Still missing {money(guarantee.remaining, guarantee.currency)}</p>
+            <p className={`mt-2 text-xs font-semibold ${guarantee.remaining ? "text-warn-ink" : "text-ok-ink"}`}>{guarantee.remaining ? `Still missing ${money(guarantee.remaining, guarantee.currency)}` : "Covered, ready to pay"}</p>
           </Link>}
+          <div className="mt-auto pt-4"><AssistantLauncher /></div>
         </nav>
 
         {office ? (
