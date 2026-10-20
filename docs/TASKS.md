@@ -289,3 +289,6 @@ Video outline (4:45):
 ### 20 October, Supabase and Vercel round
 
 [Fakta] Implemented the Supabase migration plan, preserved SQLite for offline regression/rollback, added cloud backup and temporary private upload/download flow, and verified the public domain. Demo initialization, audits and sensitive synchronous transitions use workspace transactions. Postgres bigint aggregate decoding preserves numeric money calculations. The user supplied Storage keys, installed DNS and reported updating OAuth. Production anchoring is intentionally unconfigured by user choice. Evidence and remaining limits are recorded in SUPABASE-MIGRATION.md.
+
+- 20 Oct, Claude, fifteenth round. Technical document `docs/TECHNICAL.md` (problem, architecture, agent design, permission boundaries, action confirmation, security, data protection, blockchain, deployment, testing, security testing, execution evidence, known risks, reproduction) and a rewritten GitHub `README.md`. New keyless sandbox evidence `evidence/sandbox-run-2026-10-20/` (`run.mts`, 18/18 steps with timestamps, actions and outcomes, plus the 41-row hash-chained audit log). Tests 125/125.
+

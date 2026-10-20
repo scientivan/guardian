@@ -1,69 +1,96 @@
 # Deposit and Bill Guardian
 
-An AI agent on the patient family's side that reads a foreign hospital's bills, explains in plain language why the cost changed from the estimate, and prepares deposit payments for a verified intended recipient after each payer approves their own share. This prototype records sandbox or Stripe test charges, without hospital bank settlement.
+**An AI agent on the patient family's side** that reads a foreign hospital's bills, explains in plain language why the cost changed from the estimate, and lets a family scattered across countries pay deposits together, only to the hospital's verified account, each person approving their own share.
 
-- **Track:** 2026 Shenzhen International FinTech Competition (FinTechathon), International Track (AI)
-- **Topic:** C, Cross-border & Student Finance
-- **Team:** Dien (backend, agent, services), Aurel (UI/FE)
-- **Status:** backend, agent and frontend work end to end. Google accounts have private care-case data. A separate demo account opens a seeded workspace without Google login. Hospital Directory and the human Verification Desk support proposals, AI evidence checks, separate profile/account approval, holds and verification-hash anchoring. Institutional confirmation still requires human work and hospital cooperation. Payments remain sandbox or Stripe test mode. Request amounts come from the uploaded documents, paid requests carry the hospital's invoice, and the owner closes a case into a read-only state with printable closing documents (see §1 and `docs/TASKS.md` → "Current state").
+**Try it:** https://guardian.scientivan.dev → **Use demo account** (no sign-up). Full write-up: **[Technical document](docs/TECHNICAL.md)**.
 
-> Fixture patients, hospitals and account numbers are synthetic. Directory proposals require human verification. Payments use the isolated demo sandbox or Stripe **test mode** only.
-
-## 1. What it does
-
-1. **Estimate in.** A family member uploads the hospital's estimate (PDF or photo).
-2. **Payee check.** The gateway permits only intended recipients from the hospital's signed payee list. Charge simulation does not transfer to a bank account.
-3. **Initial deposit.** The amount is the estimate's lower or upper end (not typed). FX quote per payer, each payer pledges, owner pays, Stripe test charge.
-4. **Bill explainer (core).** A 40-line interim bill is compared with the estimate; each difference is explained by cause and cited to bill lines. Duplicates, basic items billed separately and prices above an indicative reference become questions for the hospital, not accusations.
-5. **Emergency guarantee.** Payers in other countries (IDR, MYR, AED) each approve their own share; nothing is charged until the approved shares cover the amount; each share is a separate sandbox or Stripe test charge associated with the intended hospital recipient.
-6. **Final bill and refund.** "Bill balance" requests use the latest bill (a final bill replaces interim bills) minus everything already requested. The refund is split in proportion to what each person paid and tracked with reminders. The owner or companion attaches a payment receipt to each paid request. Every member can download it, so medical details, identifiers and card numbers must be removed before upload.
-7. **Recap and closing.** Each payer gets their own record with receipts and document hashes. The owner closes the case once requests are settled, the final bill is in and every paid request has an invoice; the case becomes read-only and the "Close and Records" tab offers printable closing documents per role.
-
-## 2. Architecture
-
-```
- upload / chat ──► [PII scrubber: code] ──► [Quarantined reader: LLM, no tools] ──► typed fields
-                                                                                       │
- user request ─────────────────────────────► [Planner: LLM] ◄──────────────────────────┘
-                                                   │ fixed action set only
-                                                   ▼
-                           [Comparator: code]  [Payment gateway: code]  [Auditor: code]
-                                                   │
-                                     Stripe test mode, FISCO BCOS anchor
-```
-
-- **The LLM never executes a payment.** A deterministic gateway (`src/server/gateway.ts`) runs five checks: payee in the official registry, exact normalized name, role, amount and share limit, no open anomaly. There is no override, including for the owner.
-- **Instructions and data are separated** through reader quarantine, inspired by CaMeL. This is not a full per-value information-flow implementation. The reader that sees documents has no tools; the planner never sees raw document text.
-- **Money math is code only.** Models extract fields and propose text. Totals, causes, FX, refunds and displayed arithmetic sentences come from code.
-- **Supported PII is replaced by case-stable tokens before case LLM calls**, including known patient/member names and chat state. AI views retain tokens. Role-controlled original downloads and the explicitly shared receipt files are separate from tokenised AI views.
-- **Every action is in a hash-chained audit log**; FISCO BCOS anchors the hashes of every bill and hospital invoice, the log head (on demand, after each payment, at closing) and the closing pack. Full list: `docs/API.md` v1.6.
-
-Details: `docs/ARCHITECTURE.md`, `docs/PRD.md`, `docs/API.md`, `docs/TEST-PLAN.md`.
-
-| Path | What |
+| | |
 |---|---|
-| `src/server/gateway.ts`, `payments.ts`, `fx.ts`, `stripe.ts` | Payment checks, state machine, FX quotes, Stripe test charges |
-| `src/server/portal.ts`, `enrollment.ts` | Hospital portal mock with Ed25519-signed payee list; registry enrollment |
-| `src/server/extract.ts`, `pii.ts`, `reader.ts`, `documents.ts` | Local text extraction / OCR, PII scrubbing, quarantined reader, intake |
-| `src/server/compare.ts`, `analysis.ts`, `explain.ts`, `secondcheck.ts` | Comparator, cited explanation with guards, second-model check |
-| `src/server/agent.ts` | Chat planner: intents, clarification, chat attack checks |
-| `src/server/refunds.ts`, `recap.ts`, `clock.ts` | Refund split and reminders, per-member recap, demo clock |
-| `src/lib/payment-plan.ts` | Request amounts from documents (deposit from the estimate, bill balance from the latest bill), shared by form and server |
-| `src/server/integration.ts` | Web API engine: requests, invoices, second check, share limits, case closing, notifications |
-| `src/server/notify.ts` | Gmail emails to payers when a payment request opens (optional) |
-| `src/server/case-answers.ts` | Code-written answers for the "Ask" buttons (Case Assistant) |
-| `src/server/audit.ts`, `anchor.ts`, `contracts/Anchor.sol` | Hash-chained audit log, FISCO BCOS anchoring |
-| `src/server/llm.ts` | Router over free-tier LLM providers with rate-limit fallback |
-| `src/server/fixtures/`, `fixtures/pdf/` | Synthetic documents and hand-written answer keys |
-| `evidence/` | Snapshots of live runs for judges |
+| Competition | 2026 Shenzhen International FinTech Competition (FinTechathon), International Track (AI), Topic C: Cross-border & Student Finance |
+| Team | Dien (backend, agents, services), Aurel (UI/FE) |
+| Status | Working prototype, deployed on Vercel + Supabase. Synthetic demo data. Payments are a sandbox or Stripe **test mode**; no real money and no hospital bank settlement. Blockchain anchoring runs on a local FISCO BCOS chain (off in production). |
+| Checks | 125/125 unit and scenario tests · lint · TypeScript · production build · 16/16 live scripted tasks and attacks · 18/18 keyless sandbox lifecycle run |
 
-## 3. Environment and dependencies
+## The problem
 
-- **OS:** macOS 14+ or Linux. Tested on macOS (Apple silicon).
-- **Runtime:** Node.js 22, npm 10+.
-- **Docker:** needed only for the FISCO BCOS chain.
-- **Optional:** `tesseract` (photos via OCR; `brew install tesseract` or `apt install tesseract-ocr`). Text-layer PDFs need nothing extra.
-- **Main libraries:** Next.js 15.5.28, TypeScript, Postgres via `pg`, Supabase Storage, `better-sqlite3` for offline tests, `zod`, `stripe`, `ethers`, `unpdf`, Tesseract WASM, `pdf-lib`, `vitest`.
+When a parent is hospitalised abroad, the family has to deal with medical money remotely and under stress:
+
+- **The bill doesn't match the estimate.** One Singapore hospital's estimates were accurate 72% of the time on average; 28% of bills fell outside the range. Basic items such as pillow cases get billed separately.
+- **Paying across borders is hard,** and an urgent deposit or guarantee must be gathered from relatives in several countries at once.
+- **"Our account has changed"** messages are a classic fraud pattern, and a stressed family is an easy target.
+- **Unused deposits** have to come back to the right people.
+
+Guardian is a *deposit and bill guardian*, not a fraud detector: most bill changes are legitimate, so it explains and asks rather than accuses.
+
+## What it does
+
+1. **Upload** the hospital's estimate and bills (PDF or photo). Names and ID numbers are replaced by tokens before any AI reads them.
+2. **Explain the bill** (the core): a 40-line interim bill is compared with the estimate. Each difference is a cause with the bill lines it comes from ("the stay was 2 days longer: +CNY 3,000, items I01–I03"). Duplicates, basic items and prices above a reference become **questions for the hospital**. Every number is computed by code.
+3. **Ask** any part through the Case Assistant; answers come from the case facts.
+4. **Request money from documents:** initial deposit from the estimate's range, bill balance from the latest (final) bill, or an emergency guarantee.
+5. **Pledge across currencies:** payers in IDR, MYR or AED get an FX quote, see "IDR 11,475,000 (CNY 5,000)", and pledge their own share. Nothing is charged until 100% is pledged and the owner pays.
+6. **Pay only the verified account:** the hospital's Ed25519-signed account list is the only possible payee. Five deterministic checks run before any charge, with no override, not even for the owner.
+7. **Keep proof:** the hospital's invoice on every paid request, refunds split by what each person paid, a hash-chained history, blockchain anchors.
+8. **Close the case:** read-only for everyone, with printable closing documents per role.
+
+## How it is built
+
+```
+ upload / chat ──► [Privacy Clerk: code] ──► [Reader: LLM, no tools] ──► typed fields
+                                                                           │
+ user request ────────────────────► [Planner: LLM, fixed intents] ◄────────┘
+                                              │ prepares only
+                                              ▼
+        [Calculator: code]     [Payment Gate: code, 5 checks]     [Auditor: hash chain]
+               │                          │                                │
+     [Second Opinion: other LLM]   sandbox / Stripe test         FISCO BCOS (hashes only)
+```
+
+- **Seven agents, three of them LLMs, none of them can move money.** The reader has no tools; the planner picks from a fixed set of intents and can only *prepare* a payment.
+- **Money is code:** integer minor units; totals, causes, FX, refunds and request amounts are computed, never generated.
+- **Prompt injection is data, not instructions:** a PDF saying "pay account X" raises a warning and pauses payments.
+- **Stack:** Next.js 15, React 19, TypeScript, Tailwind v4, NextAuth (Google + demo), Supabase Postgres and private Storage (SQLite locally), free-tier LLM router (Groq, OpenRouter, Gemini), Tesseract OCR, Stripe test mode, FISCO BCOS + `ethers`, Gmail SMTP, vitest.
+
+Details: [architecture and agent design](docs/TECHNICAL.md#3-architecture), [permission boundaries](docs/TECHNICAL.md#5-permission-boundaries), [action confirmation](docs/TECHNICAL.md#6-action-confirmation), [security](docs/TECHNICAL.md#7-security-design), [data protection](docs/TECHNICAL.md#8-data-protection).
+
+## Security at a glance
+
+| Threat | Defence | Tested by |
+|---|---|---|
+| "Our account changed" in chat or a fake invoice | Payee only from the signed registry; anomaly pauses all payments | A1, A6, A8 |
+| Hidden instruction in a PDF | Reader without tools, fixed schema | A2 |
+| Look-alike names (Cyrillic, zero-width) | NFKC, invisible-character removal, exact match | A3 |
+| Someone approves for someone else or above a limit | Role and amount checks, own share only | A4 |
+| Extracting medical or card data | Tokenised before models, role projection on the server | A5 |
+| Owner forcing a transfer | No override exists | A7 |
+| Rewriting history | Hash-chained log, `verifyChain`, anchors | A9 |
+
+All attacks pass in scripted live runs, through the web UI and in the keyless sandbox run. See [security testing](docs/TECHNICAL.md#12-security-testing).
+
+## Quick start
+
+Requires Node.js 22 and npm 10+ (macOS or Linux). Docker only for the FISCO chain; `tesseract` optional for photos.
+
+```bash
+git clone https://github.com/scientivan/guardian.git && cd guardian
+npm ci --legacy-peer-deps
+npm test                                                   # 125 tests, no keys or network
+node --import tsx evidence/sandbox-run-2026-10-20/run.mts  # full payment lifecycle + attacks in the sandbox
+npm run dev                                                # http://localhost:3000 → Use demo account
+```
+
+With keys (`cp .env.example .env`):
+
+```bash
+npm run llm:probe       # which model answers right now
+npm run eval:reader     # 40-line bill vs a hand-written answer key
+npm run eval:chat       # dialogue and chat attacks
+npm run evidence        # D1–D6, D4b, A1–A9 against live models, Stripe test mode and the chain
+npm run baseline        # generic LLM vs Guardian, 3 trials
+npm run fisco:deploy    # deploy contracts/Anchor.sol to a running FISCO BCOS node
+```
+
+Other scripts: `npm run demo:reset` (fresh demo workspace), `npm run data:backup` (Postgres dump + Storage objects), `npm run hospitals:demo-verify` (synthetic verified accounts for directory hospitals; testing only), `npm run fixtures` (regenerate demo PDFs).
 
 Environment variables (`.env`, never committed; template in `.env.example`):
 
@@ -74,7 +101,7 @@ Environment variables (`.env`, never committed; template in `.env.example`):
 | `OPENROUTER_API_KEY` | LLM (last fallback) | openrouter.ai, free models |
 | `LLM_CHAIN` | optional: fixed model order, e.g. `gemini:gemini-3.8-flash,groq:openai/gpt-oss-120b` | |
 | `STRIPE_SECRET_KEY` | payments (must start with `sk_test_`) | Stripe dashboard, test mode |
-| `FISCO_BCOS_RPC_URL`, `FISCO_BCOS_CHAIN_ID` | anchoring | local chain, see §4.3 |
+| `FISCO_BCOS_RPC_URL`, `FISCO_BCOS_CHAIN_ID` | anchoring | local chain, see [FISCO setup](docs/FISCO-SETUP.md) |
 | `FISCO_BCOS_PRIVATE_KEY`, `FISCO_BCOS_CONTRACT_ADDRESS` | anchoring | printed by `npm run fisco:deploy` |
 | `GUARDIAN_DB` | SQLite file for the evidence scripts (default `guardian.db`) | |
 | `GUARDIAN_ACCOUNTS_DIR` | per-account databases and the shared hospital directory (default `.cache/accounts`) | |
@@ -84,113 +111,45 @@ Environment variables (`.env`, never committed; template in `.env.example`):
 | `NEXTAUTH_URL`, `NEXTAUTH_SECRET` | app URL and session signing | `.env.local`, see [Google sign-in setup](docs/GOOGLE-OAUTH.md) |
 | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | Google sign-in | Google Console, Web application OAuth client |
 | `GMAIL_USER`, `GMAIL_APP_PASSWORD` | optional: email payers when a payment request opens | a Gmail address and an app password (myaccount.google.com/apppasswords) |
+| `GUARDIAN_DATABASE_DRIVER`, `GUARDIAN_STORAGE_DRIVER` | `postgres` and `supabase` for the cloud; unset means SQLite and database BLOBs | |
+| `SUPABASE_URL`, `SUPABASE_PROJECT_URL`, `SUPABASE_SECRET_KEY` | cloud database (pooler string), Storage URL and server-only key | Supabase project settings; never `NEXT_PUBLIC_` |
 
-The router uses whichever LLM keys are present and skips a model that is rate-limited, so one key is enough to run.
+The model router uses whichever LLM keys exist and skips rate-limited models; one key is enough.
 
-### Cloud database and deployment
+## Evidence
 
-The production target is [guardian.scientivan.dev](https://guardian.scientivan.dev), hosted on Vercel with Supabase Postgres and private Storage. Set GUARDIAN_DATABASE_DRIVER=postgres and GUARDIAN_STORAGE_DRIVER=supabase, then supply the server-only SUPABASE_URL PostgreSQL pooler string, SUPABASE_PROJECT_URL HTTPS URL and SUPABASE_SECRET_KEY. SUPABASE_SERVICE_ROLE_KEY is an alternative backend Storage credential. Keep all of these out of NEXT_PUBLIC variables.
-
-NextAuth sessions and existing role checks remain in place. Account schemas are private, uploads use temporary scoped signed permissions, and downloads require membership. Production FISCO anchoring is disabled until a reachable node is supplied. The database audit chain remains active. Migration results, backups, recovery and verification are recorded in [Supabase migration](docs/SUPABASE-MIGRATION.md).
-
-## 4. Installation and execution
-
-### 4.1 Without any keys (code-level tests)
-
-```bash
-git clone https://github.com/scientivan/guardian.git
-cd guardian
-npm ci --legacy-peer-deps
-npm test            # 125 tests covering the core, authentication, isolation, hospital verification, rate limits, document-based requests, invoices and case closing
-npm run fixtures    # regenerates the demo PDFs in fixtures/pdf/
-```
-
-The unit tests replace LLM, Stripe and chain calls with local fakes, so they need no network.
-
-To open the UI, run `npm run dev` and visit `http://localhost:3000`. Open App enters the Dashboard at `/projects` (care cases, invitation requests and the hospital directory). Start a care case opens the five-step wizard at `/projects/new`. Sign in with Google for your own private workspace, or use the demo account to explore a seeded case without Google. Keep OAuth credentials in `.env` or `.env.local` following [sign-in setup](docs/GOOGLE-OAUTH.md). The case office fills the available viewport, with the team on the right and activity along the bottom. Other case pages scroll normally.
-
-### 4.2 With keys (live LLM and Stripe test mode)
-
-```bash
-cp .env.example .env    # then fill in the keys from §3
-npm run llm:probe       # shows which model answers right now
-npm run eval:reader     # reads the fixture PDFs and scores them against the answer key
-npm run eval:explain    # bill explanation (English and Indonesian) + second-model check
-npm run eval:chat       # 10 dialogue and chat-attack cases
-```
-
-LLM replies are cached in `.cache/llm/`, so reruns return the same text and do not use free-tier quota. Delete the folder to call the models again.
-
-### 4.3 FISCO BCOS chain (anchoring)
-
-A 4-node FISCO BCOS v3.17.1 chain runs in Docker with its web3 RPC on `127.0.0.1:8545`. Full steps, including a workaround for the build script's CDN, are in `docs/FISCO-SETUP.md`. Short version once the chain is up:
-
-```bash
-npm run fisco:deploy    # compiles and deploys contracts/Anchor.sol; copy the two printed values into .env
-```
-
-Without the chain, everything else still runs; anchoring returns `null` and the local hash chain keeps working.
-
-### 4.4 Full evidence run
-
-```bash
-npm run evidence        # D1–D6, D4b, A1–A9 against the live router, Stripe test mode and the chain
-npm run baseline        # generic LLM vs guardian on the same bill, 3 trials
-```
-
-Output goes to `logs/evidence/<run>/summary.md` and `logs/baseline/`. Committed snapshots are in `evidence/`.
-
-### 4.5 Web app
-
-```bash
-npm run dev             # http://localhost:3000
-```
-
-The UI calls authenticated Next.js API routes described in `docs/API.md`. Backend tables own payment and refund state. Each Google account starts empty, with access to shared cases only after accepting an email-bound invitation. Demo execution uses an isolated sandbox charger. Google execution uses the existing Stripe test adapter, and only hospitals with a pinned official channel and key can enroll payees. Reference FX quotes are not live-market rates.
-
-Hospital profiles are available at `/hospitals`. Human administrators enter `/admin` using a Google account listed in the ignored `GUARDIAN_ADMIN_EMAILS` configuration. Empty configuration denies access. The profile dropdown exposes Verification Desk only to authorized accounts. See [Hospital Directory setup and verification](docs/HOSPITAL-DIRECTORY.md) for onboarding, independent AI review, signed account lists, key rotation, incident holds and trust boundaries.
-
-## 5. Testing
-
-| Command | Covers | Last result |
+| What | Result | Where |
 |---|---|---|
-| `npm test` | Unit and scenario tests with fakes | 125 passing (20 Oct) |
-| `npm run evidence` | D1–D6, D4b, A1–A9 live | 16/16 from a fresh clone (`evidence/run-2026-10-18-clean-clone/summary.md`) |
-| `npm run eval:reader` | 40-item bill reading vs answer key | 40/40 items, total and causes match |
-| `npm run eval:chat` | Clarification, colloquial input, chat attacks | 10/10 |
-| Attacks through the web UI | A1, A4, A5, A7, A9 on a fresh demo account | all rejected (`evidence/e2e-2026-10-20/attacks/ATTACKS.md`) |
-| `npm run baseline` | Generic LLM vs guardian | `evidence/baseline-2026-10-18/` |
+| Unit and scenario tests | 125/125 | `npm test` |
+| Keyless sandbox lifecycle with timestamps, actions and outcomes | 18/18 | [`evidence/sandbox-run-2026-10-20/`](evidence/sandbox-run-2026-10-20/summary.md) |
+| Live scripted tasks and attacks (models, Stripe test IDs, anchor tx) | 16/16 | [`evidence/run-2026-10-18-clean-clone/`](evidence/run-2026-10-18-clean-clone/summary.md) |
+| Attacks through the web UI | 11 attempts refused, 0 charges | [`evidence/e2e-2026-10-20/attacks/`](evidence/e2e-2026-10-20/attacks/ATTACKS.md) |
+| Live services: Gmail delivery, nine anchors, uncached reader | pass, one recorded timeout | [`evidence/live-services-2026-10-20/`](evidence/live-services-2026-10-20/README.md) |
+| Production deployment and security probes | pass | [`evidence/supabase-deployment-2026-10-20/`](evidence/supabase-deployment-2026-10-20/) |
+| Generic LLM vs Guardian | causes 5/5 vs 2–4/5; invented clinical causes 0 vs 3/3 trials | [`evidence/baseline-2026-10-18/`](evidence/baseline-2026-10-18/) |
 
-Scripted tasks (D) and attacks (A) are defined in `docs/TEST-PLAN.md`. Answer keys were written by hand before any LLM run (`src/server/fixtures/answer-keys.ts`).
+## Known limits
 
-Known limitations:
+- No hospital bank settlement: charges are sandbox or Stripe test references.
+- The demo hospital portal's signing key is in the repository; real hospitals would hold their own key. Directory approvals in the demo are synthetic.
+- Free-tier models can be slow or rate-limited; the independent second-model check can time out in the 15-second web window and then says so.
+- FX is a demo reference table (one CNY row, cross rates) with a 1% demo fee.
+- PII detection is pattern- and name-based; role projection is the second layer. Shared hospital invoices are visible to all members (with a warning).
+- The FISCO BCOS chain is local and off in production; the database hash chain always runs.
+- The emergency guarantee amount is typed by the owner.
 
-- Free-tier LLMs are rate-limited (e.g. Groq 8,000 tokens per minute per model; OpenRouter free models 50 requests per day). Long prompts can hit 429 or 503; the router falls back, document reading waits once for a cooldown, and the cache avoids repeat calls. Two full uncached `evidence` runs a few minutes apart can still exhaust the free quotas; wait about a minute between runs.
-- Photo OCR is a secondary path; the demo uses text-layer PDFs.
-- FX rates and the 1% fee are a demo table (one CNY row, other pairs are cross rates through CNY), not market rates. Stripe test mode does not simulate cross-border settlement.
-- Payment-request emails need `GMAIL_USER` and `GMAIL_APP_PASSWORD`, and reach only payers who accepted their invitation with a Google account after 20 Oct (their address is stored from then on). Demo accounts have no email.
-- The emergency guarantee amount is still typed by the owner (no document type for the hospital's guarantee letter yet).
-- The hospital portal is a mock: its signing key is in the code (`src/server/portal.ts`), so anyone reading the repo could sign a payee list. In real use only the hospital holds that key.
-- The FISCO BCOS chain is local; tx hashes are not on a public explorer.
-- PII detection is pattern- and name-based and can miss unusual formats; role masking is the second layer.
+Full list with mitigations: [known risks](docs/TECHNICAL.md#14-known-risks-and-limits).
 
-## 6. Repository and deployment
+## Documentation
 
-- **Repository:** https://github.com/scientivan/guardian
-- **Live demo:** not deployed yet.
-- **Deployment:** Vercel with Supabase Postgres and private Storage at [guardian.scientivan.dev](https://guardian.scientivan.dev). SQLite remains available for offline work. Production anchoring is disabled until a reachable FISCO node is supplied. Deployment and backup guidance is in [DEPLOY.md](docs/DEPLOY.md). Payments remain sandbox or Stripe test mode.
-- **Demo reset:** `npm run demo:reset` removes demo workspaces so the next demo sign-in starts from the seeded case.
-- **Demo payments for directory hospitals:** `npm run hospitals:demo-verify` marks the listed directory hospitals as verified, with synthetic signed "DEMO" accounts, so Pledges can be tried with a Google case. It is for testing only: there is no real hospital confirmation, and it refuses to run with `NODE_ENV=production`.
+| Document | For |
+|---|---|
+| [TECHNICAL.md](docs/TECHNICAL.md) | Complete technical document (problem to evidence) |
+| [PRD.md](docs/PRD.md) | Scope, roles, requirements, honest claims |
+| [ARCHITECTURE.md](docs/ARCHITECTURE.md) | Components, gateway, data model |
+| [API.md](docs/API.md) | Web API |
+| [TEST-PLAN.md](docs/TEST-PLAN.md) · [VERIFICATION.md](docs/VERIFICATION.md) | Tests and requirement map |
+| [DEPLOY.md](docs/DEPLOY.md) · [SUPABASE-MIGRATION.md](docs/SUPABASE-MIGRATION.md) · [FISCO-SETUP.md](docs/FISCO-SETUP.md) · [GOOGLE-OAUTH.md](docs/GOOGLE-OAUTH.md) · [HOSPITAL-DIRECTORY.md](docs/HOSPITAL-DIRECTORY.md) | Operations |
+| [TASKS.md](docs/TASKS.md) · [AGENTS.md](AGENTS.md) | Progress and contributor guide |
 
-## 7. Security notes
-
-- **Roles** (names from PRD §2, shown in the UI as Owner, Payer, Companion; the word "helper" is no longer used): owner (creates, pays and cancels payment requests, attaches invoices, closes the case), payer (approves or withdraws only their own share, within a limit), companion (uploads, asks; cannot approve), agent (reads, explains, prepares; cannot approve or execute).
-- **Confirmation:** the agent can only prepare a payment. Creating, approving and executing are explicit user actions. Each payer approves an FX quote for their own share; quotes expire after 15 minutes and requests expire on their own timer.
-- **Payee trust:** accounts come only from the hospital's signed list. Accounts in invoices or chat are matched against the registry and never enrolled; a new or changed account opens an anomaly that pauses all payments until the family checks with the hospital's official channel.
-- **Prompt injection:** the reader has no tools and a fixed schema; the planner sees typed facts only; explanation lines with numbers not in the facts, uncited lines, or clinical causes the document does not state are dropped.
-- **Data:** Supported PII is tokenised before case LLM calls. Token values stay in the local DB and AI views retain tokens. Payers cannot download original medical bills. Shared receipt attachments are unredacted files and must contain no medical details, identifiers or card numbers.
-- **Audit:** every check, approval, denial and charge is written to a hash-chained log; tampering is detected (`verifyChain`, test A9).
-- **Secrets:** only test keys; `.env` is git-ignored; `stripe.ts` refuses any key that is not `sk_test_`.
-
-
-Audit remediation and verification are recorded in [the remediation plan](docs/AUDIT-REMEDIATION-PLAN.md) and [current verification](docs/VERIFICATION.md). The 18 Oct live model/baseline results are historical. The current renderer has new deterministic regressions, not a new live baseline. Closed financial records are read-only, while chat is an explicit exception. Rejected reads of closed cases do not append into the frozen case log.
+All patients, hospitals and accounts in the demo are synthetic.

@@ -5,7 +5,7 @@ Guardian is a Next.js 15 app (TypeScript, Supabase Postgres and private Storage 
 ## Read first
 
 1. `docs/TASKS.md` → **Current state**: what is built, open items, conventions. Progress notes at the end of that file record each work round.
-2. `docs/PRD.md` (scope; §12 lists changes made during the build), `docs/ARCHITECTURE.md` (design, data model), `docs/API.md` (routes; v1.4–v1.6 at the end are the latest), `docs/VERIFICATION.md` (requirement → code map).
+2. `docs/TECHNICAL.md` (complete technical document: problem, architecture, agents, security, deployment, testing, evidence, risks), `docs/PRD.md` (scope; §12 lists changes made during the build), `docs/ARCHITECTURE.md` (design, data model), `docs/API.md` (routes; v1.4–v1.6 at the end are the latest), `docs/VERIFICATION.md` (requirement → code map).
 3. `README.md` for setup, environment variables and commands.
 
 ## Commands
