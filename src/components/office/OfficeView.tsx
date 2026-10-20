@@ -1,5 +1,7 @@
 "use client";
 
+import { LocalizedText, LocalizedElement } from "@/components/i18n/LocaleProvider";
+
 import { useCaseData } from "@/components/app/WorkspaceProvider";
 import Link from "next/link";
 
@@ -206,34 +208,34 @@ export function OfficeView() {
     <div className="relative isolate flex h-full min-h-0 flex-col overflow-hidden bg-mist">
       <header className="z-10 flex shrink-0 flex-wrap items-center justify-between gap-2 border-b border-line bg-white/90 px-3 py-2 sm:px-5 sm:py-3 [@media(max-height:600px)]:py-1">
         <div>
-          <h1 className="font-serif text-xl text-lead sm:text-2xl">Agent Office</h1>
+          <h1 className="font-serif text-xl text-lead sm:text-2xl"><LocalizedText>Agent Office</LocalizedText></h1>
           <p className="hidden text-xs sm:block [@media(max-height:600px)]:hidden">
-            <span className="font-semibold text-serpent-dark">{working} working</span>
+            <span className="font-semibold text-serpent-dark"><LocalizedText>{working}</LocalizedText><LocalizedText> working</LocalizedText></span>
             <span className="text-ink-2"> · </span>
-            <span className="font-semibold text-warn-ink">{waiting} waiting</span>
+            <span className="font-semibold text-warn-ink"><LocalizedText>{waiting}</LocalizedText><LocalizedText> waiting</LocalizedText></span>
           </p>
         </div>
         <div className="flex items-center gap-1 sm:gap-2">
-          <div className="flex rounded-xl bg-mist p-0.5 text-xs font-semibold sm:text-sm" role="group" aria-label="View">
-            <button type="button" aria-pressed={!inside} onClick={leave} className={`min-h-10 rounded-lg px-2 sm:px-3 ${!inside ? "bg-serpent text-white" : "text-ink-2 hover:text-lead"}`}>
+          <LocalizedElement as="div" className="flex rounded-xl bg-mist p-0.5 text-xs font-semibold sm:text-sm" role="group" aria-label="View">
+            <button type="button" aria-pressed={!inside} onClick={leave} className={`min-h-10 rounded-lg px-2 sm:px-3 ${!inside ? "bg-serpent text-white" : "text-ink-2 hover:text-lead"}`}><LocalizedText>
               Whole office
-            </button>
+            </LocalizedText></button>
             <button type="button" aria-pressed={inside} onClick={() => enterRoom(room ?? (selected ? AGENT_ROOM[selected] : "intake"))} className={`flex min-h-10 items-center gap-1 rounded-lg px-2 sm:px-3 ${inside ? "bg-serpent text-white" : "text-ink-2 hover:text-lead"}`}>
               <Door className="h-4 w-4" />
-              <span className="hidden sm:inline">Step inside</span>
-              <span className="sm:hidden">Inside</span>
+              <span className="hidden sm:inline"><LocalizedText>Step inside</LocalizedText></span>
+              <span className="sm:hidden"><LocalizedText>Inside</LocalizedText></span>
             </button>
-          </div>
-          <div className="hidden rounded-xl bg-mist p-0.5 sm:flex" role="group" aria-label="Zoom">
-            <button type="button" aria-label="Zoom out" className={CONTROL} onClick={() => glideZoom(1.25)}><Minus className="h-5 w-5" /></button>
-            <button type="button" aria-label="Zoom in" className={CONTROL} onClick={() => glideZoom(1 / 1.25)}><Plus className="h-5 w-5" /></button>
-          </div>
-          <button type="button" aria-expanded={teamOpen} aria-controls="office-team" onClick={() => setTeamOpen((open) => !open)} className="min-h-10 rounded-xl bg-firstlight px-3 text-xs font-semibold text-serpent-dark md:hidden">{teamOpen ? "Close" : "Team & activity"}</button>
+          </LocalizedElement>
+          <LocalizedElement as="div" className="hidden rounded-xl bg-mist p-0.5 sm:flex" role="group" aria-label="Zoom">
+            <LocalizedElement as="button" type="button" aria-label="Zoom out" className={CONTROL} onClick={() => glideZoom(1.25)}><Minus className="h-5 w-5" /></LocalizedElement>
+            <LocalizedElement as="button" type="button" aria-label="Zoom in" className={CONTROL} onClick={() => glideZoom(1 / 1.25)}><Plus className="h-5 w-5" /></LocalizedElement>
+          </LocalizedElement>
+          <button type="button" aria-expanded={teamOpen} aria-controls="office-team" onClick={() => setTeamOpen((open) => !open)} className="min-h-10 rounded-xl bg-firstlight px-3 text-xs font-semibold text-serpent-dark md:hidden"><LocalizedText>{teamOpen ? "Close" : "Team & activity"}</LocalizedText></button>
         </div>
       </header>
 
       <div className="relative grid min-h-0 flex-1 md:grid-cols-[minmax(0,1fr)_18rem] xl:grid-cols-[minmax(0,1fr)_20rem]">
-        <section
+        <LocalizedElement as="section"
           ref={box}
           onPointerDown={onPointerDown}
           onPointerMove={onPointerMove}
@@ -248,29 +250,29 @@ export function OfficeView() {
           <OfficeScene status={SAMPLE_STATUS} selected={selected} selectedRoom={room ?? undefined} viewBox={view.join(" ")} onSelectAgent={selectAgent} onSelectRoom={selectRoom} />
           {inside && room && neighbours && (
             <div className="absolute bottom-4 left-1/2 flex max-w-[calc(100%-1rem)] -translate-x-1/2 items-center gap-1 rounded-2xl bg-white/95 p-1 pl-3 shadow-sm sm:gap-2 sm:p-2 sm:pl-4">
-              <span className="truncate text-sm font-bold text-lead">{ROOMS[room].name}</span>
+              <span className="truncate text-sm font-bold text-lead"><LocalizedText>{ROOMS[room].name}</LocalizedText></span>
               <div className="flex">
                 {(["left", "up", "down", "right"] as const).map((d) => (
-                  <button key={d} type="button" disabled={!neighbours[d]} onClick={() => neighbours[d] && enterRoom(neighbours[d]!)} aria-label={neighbours[d] ? `Go to ${ROOMS[neighbours[d]!].name}` : `No room ${d}`} className={CONTROL}>
+                  <LocalizedElement as="button" key={d} type="button" disabled={!neighbours[d]} onClick={() => neighbours[d] && enterRoom(neighbours[d]!)} aria-label={neighbours[d] ? `Go to ${ROOMS[neighbours[d]!].name}` : `No room ${d}`} className={CONTROL}>
                     <Arrow className={`h-4 w-4 ${d === "left" ? "rotate-180" : d === "up" ? "-rotate-90" : d === "down" ? "rotate-90" : ""}`} />
-                  </button>
+                  </LocalizedElement>
                 ))}
               </div>
             </div>
           )}
           {!inside && (
             <p className="pointer-events-none absolute bottom-3 left-4 right-4 text-xs text-ink-2">
-              <span className="hidden sm:inline">Scroll to zoom, drag to move.</span>
-              <span className="sm:hidden">Pinch to zoom, drag to move.</span>
+              <span className="hidden sm:inline"><LocalizedText>Scroll to zoom, drag to move.</LocalizedText></span>
+              <span className="sm:hidden"><LocalizedText>Pinch to zoom, drag to move.</LocalizedText></span>
             </p>
           )}
-        </section>
+        </LocalizedElement>
 
-        <aside id="office-team" aria-label="Team and recent activity" className={`${teamOpen ? "absolute inset-y-0 right-0 z-20 flex w-80 max-w-[calc(100%-1rem)] shadow-lg" : "hidden"} min-h-0 flex-col border-l border-line bg-white/95 backdrop-blur md:static md:flex md:w-auto md:max-w-none md:shadow-none`}>
+        <LocalizedElement as="aside" id="office-team" aria-label="Team and recent activity" className={`${teamOpen ? "absolute inset-y-0 right-0 z-20 flex w-80 max-w-[calc(100%-1rem)] shadow-lg" : "hidden"} min-h-0 flex-col border-l border-line bg-white/95 backdrop-blur md:static md:flex md:w-auto md:max-w-none md:shadow-none`}>
           <section aria-labelledby="office-team-title" className="flex min-h-0 flex-1 flex-col">
             <div className="flex shrink-0 items-center justify-between border-b border-line bg-firstlight px-4 py-3">
-              <h2 id="office-team-title" className="font-semibold text-serpent-dark">The Team</h2>
-              <span className="text-xs text-ink-2">7 agents</span>
+              <h2 id="office-team-title" className="font-semibold text-serpent-dark"><LocalizedText>The Team</LocalizedText></h2>
+              <span className="text-xs text-ink-2"><LocalizedText>7 agents</LocalizedText></span>
             </div>
             <ScrollArea label="Agent team members" className="flex-1">
               <div className="p-2"><TeamList status={SAMPLE_STATUS} selected={selected} onSelect={selectAgent} brief /></div>
@@ -278,14 +280,14 @@ export function OfficeView() {
           </section>
           <section aria-labelledby="office-activity-title" className="flex min-h-0 flex-1 flex-col border-t border-line">
             <div className="flex shrink-0 items-center justify-between border-b border-line bg-firstlight px-4 py-3">
-              <h2 id="office-activity-title" className="font-semibold text-serpent-dark">Recent Activity</h2>
-              <Link href={`/case/${care.id}/log`} className="text-xs font-semibold text-serpent-dark hover:underline">See all</Link>
+              <h2 id="office-activity-title" className="font-semibold text-serpent-dark"><LocalizedText>Recent Activity</LocalizedText></h2>
+              <Link href={`/case/${care.id}/log`} className="text-xs font-semibold text-serpent-dark hover:underline"><LocalizedText>See all</LocalizedText></Link>
             </div>
             <ScrollArea label="Recent case activity" className="flex-1">
               <div className="px-4 py-1"><ActivityLog rows={AUDIT.rows} fill caseId={care.id} /></div>
             </ScrollArea>
           </section>
-        </aside>
+        </LocalizedElement>
       </div>
 
       <NextSteps />

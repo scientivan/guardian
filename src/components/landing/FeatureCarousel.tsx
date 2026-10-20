@@ -1,5 +1,7 @@
 "use client";
 
+import { LocalizedText, LocalizedElement } from "@/components/i18n/LocaleProvider";
+
 import { useRef, useState, type KeyboardEvent, type PointerEvent, type ReactNode } from "react";
 import { Arrow } from "./icons";
 
@@ -67,34 +69,34 @@ export function FeatureCarousel({ slides, label }: { slides: Slide[]; label: str
       <div className="flex flex-col lg:col-span-4">
         <div className="flex items-end gap-3" aria-hidden="true">
           <span key={active} className="step-in text-[7rem] font-extrabold leading-[0.8] tracking-tighter tabular-nums text-serpent sm:text-[9rem]">
-            {active + 1}
+            <LocalizedText>{active + 1}</LocalizedText>
           </span>
-          <span className="pb-2 text-2xl font-bold tabular-nums text-ink-2">of {n}</span>
+          <span className="pb-2 text-2xl font-bold tabular-nums text-ink-2"><LocalizedText>of </LocalizedText><LocalizedText>{n}</LocalizedText></span>
         </div>
         <div key={`text-${active}`} className="step-in mt-6 min-h-[9.5rem] [animation-delay:60ms]">
-          <h3 className="text-balance font-serif text-3xl leading-tight text-lead">{current.title}</h3>
-          <p className="mt-3 text-lg leading-relaxed text-ink-2">{current.text}</p>
+          <h3 className="text-balance font-serif text-3xl leading-tight text-lead"><LocalizedText>{current.title}</LocalizedText></h3>
+          <p className="mt-3 text-lg leading-relaxed text-ink-2"><LocalizedText>{current.text}</LocalizedText></p>
         </div>
         <div className="mt-6 flex items-center gap-3 lg:mt-auto">
-          <button
+          <LocalizedElement as="button"
             type="button"
             onClick={() => go(active - 1)}
             aria-label="Previous step"
             className="grid h-11 w-14 place-items-center rounded-full border border-line bg-white text-lead transition-colors hover:border-cerulean hover:bg-firstlight/50"
           >
             <Arrow className="h-4 w-4 rotate-180" />
-          </button>
-          <button
+          </LocalizedElement>
+          <LocalizedElement as="button"
             type="button"
             onClick={() => go(active + 1)}
             aria-label="Next step"
             className="grid h-11 w-14 place-items-center rounded-full bg-serpent text-white transition-colors hover:bg-serpent-dark"
           >
             <Arrow className="h-4 w-4" />
-          </button>
+          </LocalizedElement>
           <div className="ml-2 flex items-center">
             {slides.map((s, i) => (
-              <button
+              <LocalizedElement as="button"
                 key={s.title}
                 type="button"
                 onClick={() => go(i)}
@@ -107,13 +109,13 @@ export function FeatureCarousel({ slides, label }: { slides: Slide[]; label: str
                     i === active ? "w-8 bg-serpent" : i < active ? "w-4 bg-serpent/45" : "w-4 bg-cerulean group-hover:bg-wolverine"
                   }`}
                 />
-              </button>
+              </LocalizedElement>
             ))}
           </div>
         </div>
       </div>
 
-      <div
+      <LocalizedElement as="div"
         role="region"
         aria-roledescription="carousel"
         aria-label={label}
@@ -127,7 +129,7 @@ export function FeatureCarousel({ slides, label }: { slides: Slide[]; label: str
         {slides.map((slide, i) => {
           const d = i - active;
           return (
-            <div
+            <LocalizedElement as="div"
               key={slide.title}
               role="group"
               aria-roledescription="slide"
@@ -149,14 +151,14 @@ export function FeatureCarousel({ slides, label }: { slides: Slide[]; label: str
               <article
                 className={`flex h-full min-h-[26rem] flex-col rounded-[2rem] p-2.5 shadow-[0_34px_50px_-34px_rgba(32,33,33,0.55)] sm:p-3 ${TONES[slide.tone]}`}
               >
-                {slide.visual}
+                <LocalizedText>{slide.visual}</LocalizedText>
               </article>
-            </div>
+            </LocalizedElement>
           );
         })}
-      </div>
+      </LocalizedElement>
 
-      <p className="sr-only" aria-live="polite">{`Step ${active + 1} of ${n}: ${current.title}`}</p>
+      <p className="sr-only" aria-live="polite"><LocalizedText>{`Step ${active + 1} of ${n}: ${current.title}`}</LocalizedText></p>
     </div>
   );
 }

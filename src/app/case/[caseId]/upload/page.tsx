@@ -1,5 +1,7 @@
 "use client";
 
+import { LocalizedText, LocalizedElement } from "@/components/i18n/LocaleProvider";
+
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { PRIMARY, SECONDARY, Section } from "@/components/app/ui";
@@ -49,45 +51,45 @@ export default function UploadPage() {
       {retake && (
         <div className="flex flex-wrap items-center gap-3 rounded-2xl bg-warn-soft px-5 py-4">
           <p className="min-w-0 flex-1 text-warn-ink">
-            <b>{retake.title}</b> couldn’t be read{retake.reason ? `: ${retake.reason}` : "."} Please upload a clearer copy.
-          </p>
-          <label className={`${SECONDARY} cursor-pointer`}>
+            <b><LocalizedText>{retake.title}</LocalizedText></b><LocalizedText> couldn’t be read</LocalizedText><LocalizedText>{retake.reason ? `: ${retake.reason}` : "."}</LocalizedText><LocalizedText> Please upload a clearer copy.
+          </LocalizedText></p>
+          <label className={`${SECONDARY} cursor-pointer`}><LocalizedText>
             Retake photo
-            <input type="file" accept="image/*" capture="environment" className="sr-only" onChange={(e) => {setFile(e.target.files?.[0] ?? null);setReplacement(retake?.id??null);}} />
+            </LocalizedText><input type="file" accept="image/*" capture="environment" className="sr-only" onChange={(e) => {setFile(e.target.files?.[0] ?? null);setReplacement(retake?.id??null);}} />
           </label>
         </div>
       )}
 
-      {care.closed ? <p className="rounded-2xl bg-firstlight p-5 leading-relaxed text-serpent-dark">This care case is closed, so no new documents can be added. Everything already uploaded stays readable.</p> : care.me.role === "payer" ? <p className="rounded-2xl bg-firstlight p-5 leading-relaxed text-serpent-dark">Estimates and bills are uploaded by the case owner or the companion at the hospital. As a payer you see the bill summary in Bill Review.</p> : <>
+      <LocalizedText>{care.closed ? <p className="rounded-2xl bg-firstlight p-5 leading-relaxed text-serpent-dark"><LocalizedText>This care case is closed, so no new documents can be added. Everything already uploaded stays readable.</LocalizedText></p> : care.me.role === "payer" ? <p className="rounded-2xl bg-firstlight p-5 leading-relaxed text-serpent-dark"><LocalizedText>Estimates and bills are uploaded by the case owner or the companion at the hospital. As a payer you see the bill summary in Bill Review.</LocalizedText></p> : <>
       <Section title="New Upload" agent="clerk">
         <label className="flex cursor-pointer flex-col items-center gap-3 rounded-[1.75rem] border-2 border-dashed border-cerulean px-6 py-12 text-center transition-colors hover:bg-white/60">
           <span className="grid h-14 w-14 place-items-center rounded-2xl bg-white text-serpent">
             <Upload className="h-7 w-7" />
           </span>
           <span className="text-lg font-semibold text-lead">{file?.name ?? "Choose a photo or PDF"}</span>
-          <span className="text-sm text-ink-2">{file ? (fileError ? "This file can’t be uploaded" : "Ready to upload") : "PDF, PNG or JPEG up to 10 MB"}</span>
+          <span className="text-sm text-ink-2"><LocalizedText>{file ? (fileError ? "This file can’t be uploaded" : "Ready to upload") : "PDF, PNG or JPEG up to 10 MB"}</LocalizedText></span>
           <input type="file" accept="image/png,image/jpeg,.pdf" className="sr-only" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
         </label>
         <div className="mt-4 flex flex-wrap items-center gap-3">
-          <div className="flex rounded-xl bg-white p-1 text-sm font-semibold" role="group" aria-label="Document type">
+          <LocalizedElement as="div" className="flex rounded-xl bg-white p-1 text-sm font-semibold" role="group" aria-label="Document type">
             {TYPES.map((t) => (
               <button key={t.value} type="button" aria-pressed={type === t.value} onClick={() => setType(t.value)} className={`rounded-lg px-3 py-1.5 ${type === t.value ? "bg-serpent text-white" : "text-ink-2 hover:text-lead"}`}>
-                {t.label}
+                <LocalizedText>{t.label}</LocalizedText>
               </button>
             ))}
-          </div>
+          </LocalizedElement>
           <button type="button" className={`${PRIMARY} ml-auto !px-6 !py-3`} onClick={()=>setConfirming(true)} disabled={!file || busy || Boolean(fileError)}>
-            {busy ? <><Spinner />Reading document…</> : "Upload"}
+            <LocalizedText>{busy ? <><Spinner /><LocalizedText>Reading document…</LocalizedText></> : "Upload"}</LocalizedText>
           </button>
         </div>
         <FieldError id="upload-file-error" message={fileError} />
         {confirming && file && <ConfirmUpload file={file} type={type} replacing={Boolean(replacement)} onBack={()=>setConfirming(false)} onConfirm={()=>{setConfirming(false);void upload();}} />}
       </Section>
-      </>}
+      </>}</LocalizedText>
 
-      {feedback && <p role="status" className={`rounded-2xl px-5 py-4 text-sm ${feedback.ok ? "bg-ok-soft text-ok-ink" : "bg-warn-soft text-warn-ink"}`}>{feedback.text}</p>}
-      <Section title="Documents on File" agent="reader"><ul className="divide-y divide-line">{DOCUMENTS.map(d=><li key={d.id} className="flex flex-wrap items-center justify-between gap-3 py-3"><div><p className="font-semibold text-lead">{d.title}</p><p className="text-xs text-ink-2">{d.type} · {d.status} · {d.items} items</p>{d.reason&&<p className="mt-1 text-sm text-warn-ink">{d.reason}</p>}</div>{care.me.role!=="payer"&&<a href={`/api/documents/${d.id}/file`} className="text-sm font-semibold text-serpent-dark underline">Download original</a>}</li>)}</ul>{!DOCUMENTS.length&&<p className="text-ink-2">No documents yet. Upload the hospital’s estimate first, then each bill as it arrives.</p>}</Section>
-      <p className="text-sm text-ink-2">What the agents do with each document is explained in <Link href={`/case/${care.id}/guide`} className="font-semibold text-serpent-dark underline">How It Works</Link>.</p>
+      {feedback && <p role="status" className={`rounded-2xl px-5 py-4 text-sm ${feedback.ok ? "bg-ok-soft text-ok-ink" : "bg-warn-soft text-warn-ink"}`}><LocalizedText>{feedback.text}</LocalizedText></p>}
+      <Section title="Documents on File" agent="reader"><ul className="divide-y divide-line">{DOCUMENTS.map(d=><li key={d.id} className="flex flex-wrap items-center justify-between gap-3 py-3"><div><p className="font-semibold text-lead"><LocalizedText>{d.title}</LocalizedText></p><p className="text-xs text-ink-2"><LocalizedText>{d.type}</LocalizedText> · <LocalizedText>{d.status}</LocalizedText> · <LocalizedText>{d.items}</LocalizedText><LocalizedText> items</LocalizedText></p>{d.reason&&<p className="mt-1 text-sm text-warn-ink"><LocalizedText>{d.reason}</LocalizedText></p>}</div>{care.me.role!=="payer"&&<a href={`/api/documents/${d.id}/file`} className="text-sm font-semibold text-serpent-dark underline"><LocalizedText>Download original</LocalizedText></a>}</li>)}</ul>{!DOCUMENTS.length&&<p className="text-ink-2"><LocalizedText>No documents yet. Upload the hospital’s estimate first, then each bill as it arrives.</LocalizedText></p>}</Section>
+      <p className="text-sm text-ink-2"><LocalizedText>What the agents do with each document is explained in </LocalizedText><Link href={`/case/${care.id}/guide`} className="font-semibold text-serpent-dark underline"><LocalizedText>How It Works</LocalizedText></Link>.</p>
     </div>
   );
 }
@@ -110,25 +112,25 @@ function ConfirmUpload({ file, type, replacing, onConfirm, onBack }: { file: Fil
   return (
     <dialog ref={ref} onClose={onBack} aria-labelledby="confirm-upload-title" className="m-auto w-[calc(100%-2rem)] max-w-lg overflow-hidden rounded-[1.75rem] bg-white p-0 text-lead shadow-[0_30px_60px_-30px_rgba(32,33,33,0.55)] backdrop:bg-lead/40 backdrop:backdrop-blur-[2px]">
       <div className="pop bg-serpent px-6 pb-4 pt-5 text-white">
-        <p className="text-xs font-semibold uppercase tracking-wider text-white/80">Check before reading</p>
-        <h2 id="confirm-upload-title" className="mt-1 text-xl font-semibold">Upload as {t.label.toLowerCase()}?</h2>
+        <p className="text-xs font-semibold uppercase tracking-wider text-white/80"><LocalizedText>Check before reading</LocalizedText></p>
+        <h2 id="confirm-upload-title" className="mt-1 text-xl font-semibold"><LocalizedText>Upload as </LocalizedText><LocalizedText>{t.label.toLowerCase()}</LocalizedText>?</h2>
       </div>
       <div className="space-y-4 p-6 text-sm">
         <dl className="divide-y divide-line">
-          <div className="flex justify-between gap-4 py-2"><dt className="text-ink-2">File</dt><dd className="min-w-0 truncate text-right font-semibold">{file.name}</dd></div>
-          <div className="flex justify-between gap-4 py-2"><dt className="text-ink-2">Format</dt><dd className="font-semibold">{file.type === "application/pdf" ? "PDF" : file.type === "image/png" ? "PNG photo" : "JPEG photo"} · {size}</dd></div>
-          <div className="flex justify-between gap-4 py-2"><dt className="text-ink-2">Type</dt><dd className="font-semibold text-serpent-dark">{t.label}{replacing ? " (clearer copy)" : ""}</dd></div>
+          <div className="flex justify-between gap-4 py-2"><dt className="text-ink-2"><LocalizedText>File</LocalizedText></dt><dd className="min-w-0 truncate text-right font-semibold">{file.name}</dd></div>
+          <div className="flex justify-between gap-4 py-2"><dt className="text-ink-2"><LocalizedText>Format</LocalizedText></dt><dd className="font-semibold"><LocalizedText>{file.type === "application/pdf" ? "PDF" : file.type === "image/png" ? "PNG photo" : "JPEG photo"}</LocalizedText> · <LocalizedText>{size}</LocalizedText></dd></div>
+          <div className="flex justify-between gap-4 py-2"><dt className="text-ink-2"><LocalizedText>Type</LocalizedText></dt><dd className="font-semibold text-serpent-dark"><LocalizedText>{t.label}</LocalizedText><LocalizedText>{replacing ? " (clearer copy)" : ""}</LocalizedText></dd></div>
         </dl>
-        <p className="leading-relaxed text-ink-2">{t.use}</p>
-        {warnings.map(w => <p key={w} role="alert" className="rounded-xl bg-warn-soft p-3 text-warn-ink">{w}</p>)}
+        <p className="leading-relaxed text-ink-2"><LocalizedText>{t.use}</LocalizedText></p>
+        {warnings.map(w => <p key={w} role="alert" className="rounded-xl bg-warn-soft p-3 text-warn-ink"><LocalizedText>{w}</LocalizedText></p>)}
         <ul className="list-disc space-y-1 pl-5 text-xs leading-relaxed text-ink-2">
-          <li>The type can’t be changed after upload. If it’s wrong, upload the document again with the right type.</li>
-          <li>Names and ID numbers are hidden before any AI reads it, and its fingerprint is recorded.</li>
-          <li>Account numbers printed on it are never used for payment.</li>
+          <li><LocalizedText>The type can’t be changed after upload. If it’s wrong, upload the document again with the right type.</LocalizedText></li>
+          <li><LocalizedText>Names and ID numbers are hidden before any AI reads it, and its fingerprint is recorded.</LocalizedText></li>
+          <li><LocalizedText>Account numbers printed on it are never used for payment.</LocalizedText></li>
         </ul>
         <div className="flex flex-wrap gap-3 pt-1">
-          <button type="button" onClick={onConfirm} className={PRIMARY}>Yes, upload as {t.label.toLowerCase()}</button>
-          <button type="button" onClick={onBack} className={SECONDARY}>Change type</button>
+          <button type="button" onClick={onConfirm} className={PRIMARY}><LocalizedText>Yes, upload as </LocalizedText><LocalizedText>{t.label.toLowerCase()}</LocalizedText></button>
+          <button type="button" onClick={onBack} className={SECONDARY}><LocalizedText>Change type</LocalizedText></button>
         </div>
       </div>
     </dialog>

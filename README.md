@@ -154,3 +154,7 @@ Full list with mitigations: [known risks](docs/TECHNICAL.md#14-known-risks-and-l
 | [TASKS.md](docs/TASKS.md) · [AGENTS.md](AGENTS.md) | Progress and contributor guide |
 
 All patients, hospitals and accounts in the demo are synthetic.
+
+### Interface languages
+
+Use the **English / 中文** control in the header to switch between English and Simplified Chinese. The preference persists across navigation and reloads. Original documents, entered names and AI responses retain their source language. See [localization notes](docs/LOCALIZATION.md).

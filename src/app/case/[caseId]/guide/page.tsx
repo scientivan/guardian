@@ -1,5 +1,7 @@
 "use client";
 
+import { LocalizedText } from "@/components/i18n/LocaleProvider";
+
 import { Fragment } from "react";
 import { FoldSection, Section } from "@/components/app/ui";
 import { AskButton } from "@/components/app/Assistant";
@@ -39,7 +41,7 @@ const CHECK_WHY: Record<number, string> = {
 export default function GuidePage() {
   return (
     <div className="space-y-12">
-      <p className="max-w-3xl leading-relaxed text-ink-2">Guardian works for the patient and the people who help pay. It explains foreign hospital bills and simulates payments for a verified hospital recipient after each person approves their own share. This page explains how, in plain words.</p>
+      <p className="max-w-3xl leading-relaxed text-ink-2"><LocalizedText>Guardian works for the patient and the people who help pay. It explains foreign hospital bills and simulates payments for a verified hospital recipient after each person approves their own share. This page explains how, in plain words.</LocalizedText></p>
 
       <Section title="What Happens to a Bill" agent="reader">
         <ol className="flex flex-col items-stretch gap-2 sm:flex-row sm:items-start">
@@ -50,35 +52,35 @@ export default function GuidePage() {
                 {i > 0 && <li aria-hidden="true" className="flex justify-center text-serpent sm:mt-8"><Arrow className="h-8 w-8 rotate-90 sm:rotate-0" /></li>}
                 <li className="flex flex-1 items-center gap-3 sm:flex-col sm:text-center">
                   <Minifig skin={a.skin} hair={a.hair} hijab={a.hijab} shirt={a.color} className="h-20 w-20 shrink-0 rounded-2xl bg-white" />
-                  <span><span className="block font-semibold text-lead">{p.text}</span><span className="text-sm text-ink-2">{a.name}</span></span>
+                  <span><span className="block font-semibold text-lead"><LocalizedText>{p.text}</LocalizedText></span><span className="text-sm text-ink-2"><LocalizedText>{a.name}</LocalizedText></span></span>
                 </li>
               </Fragment>
             );
           })}
         </ol>
-        <p className="mt-6 leading-relaxed text-lead">Each reason in Bill Review is one of three kinds: <b>calculated</b> from the bill by code, <b>stated</b> in the hospital’s documents, or a <b>question for the hospital</b> when the documents don’t say. Calculated text comes from code. Document statements are quoted from the extracted reading, which can be wrong and needs hospital confirmation. The planner cannot add a diagnosis. A high price is a question, not an accusation.</p>
+        <p className="mt-6 leading-relaxed text-lead"><LocalizedText>Each reason in Bill Review is one of three kinds: </LocalizedText><b><LocalizedText>calculated</LocalizedText></b><LocalizedText> from the bill by code, </LocalizedText><b><LocalizedText>stated</LocalizedText></b><LocalizedText> in the hospital’s documents, or a </LocalizedText><b><LocalizedText>question for the hospital</LocalizedText></b><LocalizedText> when the documents don’t say. Calculated text comes from code. Document statements are quoted from the extracted reading, which can be wrong and needs hospital confirmation. The planner cannot add a diagnosis. A high price is a question, not an accusation.</LocalizedText></p>
       </Section>
 
       <Section title="How Payments Are Protected" agent="gate" action={<AskButton question="How does Guardian make sure money only goes to the real hospital?" label="Ask about this" />}>
         <ol className="grid gap-x-8 gap-y-5 sm:grid-cols-2">
           {Object.entries(CHECKS).map(([n, t]) => (
             <li key={n} className="flex gap-3">
-              <span className="w-5 text-lg font-extrabold leading-7 tabular-nums text-serpent">{n}</span>
-              <span><span className="block font-semibold leading-7 text-lead">{t}</span><span className="text-sm leading-relaxed text-ink-2">{CHECK_WHY[Number(n)]}</span></span>
+              <span className="w-5 text-lg font-extrabold leading-7 tabular-nums text-serpent"><LocalizedText>{n}</LocalizedText></span>
+              <span><span className="block font-semibold leading-7 text-lead"><LocalizedText>{t}</LocalizedText></span><span className="text-sm leading-relaxed text-ink-2"><LocalizedText>{CHECK_WHY[Number(n)]}</LocalizedText></span></span>
             </li>
           ))}
         </ol>
-        <p className="mt-6 rounded-xl bg-white p-4 text-sm leading-relaxed text-lead">If any check fails, the payment stops and the reason is shown and recorded. There is no override button. The way forward is to confirm with the hospital through its official billing channel.</p>
+        <p className="mt-6 rounded-xl bg-white p-4 text-sm leading-relaxed text-lead"><LocalizedText>If any check fails, the payment stops and the reason is shown and recorded. There is no override button. The way forward is to confirm with the hospital through its official billing channel.</LocalizedText></p>
       </Section>
 
       <Section title="How the Money Moves" agent="gate">
         <ol className="space-y-4 leading-relaxed text-lead">
-          <li><b>1. A request.</b> The owner asks for an amount the hospital needs, such as a deposit or an emergency guarantee.</li>
-          <li><b>2. Pledges.</b> Each payer chooses their own share, up to their limit, in their own currency. They see the exchange rate and fee first. Nothing is charged yet, and a pledge can be withdrawn.</li>
-          <li><b>3. Payment.</b> When the pledges cover 100%, the owner confirms. Each share produces a separate <b>sandbox or Stripe test charge</b> associated with the verified intended recipient. Every payer gets a test charge reference. This version does not transfer funds to the hospital’s bank account.</li>
-          <li><b>4. Refund.</b> If the final bill is lower than the deposits, the hospital returns the difference, split by what each person paid. Guardian tracks it and reminds when it’s late.</li>
+          <li><b><LocalizedText>1. A request.</LocalizedText></b><LocalizedText> The owner asks for an amount the hospital needs, such as a deposit or an emergency guarantee.</LocalizedText></li>
+          <li><b><LocalizedText>2. Pledges.</LocalizedText></b><LocalizedText> Each payer chooses their own share, up to their limit, in their own currency. They see the exchange rate and fee first. Nothing is charged yet, and a pledge can be withdrawn.</LocalizedText></li>
+          <li><b><LocalizedText>3. Payment.</LocalizedText></b><LocalizedText> When the pledges cover 100%, the owner confirms. Each share produces a separate </LocalizedText><b><LocalizedText>sandbox or Stripe test charge</LocalizedText></b><LocalizedText> associated with the verified intended recipient. Every payer gets a test charge reference. This version does not transfer funds to the hospital’s bank account.</LocalizedText></li>
+          <li><b><LocalizedText>4. Refund.</LocalizedText></b><LocalizedText> If the final bill is lower than the deposits, the hospital returns the difference, split by what each person paid. Guardian tracks it and reminds when it’s late.</LocalizedText></li>
         </ol>
-        <p className="mt-5 text-sm leading-relaxed text-ink-2">Guardian never holds money: there is no wallet, vault or escrow. A share limit is only a ceiling, not an amount that is taken. Payments in this version run in a sandbox or Stripe test mode, and exchange rates come from a reference table.</p>
+        <p className="mt-5 text-sm leading-relaxed text-ink-2"><LocalizedText>Guardian never holds money: there is no wallet, vault or escrow. A share limit is only a ceiling, not an amount that is taken. Payments in this version run in a sandbox or Stripe test mode, and exchange rates come from a reference table.</LocalizedText></p>
       </Section>
 
       <Section title="Your Agent Team" agent="planner">
@@ -89,9 +91,9 @@ export default function GuidePage() {
               <li key={t.id} className="flex gap-4 rounded-2xl bg-white p-4">
                 <Minifig skin={a.skin} hair={a.hair} hijab={a.hijab} shirt={a.color} className="h-14 w-14 shrink-0 rounded-xl bg-mist" />
                 <div className="min-w-0 text-sm leading-relaxed">
-                  <p className="text-base font-semibold text-lead">{a.name}</p>
-                  <p className="text-lead">{t.does}</p>
-                  <p className="mt-1 text-ink-2"><b className="font-semibold">Never:</b> {t.never}</p>
+                  <p className="text-base font-semibold text-lead"><LocalizedText>{a.name}</LocalizedText></p>
+                  <p className="text-lead"><LocalizedText>{t.does}</LocalizedText></p>
+                  <p className="mt-1 text-ink-2"><b className="font-semibold"><LocalizedText>Never:</LocalizedText></b> <LocalizedText>{t.never}</LocalizedText></p>
                 </div>
               </li>
             );
@@ -101,17 +103,17 @@ export default function GuidePage() {
 
       <FoldSection title="Your Privacy" agent="clerk">
         <ul className="list-disc space-y-2 pl-5 leading-relaxed text-lead">
-          <li>Names, passport, medical record and card numbers are replaced with tokens such as [PASIEN_1] before any AI reads a document.</li>
-          <li>Payers see the bill summary and their own share, not full medical documents or ID numbers. Only the owner sees card numbers.</li>
-          <li>Medicine and procedure names stay visible so the bill can be explained, so a diagnosis could still be guessed. That is why role limits are the second layer of protection.</li>
+          <li><LocalizedText>Names, passport, medical record and card numbers are replaced with tokens such as [PASIEN_1] before any AI reads a document.</LocalizedText></li>
+          <li><LocalizedText>Payers see the bill summary and their own share, not full medical documents or ID numbers. Only the owner sees card numbers.</LocalizedText></li>
+          <li><LocalizedText>Medicine and procedure names stay visible so the bill can be explained, so a diagnosis could still be guessed. That is why role limits are the second layer of protection.</LocalizedText></li>
         </ul>
       </FoldSection>
 
       <FoldSection title="What the Records Prove" agent="auditor">
         <ul className="list-disc space-y-2 pl-5 leading-relaxed text-lead">
-          <li>Every step is written to Case History with a fingerprint linked to the step before. Editing any past entry breaks the chain, and Case History shows “Chain broken”.</li>
-          <li>Document fingerprints and the latest log fingerprint can be anchored on a FISCO BCOS blockchain.</li>
-          <li>An anchor proves a file or the log hasn’t changed since. It does not prove who issued a bill or that the bill is correct.</li>
+          <li><LocalizedText>Every step is written to Case History with a fingerprint linked to the step before. Editing any past entry breaks the chain, and Case History shows “Chain broken”.</LocalizedText></li>
+          <li><LocalizedText>Document fingerprints and the latest log fingerprint can be anchored on a FISCO BCOS blockchain.</LocalizedText></li>
+          <li><LocalizedText>An anchor proves a file or the log hasn’t changed since. It does not prove who issued a bill or that the bill is correct.</LocalizedText></li>
         </ul>
       </FoldSection>
     </div>

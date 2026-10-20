@@ -1,3 +1,6 @@
+
+import { LanguageSwitch, LocalizedText } from "@/components/i18n/LocaleProvider";
+
 import Link from "next/link";
 import type { ReactNode } from "react";
 import type { AgentId } from "@/components/landing/agents";
@@ -17,13 +20,13 @@ export function EntryFrame({ title, working = [], children, wide = false, xwide 
         <div className={`mx-auto flex h-16 items-center justify-between px-6 ${width}`}>
           <Link href="/" className="flex items-center gap-2.5">
             <ShieldMark className="h-7 w-7" />
-            <span className="font-serif text-2xl text-lead">Guardian</span>
+            <span className="font-serif text-2xl text-lead"><LocalizedText>Guardian</LocalizedText></span>
           </Link>
-          {profile && <AccountMenu />}
+          <div className="flex items-center gap-2"><LanguageSwitch />{profile && <AccountMenu />}</div>
         </div>
       </header>
       <TabBand title={title} working={working} inner={`mx-auto px-6 ${width}`} compact />
-      <main className={`mx-auto space-y-10 px-6 ${xwide ? "py-8" : "py-10 sm:py-12"} ${width}`}>{children}</main>
+      <main className={`mx-auto space-y-10 px-6 ${xwide ? "py-8" : "py-10 sm:py-12"} ${width}`}><LocalizedText>{children}</LocalizedText></main>
     </div>
   );
 }

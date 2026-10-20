@@ -1,5 +1,7 @@
 "use client";
 
+import { LocalizedText } from "@/components/i18n/LocaleProvider";
+
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
 import { useParams } from "next/navigation";
 import type { CareCase, NewCareCase, Workspace } from "@/lib/workspace";
@@ -86,10 +88,10 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
 
   if (error && !workspace) {
     const x = explainError(error);
-    return <div role="alert" className="mx-auto mt-16 max-w-md space-y-3 rounded-[1.75rem] bg-firstlight p-7"><h1 className="font-serif text-2xl text-lead">{x.title}</h1><p className="text-lead">{x.body}</p><p className="text-sm text-ink-2">{x.hint}</p>{x.action ? <a href={x.action.href} className={PRIMARY}>{x.action.label}</a> : <button type="button" onClick={refresh} className={PRIMARY}>Try again</button>}</div>;
+    return <div role="alert" className="mx-auto mt-16 max-w-md space-y-3 rounded-[1.75rem] bg-firstlight p-7"><h1 className="font-serif text-2xl text-lead"><LocalizedText>{x.title}</LocalizedText></h1><p className="text-lead"><LocalizedText>{x.body}</LocalizedText></p><p className="text-sm text-ink-2"><LocalizedText>{x.hint}</LocalizedText></p>{x.action ? <a href={x.action.href} className={PRIMARY}><LocalizedText>{x.action.label}</LocalizedText></a> : <button type="button" onClick={refresh} className={PRIMARY}><LocalizedText>Try again</LocalizedText></button>}</div>;
   }
-  if (!workspace) return <p role="status" className="flex items-center gap-3 p-6 text-ink-2"><Spinner className="h-5 w-5 text-serpent" />Opening your care cases…</p>;
-  return <Context.Provider value={{ ...workspace, refresh, createCase, act,call,selectMember }}>{children}</Context.Provider>;
+  if (!workspace) return <p role="status" className="flex items-center gap-3 p-6 text-ink-2"><Spinner className="h-5 w-5 text-serpent" /><LocalizedText>Opening your care cases…</LocalizedText></p>;
+  return <Context.Provider value={{ ...workspace, refresh, createCase, act,call,selectMember }}><LocalizedText>{children}</LocalizedText></Context.Provider>;
 }
 
 export function useWorkspace() {
@@ -108,6 +110,6 @@ export function useCaseData(): CareCase {
 
 export function CaseAccess({ caseId, children }: { caseId: string; children: ReactNode }) {
   const { cases } = useWorkspace();
-  if (!cases.some(c => c.case.id === caseId)) return <div className="p-8"><h1 className="font-serif text-3xl text-lead">Care case not found</h1><p className="mt-3 text-ink-2">This care case isn’t available in your account.</p><a href="/projects" className="mt-4 inline-block font-semibold text-serpent-dark underline">Back to dashboard</a></div>;
+  if (!cases.some(c => c.case.id === caseId)) return <div className="p-8"><h1 className="font-serif text-3xl text-lead"><LocalizedText>Care case not found</LocalizedText></h1><p className="mt-3 text-ink-2"><LocalizedText>This care case isn’t available in your account.</LocalizedText></p><a href="/projects" className="mt-4 inline-block font-semibold text-serpent-dark underline"><LocalizedText>Back to dashboard</LocalizedText></a></div>;
   return children;
 }

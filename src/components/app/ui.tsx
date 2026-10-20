@@ -1,3 +1,5 @@
+
+import { LocalizedText } from "@/components/i18n/LocaleProvider";
 import type { ReactNode } from "react";
 import { AGENT_BY_ID, type AgentId } from "@/components/landing/agents";
 import { Chevron } from "@/components/landing/icons";
@@ -20,7 +22,7 @@ const TONES: Record<Tone, string> = {
 
 /** A status word: plain bold coloured text, no box around it (Aurel: tinted pill labels look AI-made). */
 export function Chip({ tone = "muted", className = "", children }: { tone?: Tone; className?: string; children: ReactNode }) {
-  return <span className={`inline-flex shrink-0 items-center whitespace-nowrap text-xs font-bold ${TONES[tone]} ${className}`}>{children}</span>;
+  return <span className={`inline-flex shrink-0 items-center whitespace-nowrap text-xs font-bold ${TONES[tone]} ${className}`}><LocalizedText>{children}</LocalizedText></span>;
 }
 
 /**
@@ -30,8 +32,8 @@ export function Chip({ tone = "muted", className = "", children }: { tone?: Tone
 export function Figure({ code, value, tone = "text-serpent-dark", className = "" }: { code?: string; value: string; tone?: string; className?: string }) {
   return (
     <span className={`inline-flex items-baseline gap-1.5 whitespace-nowrap font-num tabular-nums ${className}`}>
-      {code && <span className="text-base font-bold text-ink-2">{code}</span>}
-      <span className={`text-4xl font-extrabold tracking-tight ${tone}`}>{value}</span>
+      {code && <span className="text-base font-bold text-ink-2"><LocalizedText>{code}</LocalizedText></span>}
+      <span className={`text-4xl font-extrabold tracking-tight ${tone}`}><LocalizedText>{value}</LocalizedText></span>
     </span>
   );
 }
@@ -70,7 +72,7 @@ const FOLDER_BACK = "bg-serpent-dark pt-2 shadow-[0_22px_34px_-26px_rgba(32,33,3
 function FolderTab({ title, agent }: { title: string; agent?: AgentId }) {
   return (
     <span className={FOLDER_TAB}>
-      <span className="relative z-10">{title}</span>
+      <span className="relative z-10"><LocalizedText>{title}</LocalizedText></span>
       <RibbonAgent id={agent} className="relative z-10 -mt-7 -mb-2.5 h-12 w-12 shrink-0" />
     </span>
   );
@@ -88,7 +90,7 @@ function Bubble({ title, agent, hover = false }: { title: string; agent?: AgentI
   return (
     <span className="flex items-end gap-2">
       <RibbonAgent id={agent} className="h-14 w-14 shrink-0" />
-      <span className={`${BUBBLE} ${hover ? "group-hover:bg-[#2f5274] group-hover:after:bg-[#2f5274]" : ""}`}>{title}</span>
+      <span className={`${BUBBLE} ${hover ? "group-hover:bg-[#2f5274] group-hover:after:bg-[#2f5274]" : ""}`}><LocalizedText>{title}</LocalizedText></span>
     </span>
   );
 }
@@ -98,10 +100,10 @@ export function Section({ title, action, children, className = "", variant = MAI
     return (
       <section className={className}>
         <div className={`${BAND} ${inset ? INSET : BLEED}`}>
-          <h2 className={BAND_TITLE}>{title}</h2>
-          {action && <div className="ml-auto flex flex-wrap items-center gap-2">{action}</div>}
+          <h2 className={BAND_TITLE}><LocalizedText>{title}</LocalizedText></h2>
+          {action && <div className="ml-auto flex flex-wrap items-center gap-2"><LocalizedText>{action}</LocalizedText></div>}
         </div>
-        <div className="mt-6">{children}</div>
+        <div className="mt-6"><LocalizedText>{children}</LocalizedText></div>
       </section>
     );
   }
@@ -112,10 +114,10 @@ export function Section({ title, action, children, className = "", variant = MAI
           <h2>
             <FolderTab title={title} agent={agent} />
           </h2>
-          {action && <div className="mb-2 flex flex-wrap items-center gap-2">{action}</div>}
+          {action && <div className="mb-2 flex flex-wrap items-center gap-2"><LocalizedText>{action}</LocalizedText></div>}
         </div>
         <div className={`${FOLDER_BACK} rounded-b-[1.75rem] rounded-tr-[1.75rem]`}>
-          <div className="rounded-[1.5rem] bg-firstlight p-5 sm:p-7">{children}</div>
+          <div className="rounded-[1.5rem] bg-firstlight p-5 sm:p-7"><LocalizedText>{children}</LocalizedText></div>
         </div>
       </section>
     );
@@ -127,9 +129,9 @@ export function Section({ title, action, children, className = "", variant = MAI
           <h2>
             <Bubble title={title} agent={agent} />
           </h2>
-          {action && <div className="mb-5 ml-auto flex flex-wrap items-center gap-2">{action}</div>}
+          {action && <div className="mb-5 ml-auto flex flex-wrap items-center gap-2"><LocalizedText>{action}</LocalizedText></div>}
         </div>
-        <div className="mt-3">{children}</div>
+        <div className="mt-3"><LocalizedText>{children}</LocalizedText></div>
       </section>
     );
   }
@@ -137,12 +139,12 @@ export function Section({ title, action, children, className = "", variant = MAI
     <section className={className}>
       <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
         <h2 className={RIBBON}>
-          {title}
+          <LocalizedText>{title}</LocalizedText>
           <RibbonAgent id={agent} />
         </h2>
-        {action && <div className="ml-auto flex flex-wrap items-center gap-2">{action}</div>}
+        {action && <div className="ml-auto flex flex-wrap items-center gap-2"><LocalizedText>{action}</LocalizedText></div>}
       </div>
-      <div className="mt-7">{children}</div>
+      <div className="mt-7"><LocalizedText>{children}</LocalizedText></div>
     </section>
   );
 }
@@ -153,10 +155,10 @@ export function FoldSection({ title, children, variant = MAIN_LOOK, agent, inset
     return (
       <details className="group">
         <summary className={`${BAND} ${inset ? INSET : BLEED} cursor-pointer list-none transition-colors hover:bg-cerulean/50`}>
-          <span className={BAND_TITLE}>{title}</span>
+          <span className={BAND_TITLE}><LocalizedText>{title}</LocalizedText></span>
           <Chevron className="ml-auto h-5 w-5 text-serpent-dark transition-transform group-open:rotate-180" />
         </summary>
-        <div className="mt-6">{children}</div>
+        <div className="mt-6"><LocalizedText>{children}</LocalizedText></div>
       </details>
     );
   }
@@ -170,14 +172,14 @@ export function FoldSection({ title, children, variant = MAIN_LOOK, agent, inset
           <span className={`${FOLDER_BACK} block rounded-b-[1.75rem] rounded-tr-[1.75rem] group-open:rounded-b-none group-open:shadow-none`}>
             <span className="flex items-center justify-between rounded-[1.5rem] bg-firstlight px-5 py-4 transition-colors group-hover:bg-cerulean/60 group-open:rounded-b-none sm:px-7">
               <span className="text-sm font-semibold text-serpent-dark">
-                <span className="group-open:hidden">Open folder</span>
-                <span className="hidden group-open:inline">Close folder</span>
+                <span className="group-open:hidden"><LocalizedText>Open folder</LocalizedText></span>
+                <span className="hidden group-open:inline"><LocalizedText>Close folder</LocalizedText></span>
               </span>
               <Chevron className="h-6 w-6 text-serpent-dark transition-transform group-open:rotate-180" />
             </span>
           </span>
         </summary>
-        <div className="rounded-b-[1.5rem] bg-firstlight px-5 pb-7 pt-1 shadow-[0_22px_34px_-26px_rgba(32,33,33,0.6)] sm:px-7">{children}</div>
+        <div className="rounded-b-[1.5rem] bg-firstlight px-5 pb-7 pt-1 shadow-[0_22px_34px_-26px_rgba(32,33,33,0.6)] sm:px-7"><LocalizedText>{children}</LocalizedText></div>
       </details>
     );
   }
@@ -188,7 +190,7 @@ export function FoldSection({ title, children, variant = MAIN_LOOK, agent, inset
           <Bubble title={title} agent={agent} hover />
           <Chevron className="mb-7 ml-auto h-6 w-6 text-serpent-dark transition-transform group-open:rotate-180" />
         </summary>
-        <div className="mt-3">{children}</div>
+        <div className="mt-3"><LocalizedText>{children}</LocalizedText></div>
       </details>
     );
   }
@@ -196,12 +198,12 @@ export function FoldSection({ title, children, variant = MAIN_LOOK, agent, inset
     <details className="group">
       <summary className="flex cursor-pointer list-none items-center gap-4">
         <span className={`${RIBBON} transition-colors group-hover:bg-[#2f5274]`}>
-          {title}
+          <LocalizedText>{title}</LocalizedText>
           <RibbonAgent id={agent} />
         </span>
         <Chevron className="ml-auto h-6 w-6 text-serpent-dark transition-transform group-open:rotate-180" />
       </summary>
-      <div className="mt-7">{children}</div>
+      <div className="mt-7"><LocalizedText>{children}</LocalizedText></div>
     </details>
   );
 }

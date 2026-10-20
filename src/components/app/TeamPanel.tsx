@@ -1,5 +1,7 @@
 "use client";
 
+import { LocalizedText, LocalizedElement } from "@/components/i18n/LocaleProvider";
+
 import Link from "next/link";
 import { AGENTS, type AgentId } from "@/components/landing/agents";
 import { Minifig } from "@/components/landing/Minifig";
@@ -55,10 +57,10 @@ export function TeamList({
               <Minifig skin={a.skin} hair={a.hair} hijab={a.hijab} shirt={a.color} className="h-10 w-10 shrink-0 rounded-xl bg-white" />
               <span className="min-w-0 flex-1">
                 <span className="flex items-center justify-between gap-2">
-                  <span className="text-sm font-semibold text-lead">{a.name}</span>
-                  <span className={`w-[4.75rem] shrink-0 py-1 text-center text-xs font-bold text-white ${STATE_SOLID[s.state]}`}>{chip.label}</span>
+                  <span className="text-sm font-semibold text-lead"><LocalizedText>{a.name}</LocalizedText></span>
+                  <span className={`w-[4.75rem] shrink-0 py-1 text-center text-xs font-bold text-white ${STATE_SOLID[s.state]}`}><LocalizedText>{chip.label}</LocalizedText></span>
                 </span>
-                <span className="mt-0.5 block text-xs leading-relaxed text-ink-2">{brief ? sentence(s.text) : s.detail}</span>
+                <span className="mt-0.5 block text-xs leading-relaxed text-ink-2"><LocalizedText>{brief ? sentence(s.text) : s.detail}</LocalizedText></span>
               </span>
             </button>
           </li>
@@ -75,24 +77,24 @@ export function TeamList({
 export function ActivityLog({ rows, horizontal = false, fill = false, caseId, limit }: { rows: AuditRow[]; horizontal?: boolean; fill?: boolean; caseId?: string; limit?: number }) {
   const list = [...rows].reverse().slice(0, limit);
   const body = (r: AuditRow) => <>
-    <span className="pt-0.5 text-xs tabular-nums text-ink-2">{clock(r.ts)}</span>
+    <span className="pt-0.5 text-xs tabular-nums text-ink-2"><LocalizedText>{clock(r.ts)}</LocalizedText></span>
     <span className="min-w-0 text-sm leading-snug text-lead">
-      <b className="font-semibold">{actorLabel(r.actor)}</b>
-      {r.decision === "deny" && <Chip tone="danger" className="ml-2">Blocked</Chip>}
-      <span className={horizontal ? "line-clamp-2 text-ink-2 [@media(max-height:600px)]:hidden" : "block text-ink-2"}>{describeAction(r.action, r.check)}</span>
+      <b className="font-semibold"><LocalizedText>{actorLabel(r.actor)}</LocalizedText></b>
+      {r.decision === "deny" && <Chip tone="danger" className="ml-2"><LocalizedText>Blocked</LocalizedText></Chip>}
+      <span className={horizontal ? "line-clamp-2 text-ink-2 [@media(max-height:600px)]:hidden" : "block text-ink-2"}><LocalizedText>{describeAction(r.action, r.check)}</LocalizedText></span>
     </span>
   </>;
   const item = horizontal ? "grid w-64 shrink-0 grid-cols-[2.75rem_1fr] gap-2 rounded-xl bg-white/80 px-3 py-2.5" : "grid grid-cols-[2.75rem_1fr] gap-2 py-2.5";
   return (
-    <ol aria-label="Recent case activity" tabIndex={fill ? undefined : 0} className={horizontal ? "flex gap-3 overflow-x-auto overscroll-x-contain pb-2" : fill ? "divide-y divide-line pr-1" : "max-h-64 divide-y divide-line overflow-y-auto overscroll-contain pr-1"}>
+    <LocalizedElement as="ol" aria-label="Recent case activity" tabIndex={fill ? undefined : 0} className={horizontal ? "flex gap-3 overflow-x-auto overscroll-x-contain pb-2" : fill ? "divide-y divide-line pr-1" : "max-h-64 divide-y divide-line overflow-y-auto overscroll-contain pr-1"}>
       {list.map((r) => (
         <li key={r.seq}>
           {caseId
-            ? <Link href={`/case/${caseId}/log#step-${r.seq}`} className={`${item} ${horizontal ? "" : "-mx-2 rounded-xl px-2"} transition-colors hover:bg-firstlight/70`}>{body(r)}</Link>
-            : <div className={item}>{body(r)}</div>}
+            ? <Link href={`/case/${caseId}/log#step-${r.seq}`} className={`${item} ${horizontal ? "" : "-mx-2 rounded-xl px-2"} transition-colors hover:bg-firstlight/70`}><LocalizedText>{body(r)}</LocalizedText></Link>
+            : <div className={item}><LocalizedText>{body(r)}</LocalizedText></div>}
         </li>
       ))}
-      {!list.length && <li className="py-2.5 text-sm text-ink-2">No activity yet.</li>}
-    </ol>
+      {!list.length && <li className="py-2.5 text-sm text-ink-2"><LocalizedText>No activity yet.</LocalizedText></li>}
+    </LocalizedElement>
   );
 }

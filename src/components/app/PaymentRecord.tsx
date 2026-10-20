@@ -1,5 +1,7 @@
 "use client";
 
+import { LocalizedText } from "@/components/i18n/LocaleProvider";
+
 import { useEffect, useState } from "react";
 import { Spinner } from "./Feedback";
 import { Chip, MoneyFigure } from "./ui";
@@ -25,21 +27,21 @@ export function PaymentRecord({ caseId, memberId, print = false }: { caseId: str
     call(`/cases/${caseId}/recap${memberId ? `?memberId=${encodeURIComponent(memberId)}` : ""}`, "GET", undefined, caseId).then(r => { if (active) setRecord(r as PaymentRecordData); }).catch(() => { if (active) setFailed(true); });
     return () => { active = false; };
   }, [call, caseId, memberId, care.me.id, audit.rows.length]);
-  if (failed) return <p className="text-sm text-ink-2">Your record couldn’t be loaded. Try the download below.</p>;
-  if (!record) return <p role="status" className="flex items-center gap-2 text-sm text-ink-2"><Spinner className="h-4 w-4 text-serpent" />Loading your record…</p>;
+  if (failed) return <p className="text-sm text-ink-2"><LocalizedText>Your record couldn’t be loaded. Try the download below.</LocalizedText></p>;
+  if (!record) return <p role="status" className="flex items-center gap-2 text-sm text-ink-2"><Spinner className="h-4 w-4 text-serpent" /><LocalizedText>Loading your record…</LocalizedText></p>;
   return (
     <div className="space-y-5">
-      <p><MoneyFigure minor={record.paidTotal} currency={care.currency} /><span className="ml-2 text-ink-2">paid {memberId && memberId !== care.me.id ? "by this person" : "by you"} in sandbox/test charges</span></p>
+      <p><MoneyFigure minor={record.paidTotal} currency={care.currency} /><span className="ml-2 text-ink-2"><LocalizedText>paid </LocalizedText><LocalizedText>{memberId && memberId !== care.me.id ? "by this person" : "by you"}</LocalizedText><LocalizedText> in sandbox/test charges</LocalizedText></span></p>
       {record.payments.length ? <ul className="divide-y divide-line rounded-2xl bg-white px-4">{record.payments.map(p => (
         <li key={`${p.requestId}-${p.ts}`} className="flex flex-wrap items-center gap-x-4 gap-y-1 py-3 text-sm">
-          <span className="min-w-0 flex-1"><span className="block font-semibold text-lead">{p.purpose}</span><span className="block text-xs text-ink-2">{day(p.ts)} · {p.chargeRef ? `Test charge ${p.chargeRef}` : "No receipt"}</span></span>
-          <span className="text-right"><b className="block font-num text-serpent-dark">{p.payCurrency && p.payAmount !== null ? converted(p.payAmount, p.payCurrency, p.amount, p.currency) : money(p.amount, p.currency)}</b>{p.payCurrency && p.payAmount !== null && <span className="text-xs text-ink-2">+ {money(p.fee ?? 0, p.payCurrency)} fee</span>}</span>
-          <Chip tone={p.status === "charged" ? "ok" : "danger"}>{p.status === "charged" ? "Paid" : "Failed"}</Chip>
+          <span className="min-w-0 flex-1"><span className="block font-semibold text-lead"><LocalizedText>{p.purpose}</LocalizedText></span><span className="block text-xs text-ink-2"><LocalizedText>{day(p.ts)}</LocalizedText> · <LocalizedText>{p.chargeRef ? `Test charge ${p.chargeRef}` : "No receipt"}</LocalizedText></span></span>
+          <span className="text-right"><b className="block font-num text-serpent-dark"><LocalizedText>{p.payCurrency && p.payAmount !== null ? converted(p.payAmount, p.payCurrency, p.amount, p.currency) : money(p.amount, p.currency)}</LocalizedText></b>{p.payCurrency && p.payAmount !== null && <span className="text-xs text-ink-2">+ <LocalizedText>{money(p.fee ?? 0, p.payCurrency)}</LocalizedText><LocalizedText> fee</LocalizedText></span>}</span>
+          <Chip tone={p.status === "charged" ? "ok" : "danger"}><LocalizedText>{p.status === "charged" ? "Paid" : "Failed"}</LocalizedText></Chip>
         </li>
-      ))}</ul> : <p className="text-sm text-ink-2">No payments {memberId && memberId !== care.me.id ? "from this person" : "from you"} yet. A share is charged only when a request they pledged to is paid.</p>}
-      {record.refund && <p className="text-sm text-lead">Your refund share: <b className="font-num">{money(record.refund.amount, care.currency)}</b> · {record.refund.status} · due {day(record.refund.dueAt)}</p>}
-      <details className="text-sm" open={print}><summary className="cursor-pointer font-semibold text-serpent-dark">Document fingerprints ({record.documents.length})</summary>
-        <ul className="mt-2 space-y-1.5">{record.documents.map(d => <li key={d.id} className="break-all text-xs text-ink-2"><b className="text-lead">{d.type}</b> · {d.sha256 || "fingerprint pending"}{d.anchoredTx ? ` · anchored ${d.anchoredTx}` : ""}</li>)}</ul>
+      ))}</ul> : <p className="text-sm text-ink-2"><LocalizedText>No payments </LocalizedText><LocalizedText>{memberId && memberId !== care.me.id ? "from this person" : "from you"}</LocalizedText><LocalizedText> yet. A share is charged only when a request they pledged to is paid.</LocalizedText></p>}
+      {record.refund && <p className="text-sm text-lead"><LocalizedText>Your refund share: </LocalizedText><b className="font-num"><LocalizedText>{money(record.refund.amount, care.currency)}</LocalizedText></b> · <LocalizedText>{record.refund.status}</LocalizedText><LocalizedText> · due </LocalizedText><LocalizedText>{day(record.refund.dueAt)}</LocalizedText></p>}
+      <details className="text-sm" open={print}><summary className="cursor-pointer font-semibold text-serpent-dark"><LocalizedText>Document fingerprints (</LocalizedText><LocalizedText>{record.documents.length}</LocalizedText>)</summary>
+        <ul className="mt-2 space-y-1.5">{record.documents.map(d => <li key={d.id} className="break-all text-xs text-ink-2"><b className="text-lead"><LocalizedText>{d.type}</LocalizedText></b> · {d.sha256 || "fingerprint pending"}<LocalizedText>{d.anchoredTx ? ` · anchored ${d.anchoredTx}` : ""}</LocalizedText></li>)}</ul>
       </details>
     </div>
   );

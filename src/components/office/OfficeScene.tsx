@@ -1,5 +1,7 @@
 "use client";
 
+import { LocalizedText, LocalizedElement } from "@/components/i18n/LocaleProvider";
+
 import type { ReactNode } from "react";
 import { Desk, FocusRing, Glass, Plant, Screen, Seated, Shelf, Standing, Tag, Vault, VaultSign, seat, type Spot } from "@/components/landing/AgentOffice";
 import { AGENT_BY_ID, AGENTS, type AgentId } from "@/components/landing/agents";
@@ -68,7 +70,7 @@ function BackWalls() {
           </g>
           <g transform={leftFaceMatrix(x, 0, 3.6, 2.6, 0.7, 130, 35)}>
             <text x={0} y={27} fontSize={27} fontWeight={800} fill="#375d84">
-              {name}
+              <LocalizedText>{name}</LocalizedText>
             </text>
           </g>
         </g>
@@ -122,7 +124,7 @@ function FloorLabel({ x, y, text, color = "#375d84" }: { x: number; y: number; t
   return (
     <g transform={floorMatrix(x, y)}>
       <text x={0} y={0} fontSize={7.5} fontWeight={800} fill={color} fillOpacity={0.75}>
-        {text}
+        <LocalizedText>{text}</LocalizedText>
       </text>
     </g>
   );
@@ -138,24 +140,24 @@ function DecisionBoard() {
       <IsoBox x={x + w - 0.3} y={y} w={0.1} d={0.1} h={0.6} color="#8f7f72" />
       <IsoBox x={x} y={y} z={0.6} w={w} d={d} h={1.9} color="#ffffff" left="#ffffff" right="#e3e9ec" top="#f3f7f9" />
       <g transform={leftFaceMatrix(x, y + d, 2.5, w, 1.9, 150, 95)}>
-        <text x={8} y={14} fontSize={9} fontWeight={800} fill="#202121">
+        <text x={8} y={14} fontSize={9} fontWeight={800} fill="#202121"><LocalizedText>
           Questions for the hospital
-        </text>
+        </LocalizedText></text>
         <rect x={8} y={20} width={134} height={16} rx={3} fill="#f6ecdc" />
-        <text x={13} y={31} fontSize={7.5} fontWeight={700} fill="#9a6212">
+        <text x={13} y={31} fontSize={7.5} fontWeight={700} fill="#9a6212"><LocalizedText>
           I35 pillow cases billed separately
-        </text>
-        <text x={8} y={52} fontSize={9} fontWeight={800} fill="#202121">
+        </LocalizedText></text>
+        <text x={8} y={52} fontSize={9} fontWeight={800} fill="#202121"><LocalizedText>
           Reviewed
-        </text>
+        </LocalizedText></text>
         <rect x={8} y={58} width={134} height={14} rx={3} fill="#e4f0e9" />
-        <text x={13} y={68} fontSize={7.5} fontWeight={700} fill="#3f7d5c">
+        <text x={13} y={68} fontSize={7.5} fontWeight={700} fill="#3f7d5c"><LocalizedText>
           Bill explanation
-        </text>
+        </LocalizedText></text>
         <rect x={8} y={76} width={134} height={14} rx={3} fill="#e4f0e9" />
-        <text x={13} y={86} fontSize={7.5} fontWeight={700} fill="#3f7d5c">
+        <text x={13} y={86} fontSize={7.5} fontWeight={700} fill="#3f7d5c"><LocalizedText>
           Estimate review
-        </text>
+        </LocalizedText></text>
       </g>
     </g>
   );
@@ -225,20 +227,20 @@ function CoordinationScreen() {
       <IsoBox x={x} y={y} z={z} w={w} d={d} h={h} color="#2a2f32" top="#3b4144" />
       <g transform={leftFaceMatrix(x, y + d, z + h, w, h, 160, 88)}>
         <rect x={4} y={4} width={152} height={80} rx={3} fill="#fbfdfe" />
-        <text x={10} y={18} fontSize={9} fontWeight={800} fill="#202121">
+        <text x={10} y={18} fontSize={9} fontWeight={800} fill="#202121"><LocalizedText>
           Care plan
-        </text>
+        </LocalizedText></text>
         {steps.map((s, i) => (
           <g key={s.t}>
             <rect x={10 + i * 36} y={28} width={32} height={6} rx={3} fill={s.c} />
             <text x={10 + i * 36} y={46} fontSize={7} fontWeight={700} fill="#4e5659">
-              {s.t}
+              <LocalizedText>{s.t}</LocalizedText>
             </text>
           </g>
         ))}
-        <text x={10} y={66} fontSize={8} fontWeight={700} fill="#202121">
+        <text x={10} y={66} fontSize={8} fontWeight={700} fill="#202121"><LocalizedText>
           Contributions and approvals
-        </text>
+        </LocalizedText></text>
         <rect x={10} y={71} width={140} height={4} rx={2} fill="#e3e9ec" />
         <rect x={10} y={71} width={126} height={4} rx={2} fill="#4875a1" />
       </g>
@@ -255,7 +257,7 @@ function Den({ lit, children }: { lit: boolean; children: ReactNode }) {
       <IsoBox x={10.7} y={8.7} z={-DEN} w={10.6} d={0.3} h={DEN - 0.6} color={wall} />
       <IsoBox x={10.7} y={9} z={-DEN} w={0.3} d={3} h={DEN - 0.6} color={wall} />
       {lit && <ellipse cx={P(16, 10.8, -DEN)[0]} cy={P(16, 10.8, -DEN)[1]} rx={120} ry={30} fill="#fff6ea" fillOpacity={0.7} />}
-      {children}
+      <LocalizedText>{children}</LocalizedText>
       <IsoBox x={21} y={9} z={-DEN - 0.2} w={0.3} d={3} h={DEN - 0.4} color={shade(wall, 0.92)} />
     </g>
   );
@@ -295,7 +297,7 @@ export function OfficeScene({ status, selected = null, highlight = [], selectedR
   });
 
   return (
-    <svg
+    <LocalizedElement as="svg"
       viewBox={viewBox}
       className="h-full w-full"
       role="img"
@@ -303,9 +305,9 @@ export function OfficeScene({ status, selected = null, highlight = [], selectedR
     >
       <Den lit={denLit || selected === "planner" || selectedRoom === "den"}>
         <g transform={denShift}>
-          {ring("planner")}
-          {deskOf("planner")}
-          {sit("planner", 0.4)}
+          <LocalizedText>{ring("planner")}</LocalizedText>
+          <LocalizedText>{deskOf("planner")}</LocalizedText>
+          <LocalizedText>{sit("planner", 0.4)}</LocalizedText>
         </g>
         <CoordinationScreen />
       </Den>
@@ -316,31 +318,31 @@ export function OfficeScene({ status, selected = null, highlight = [], selectedR
       <FloorLabel x={14.5} y={11.6} text="Records" color="#6e5e52" />
 
       {/* Intake */}
-      {ring("clerk")}
-      {deskOf("clerk")}
-      {sit("clerk", 0.3)}
-      {ring("reader")}
-      {deskOf("reader")}
-      {sit("reader", 1.5)}
+      <LocalizedText>{ring("clerk")}</LocalizedText>
+      <LocalizedText>{deskOf("clerk")}</LocalizedText>
+      <LocalizedText>{sit("clerk", 0.3)}</LocalizedText>
+      <LocalizedText>{ring("reader")}</LocalizedText>
+      <LocalizedText>{deskOf("reader")}</LocalizedText>
+      <LocalizedText>{sit("reader", 1.5)}</LocalizedText>
       <Glass at={[3.7, 0.9]} />
       <Plant at={[6.3, 5.2]} />
       <Partition x={6.88} y={0} w={0.24} d={2.2} />
       <Partition x={6.88} y={3.8} w={0.24} d={2.2} />
 
       {/* Analysis */}
-      {ring("calculator")}
-      {deskOf("calculator")}
-      {sit("calculator", 0.7)}
-      {ring("second")}
-      {deskOf("second")}
+      <LocalizedText>{ring("calculator")}</LocalizedText>
+      <LocalizedText>{deskOf("calculator")}</LocalizedText>
+      <LocalizedText>{sit("calculator", 0.7)}</LocalizedText>
+      <LocalizedText>{ring("second")}</LocalizedText>
+      <LocalizedText>{deskOf("second")}</LocalizedText>
       <Standing agent={AGENT_BY_ID.second} at={seat(DESK.second)} legA={null} legB={null} />
       <Partition x={13.88} y={0} w={0.24} d={2.2} />
       <Partition x={13.88} y={3.8} w={0.24} d={2.2} />
 
       {/* Vault */}
-      {ring("gate")}
-      {deskOf("gate")}
-      {sit("gate", 1.1)}
+      <LocalizedText>{ring("gate")}</LocalizedText>
+      <LocalizedText>{deskOf("gate")}</LocalizedText>
+      <LocalizedText>{sit("gate", 1.1)}</LocalizedText>
       <Vault at={[18.4, 0.5]} blocked={status.gate.state === "blocked"} />
       <Plant at={[20.4, 5.2]} />
 
@@ -360,9 +362,9 @@ export function OfficeScene({ status, selected = null, highlight = [], selectedR
       <Partition x={9.88} y={9.6} w={0.24} d={2.4} />
 
       {/* Records */}
-      {ring("auditor")}
-      {deskOf("auditor")}
-      {sit("auditor", 0.9)}
+      <LocalizedText>{ring("auditor")}</LocalizedText>
+      <LocalizedText>{deskOf("auditor")}</LocalizedText>
+      <LocalizedText>{sit("auditor", 0.9)}</LocalizedText>
       <ChainRack x={16.0} />
       <ChainRack x={17.4} />
       <ChainRack x={18.8} />
@@ -400,6 +402,6 @@ export function OfficeScene({ status, selected = null, highlight = [], selectedR
             </g>
           );
         })}
-    </svg>
+    </LocalizedElement>
   );
 }

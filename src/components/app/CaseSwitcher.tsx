@@ -1,5 +1,7 @@
 "use client";
 
+import { LocalizedText, LocalizedElement } from "@/components/i18n/LocaleProvider";
+
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -29,17 +31,17 @@ export function CaseSwitcher() {
 
   return (
     <div ref={box} className="relative min-w-0">
-      <button type="button" onClick={() => setOpen(o => !o)} aria-expanded={open} aria-haspopup="menu" aria-label="Switch care case"
+      <LocalizedElement as="button" type="button" onClick={() => setOpen(o => !o)} aria-expanded={open} aria-haspopup="menu" aria-label="Switch care case"
         className={`flex max-w-full items-center gap-2 rounded-xl px-2 py-1 text-left transition-colors ${open ? "bg-firstlight" : "hover:bg-mist"}`}>
         <span className="min-w-0">
-          <span className="block truncate text-sm font-semibold text-lead">{current.patient.name}’s care case</span>
+          <span className="block truncate text-sm font-semibold text-lead">{current.patient.name}<LocalizedText>’s care case</LocalizedText></span>
           <span className="block truncate text-xs text-ink-2">{current.hospital.name}</span>
         </span>
         <Chevron className={`h-4 w-4 shrink-0 text-serpent-dark transition-transform ${open ? "rotate-180" : ""}`} />
-      </button>
+      </LocalizedElement>
       {open && (
         <div role="menu" className="pop absolute left-0 top-full z-50 mt-2 w-[min(24rem,calc(100vw-2rem))] rounded-2xl border border-line bg-white p-2 shadow-[0_22px_34px_-20px_rgba(32,33,33,0.45)]">
-          <p className="px-3 pb-1 pt-2 text-xs font-semibold uppercase tracking-wider text-ink-2">Your care cases</p>
+          <p className="px-3 pb-1 pt-2 text-xs font-semibold uppercase tracking-wider text-ink-2"><LocalizedText>Your care cases</LocalizedText></p>
           <ul className="max-h-80 overflow-y-auto">
             {cases.map(({ case: c, country }) => {
               const on = c.id === current.id;
@@ -49,8 +51,8 @@ export function CaseSwitcher() {
                     className={`flex items-center gap-3 rounded-xl px-3 py-2.5 transition-colors ${on ? "bg-firstlight" : "hover:bg-mist"}`}>
                     <MemberAvatar id="PATIENT" className="h-9 w-9 shrink-0 rounded-xl" />
                     <span className="min-w-0 flex-1">
-                      <span className="block truncate text-sm font-semibold text-lead">{c.patient.name}’s treatment in {country}</span>
-                      <span className="block truncate text-xs text-ink-2">{c.hospital.name} · you are the {c.me.role}</span>
+                      <span className="block truncate text-sm font-semibold text-lead">{c.patient.name}<LocalizedText>’s treatment in </LocalizedText><LocalizedText>{country}</LocalizedText></span>
+                      <span className="block truncate text-xs text-ink-2">{c.hospital.name}<LocalizedText> · you are the </LocalizedText><LocalizedText>{c.me.role}</LocalizedText></span>
                     </span>
                     {on && <Check className="h-4 w-4 shrink-0 text-serpent" />}
                   </Link>
@@ -59,8 +61,8 @@ export function CaseSwitcher() {
             })}
           </ul>
           <div className="mt-1 flex items-center justify-between gap-2 border-t border-line px-3 pb-1 pt-2.5 text-sm font-semibold">
-            <Link role="menuitem" href="/projects" className="text-serpent-dark hover:underline">Dashboard</Link>
-            <Link role="menuitem" href="/projects/new" className="inline-flex items-center gap-1 text-serpent-dark hover:underline"><Plus className="h-4 w-4" />Start a care case</Link>
+            <Link role="menuitem" href="/projects" className="text-serpent-dark hover:underline"><LocalizedText>Dashboard</LocalizedText></Link>
+            <Link role="menuitem" href="/projects/new" className="inline-flex items-center gap-1 text-serpent-dark hover:underline"><Plus className="h-4 w-4" /><LocalizedText>Start a care case</LocalizedText></Link>
           </div>
         </div>
       )}

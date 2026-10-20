@@ -1,5 +1,7 @@
 "use client";
 
+import { LocalizedText, LocalizedElement } from "@/components/i18n/LocaleProvider";
+
 import { useState, type FormEvent } from "react";
 import { CopyButton } from "@/components/app/CopyButton";
 import { MemberAvatar } from "@/components/app/people";
@@ -68,62 +70,62 @@ export default function MembersPage() {
     <div className="space-y-12">
       {open && !CASE.closed && (
         <Section title="Invite a Payer" agent="clerk">
-          {sent ? (
+          <LocalizedText>{sent ? (
             <div className="space-y-3">
               {sent.delivery === "email"
-                ? <p className="leading-relaxed text-lead">Invitation sent to <b>{sent.email}</b>. When {sent.name} signs in to Guardian with that Google account, it appears on their Dashboard under Invitation Requests. Guardian does not send an email, so tell them to sign in. It expires after 72 hours.</p>
-                : <p className="leading-relaxed text-lead">Share this link with {sent.name}. They sign in with Google, see the case brief and accept. Anyone with the link can use it once within 72 hours, so send it only to them.</p>}
+                ? <p className="leading-relaxed text-lead"><LocalizedText>Invitation sent to </LocalizedText><b>{sent.email}</b><LocalizedText>. When </LocalizedText><LocalizedText>{sent.name}</LocalizedText><LocalizedText> signs in to Guardian with that Google account, it appears on their Dashboard under Invitation Requests. Guardian does not send an email, so tell them to sign in. It expires after 72 hours.</LocalizedText></p>
+                : <p className="leading-relaxed text-lead"><LocalizedText>Share this link with </LocalizedText><LocalizedText>{sent.name}</LocalizedText><LocalizedText>. They sign in with Google, see the case brief and accept. Anyone with the link can use it once within 72 hours, so send it only to them.</LocalizedText></p>}
               <div className="flex flex-wrap items-center gap-2">
-                <code className="min-w-0 flex-1 truncate rounded-xl bg-mist px-3 py-2.5 text-sm text-lead">{sent.link}</code>
+                <code className="min-w-0 flex-1 truncate rounded-xl bg-mist px-3 py-2.5 text-sm text-lead"><LocalizedText>{sent.link}</LocalizedText></code>
                 <CopyButton text={sent.link} label="Copy link" />
               </div>
-              <div className="flex gap-2"><button type="button" className={SECONDARY} onClick={another}>Invite someone else</button><button type="button" className={SECONDARY} onClick={() => { setOpen(false); another(); }}>Done</button></div>
+              <div className="flex gap-2"><button type="button" className={SECONDARY} onClick={another}><LocalizedText>Invite someone else</LocalizedText></button><button type="button" className={SECONDARY} onClick={() => { setOpen(false); another(); }}><LocalizedText>Done</LocalizedText></button></div>
             </div>
           ) : (
             <form onSubmit={create} noValidate className="grid gap-4 sm:grid-cols-2">
               <fieldset className="sm:col-span-2">
-                <legend className="text-sm text-ink-2">How to invite</legend>
+                <legend className="text-sm text-ink-2"><LocalizedText>How to invite</LocalizedText></legend>
                 <div className="mt-1 flex flex-wrap rounded-xl bg-white p-1 text-sm font-semibold" role="radiogroup">
                   {([["email", "Their Google email"], ["link", "A share link"]] as const).map(([value, label]) => (
-                    <button key={value} type="button" role="radio" aria-checked={delivery === value} onClick={() => setDelivery(value)} className={`flex-1 rounded-lg px-3 py-2 ${delivery === value ? "bg-serpent text-white" : "text-ink-2 hover:text-lead"}`}>{label}</button>
+                    <button key={value} type="button" role="radio" aria-checked={delivery === value} onClick={() => setDelivery(value)} className={`flex-1 rounded-lg px-3 py-2 ${delivery === value ? "bg-serpent text-white" : "text-ink-2 hover:text-lead"}`}><LocalizedText>{label}</LocalizedText></button>
                   ))}
                 </div>
                 <p className="mt-2 text-xs text-ink-2">{delivery === "email" ? "The invitation waits on their Dashboard when they sign in with this Google account. Only that account can accept." : "You get a link to send on WhatsApp or anywhere. The first person who signs in with it and accepts joins."}</p>
               </fieldset>
-              <label className="text-sm text-ink-2">
+              <label className="text-sm text-ink-2"><LocalizedText>
                 Name
-                <input id="invite-name" className={`${FIELD} mt-1 ${v.invalid("name") ? INVALID : ""}`} value={form.name} onChange={set("name")} placeholder="Payer’s name" {...v.field("name")} />
-                {v.error("name")}
+                </LocalizedText><LocalizedElement as="input" id="invite-name" className={`${FIELD} mt-1 ${v.invalid("name") ? INVALID : ""}`} value={form.name} onChange={set("name")} placeholder="Payer’s name" {...v.field("name")} />
+                <LocalizedText>{v.error("name")}</LocalizedText>
               </label>
-              <div className="text-sm text-ink-2">
+              <div className="text-sm text-ink-2"><LocalizedText>
                 Role
-                <Select className="mt-1" label="Role" value={form.role} onChange={role => setForm(f => ({ ...f, role }))} options={[{ value: "payer", label: "Payer", hint: "Can pledge a share" }, { value: "companion", label: "Companion", hint: "Uploads bills, can’t pay" }]} />
+                </LocalizedText><Select className="mt-1" label="Role" value={form.role} onChange={role => setForm(f => ({ ...f, role }))} options={[{ value: "payer", label: "Payer", hint: "Can pledge a share" }, { value: "companion", label: "Companion", hint: "Uploads bills, can’t pay" }]} />
               </div>
-              {delivery === "email" && <label className="text-sm text-ink-2">Google email<input id="invite-email" type="email" autoComplete="off" value={form.email} onChange={set("email")} className={`${FIELD} mt-1 ${v.invalid("email") ? INVALID : ""}`} placeholder="name@gmail.com" {...v.field("email")} />{v.error("email")}</label>}
-              {form.role === "payer" && <label className="text-sm text-ink-2 sm:col-span-2">Maximum share in {limitCurrency}<input id="invite-shareLimit" inputMode="decimal" value={form.shareLimit} onChange={set("shareLimit")} placeholder={limitCurrency === "IDR" ? "e.g. 10000000" : "e.g. 5000"} className={`${FIELD} mt-1 ${v.invalid("shareLimit") ? INVALID : ""}`} {...v.field("shareLimit")} />{v.error("shareLimit")}
-                <span className="mt-1 block text-xs leading-relaxed">{caseLimit !== null && limitCurrency !== CASE.currency ? <>That is <b>{converted(typedLimit!, limitCurrency, caseLimit, CASE.currency)}</b> at the demo reference rate {rateLine(DEMO_RATES_E4[CASE.currency][limitCurrency] / 10_000, CASE.currency, limitCurrency)}. </> : null}The most this person can pledge to one payment request. Nothing is charged when you invite, and pledges stop at 100% of each request. They choose the currency they pay in when they accept.</span></label>}
+              {delivery === "email" && <label className="text-sm text-ink-2"><LocalizedText>Google email</LocalizedText><LocalizedElement as="input" id="invite-email" type="email" autoComplete="off" value={form.email} onChange={set("email")} className={`${FIELD} mt-1 ${v.invalid("email") ? INVALID : ""}`} placeholder="name@gmail.com" {...v.field("email")} />{v.error("email")}</label>}
+              {form.role === "payer" && <label className="text-sm text-ink-2 sm:col-span-2"><LocalizedText>Maximum share in </LocalizedText><LocalizedText>{limitCurrency}</LocalizedText><LocalizedElement as="input" id="invite-shareLimit" inputMode="decimal" value={form.shareLimit} onChange={set("shareLimit")} placeholder={limitCurrency === "IDR" ? "e.g. 10000000" : "e.g. 5000"} className={`${FIELD} mt-1 ${v.invalid("shareLimit") ? INVALID : ""}`} {...v.field("shareLimit")} /><LocalizedText>{v.error("shareLimit")}</LocalizedText>
+                <span className="mt-1 block text-xs leading-relaxed"><LocalizedText>{caseLimit !== null && limitCurrency !== CASE.currency ? <><LocalizedText>That is </LocalizedText><b><LocalizedText>{converted(typedLimit!, limitCurrency, caseLimit, CASE.currency)}</LocalizedText></b><LocalizedText> at the demo reference rate </LocalizedText><LocalizedText>{rateLine(DEMO_RATES_E4[CASE.currency][limitCurrency] / 10_000, CASE.currency, limitCurrency)}</LocalizedText>. </> : null}</LocalizedText><LocalizedText>The most this person can pledge to one payment request. Nothing is charged when you invite, and pledges stop at 100% of each request. They choose the currency they pay in when they accept.</LocalizedText></span></label>}
               <div className="flex gap-2 sm:col-span-2">
                 <button type="submit" className={PRIMARY} disabled={busy}>
-                  {busy ? <><Spinner />Creating…</> : delivery === "email" ? "Send invitation" : "Create invite link"}
+                  <LocalizedText>{busy ? <><Spinner /><LocalizedText>Creating…</LocalizedText></> : delivery === "email" ? "Send invitation" : "Create invite link"}</LocalizedText>
                 </button>
-                <button type="button" className={SECONDARY} onClick={() => { setOpen(false); another(); }}>
+                <button type="button" className={SECONDARY} onClick={() => { setOpen(false); another(); }}><LocalizedText>
                   Cancel
-                </button>
+                </LocalizedText></button>
               </div>
             </form>
-          )}
+          )}</LocalizedText>
         </Section>
       )}
 
-      {mode === "demo" && <div className="block text-sm font-semibold text-ink-2">Viewing as<Select label="View case as member" className="mt-2" value={CASE.me.id} onChange={id => void selectMember(CASE.id, id)} options={CASE.members.map(m => ({ value: m.id, label: m.displayName, hint: m.role }))} /></div>}
+      {mode === "demo" && <div className="block text-sm font-semibold text-ink-2"><LocalizedText>Viewing as</LocalizedText><Select label="View case as member" className="mt-2" value={CASE.me.id} onChange={id => void selectMember(CASE.id, id)} options={CASE.members.map(m => ({ value: m.id, label: m.displayName, hint: m.role }))} /></div>}
       <Section title="Patient" agent="clerk">
         <div className="flex flex-wrap items-center gap-3">
           <MemberAvatar id="PATIENT" className="h-12 w-12 rounded-xl" />
           <div className="min-w-0 flex-1">
             <p className="font-semibold text-lead">{CASE.patient.name}</p>
-            <p className="text-xs text-ink-2">The agents only ever see {CASE.patient.token}.</p>
+            <p className="text-xs text-ink-2"><LocalizedText>The agents only ever see </LocalizedText>{CASE.patient.token}.</p>
           </div>
-          <Chip tone="info">Patient</Chip>
+          <Chip tone="info"><LocalizedText>Patient</LocalizedText></Chip>
         </div>
       </Section>
 
@@ -131,9 +133,9 @@ export default function MembersPage() {
         title="People"
         agent="clerk"
         action={CASE.me.role === "owner" && !CASE.closed ?
-          <button type="button" className={PRIMARY} onClick={() => setOpen(true)}>
+          <button type="button" className={PRIMARY} onClick={() => setOpen(true)}><LocalizedText>
             Invite a payer
-          </button> : undefined
+          </LocalizedText></button> : undefined
         }
       >
         <ul className="divide-y divide-line">
@@ -145,17 +147,17 @@ export default function MembersPage() {
                 <div className="min-w-0 flex-1">
                   <p className="font-semibold text-lead">{m.displayName}</p>
                   <p className="text-xs text-ink-2">
-                    {r.can}. Pays in {m.currency}.{CASE.me.role === "owner" && m.role === "payer" && <> Limit {converted(fromCaseCurrency(m.shareLimit, CASE.currency, m.currency) ?? m.shareLimit, fromCaseCurrency(m.shareLimit, CASE.currency, m.currency) === null ? CASE.currency : m.currency, m.shareLimit, CASE.currency)} per request.</>}
+                    <LocalizedText>{r.can}</LocalizedText><LocalizedText>. Pays in </LocalizedText><LocalizedText>{m.currency}</LocalizedText>.{CASE.me.role === "owner" && m.role === "payer" && <><LocalizedText> Limit </LocalizedText><LocalizedText>{converted(fromCaseCurrency(m.shareLimit, CASE.currency, m.currency) ?? m.shareLimit, fromCaseCurrency(m.shareLimit, CASE.currency, m.currency) === null ? CASE.currency : m.currency, m.shareLimit, CASE.currency)}</LocalizedText><LocalizedText> per request.</LocalizedText></>}
                   </p>
                   {editing === m.id && <form noValidate onSubmit={e => { e.preventDefault(); void saveLimit(m.id); }} className="mt-2 flex flex-wrap items-start gap-2">
-                    <div><input id="limit-value" inputMode="decimal" aria-label={`New limit in ${limitCurrency}`} value={newLimit} onChange={e => setNewLimit(e.target.value)} placeholder={`Limit in ${limitCurrency}`} className={`${FIELD} w-44 ${lv.invalid("value") ? INVALID : ""}`} {...lv.field("value")} />{lv.error("value")}</div>
-                    <button type="submit" disabled={saving} className={PRIMARY}>{saving ? <Spinner /> : "Save"}</button>
-                    <button type="button" className={SECONDARY} onClick={() => setEditing(null)}>Cancel</button>
+                    <div><LocalizedElement as="input" id="limit-value" inputMode="decimal" aria-label={`New limit in ${limitCurrency}`} value={newLimit} onChange={e => setNewLimit(e.target.value)} placeholder={`Limit in ${limitCurrency}`} className={`${FIELD} w-44 ${lv.invalid("value") ? INVALID : ""}`} {...lv.field("value")} /><LocalizedText>{lv.error("value")}</LocalizedText></div>
+                    <button type="submit" disabled={saving} className={PRIMARY}><LocalizedText>{saving ? <Spinner /> : "Save"}</LocalizedText></button>
+                    <button type="button" className={SECONDARY} onClick={() => setEditing(null)}><LocalizedText>Cancel</LocalizedText></button>
                   </form>}
                 </div>
 
-                {CASE.me.role === "owner" && !CASE.closed && m.role === "payer" && editing !== m.id && <button type="button" className="text-xs font-semibold text-serpent-dark hover:underline" onClick={() => { setEditing(m.id); setNewLimit(""); lv.reset(); }}>Change limit</button>}
-                <Chip tone={r.tone}>{r.label}</Chip>
+                {CASE.me.role === "owner" && !CASE.closed && m.role === "payer" && editing !== m.id && <button type="button" className="text-xs font-semibold text-serpent-dark hover:underline" onClick={() => { setEditing(m.id); setNewLimit(""); lv.reset(); }}><LocalizedText>Change limit</LocalizedText></button>}
+                <Chip tone={r.tone}><LocalizedText>{r.label}</LocalizedText></Chip>
               </li>
             );
           })}

@@ -1,5 +1,7 @@
 "use client";
 
+import { LocalizedText, LocalizedElement } from "@/components/i18n/LocaleProvider";
+
 import { useEffect, useRef, useState } from "react";
 import { AGENT_BY_ID, FAMILY, type AgentId } from "./agents";
 import { Check, Doc } from "./icons";
@@ -87,9 +89,9 @@ export function HowItWorks() {
     <section id="how" className="scroll-mt-20 py-24">
       <div className="mx-auto max-w-6xl px-6">
         {/* Headings alternate sides down the page: features left, this one right, security left. */}
-        <h2 className="max-w-3xl text-balance font-serif text-4xl leading-tight text-lead sm:text-5xl md:ml-auto md:text-right">
+        <h2 className="max-w-3xl text-balance font-serif text-4xl leading-tight text-lead sm:text-5xl md:ml-auto md:text-right"><LocalizedText>
           Seven agents do the work. The people paying make the call.
-        </h2>
+        </LocalizedText></h2>
 
         <div
           ref={panel}
@@ -103,7 +105,7 @@ export function HowItWorks() {
               const on = p.id === activePhase;
               return (
                 <div key={p.id} className={`${p.span} relative px-7 py-4 transition-colors duration-500 ${on ? p.tint : ""}`}>
-                  <p className={`font-serif text-xl italic transition-colors duration-500 ${on ? p.ink : "text-ink-2"}`}>{p.label}</p>
+                  <p className={`font-serif text-xl italic transition-colors duration-500 ${on ? p.ink : "text-ink-2"}`}><LocalizedText>{p.label}</LocalizedText></p>
                   <span
                     className={`absolute inset-x-0 bottom-0 h-0.5 origin-left transition-transform duration-700 ${EASE} motion-reduce:transition-none ${p.bar} ${
                       on ? "scale-x-100" : "scale-x-0"
@@ -137,7 +139,7 @@ export function HowItWorks() {
                 className="pop inline-flex items-center gap-2 whitespace-nowrap rounded-full border border-line bg-white px-3.5 py-1.5 text-sm font-semibold text-lead shadow-[0_10px_20px_-12px_rgba(32,33,33,0.5)]"
               >
                 <Doc className="h-4 w-4 text-serpent" />
-                {STEPS[active].status}
+                <LocalizedText>{STEPS[active].status}</LocalizedText>
               </span>
             </div>
           </div>
@@ -152,18 +154,18 @@ export function HowItWorks() {
                   onMouseEnter={() => setActive(i)}
                   className={`flex flex-col p-7 transition-colors duration-500 ${on ? phase.tint : ""}`}
                 >
-                  <p className={`-mx-7 -mt-7 mb-7 px-7 py-3 font-serif text-lg italic md:hidden ${phase.tint} ${phase.ink}`}>{phase.label}</p>
+                  <p className={`-mx-7 -mt-7 mb-7 px-7 py-3 font-serif text-lg italic md:hidden ${phase.tint} ${phase.ink}`}><LocalizedText>{phase.label}</LocalizedText></p>
                   <div className="flex items-end justify-between gap-3">
-                    <span className={`text-6xl font-extrabold leading-none tracking-tighter tabular-nums transition-colors duration-500 ${on ? "text-serpent" : "text-wolverine"}`}>{i + 1}</span>
+                    <span className={`text-6xl font-extrabold leading-none tracking-tighter tabular-nums transition-colors duration-500 ${on ? "text-serpent" : "text-wolverine"}`}><LocalizedText>{i + 1}</LocalizedText></span>
                     {on && (
                       <span key={`m-${active}`} className="pop mb-1 rounded-full border border-line bg-white px-3 py-1 text-xs font-semibold text-lead md:hidden">
-                        {s.status}
+                        <LocalizedText>{s.status}</LocalizedText>
                       </span>
                     )}
                   </div>
-                  <h3 className="mt-6 text-lg font-bold leading-snug text-lead">{s.title}</h3>
-                  <p className="mt-2 flex-1 text-[15px] leading-relaxed text-ink-2">{s.text}</p>
-                  <ul className="mt-8 flex flex-wrap gap-x-2 gap-y-4" aria-label="Who does this step">
+                  <h3 className="mt-6 text-lg font-bold leading-snug text-lead"><LocalizedText>{s.title}</LocalizedText></h3>
+                  <p className="mt-2 flex-1 text-[15px] leading-relaxed text-ink-2"><LocalizedText>{s.text}</LocalizedText></p>
+                  <LocalizedElement as="ul" className="mt-8 flex flex-wrap gap-x-2 gap-y-4" aria-label="Who does this step">
                     {s.who.map((p, j) => (
                       <li key={p.name} className="flex w-12 flex-col items-center gap-1.5">
                         <span key={on ? `on-${active}` : "off"} className={`relative block ${on ? "hop" : ""}`} style={on ? { animationDelay: `${j * 90}ms` } : undefined}>
@@ -177,11 +179,11 @@ export function HowItWorks() {
                             </span>
                           )}
                         </span>
-                        <span className="text-center text-[11px] font-semibold leading-tight text-ink-2">{p.name}</span>
+                        <span className="text-center text-[11px] font-semibold leading-tight text-ink-2"><LocalizedText>{p.name}</LocalizedText></span>
                       </li>
                     ))}
-                  </ul>
-                  {s.more && <p className="mt-3 text-xs text-ink-2">{s.more}</p>}
+                  </LocalizedElement>
+                  {s.more && <p className="mt-3 text-xs text-ink-2"><LocalizedText>{s.more}</LocalizedText></p>}
                 </li>
               );
             })}

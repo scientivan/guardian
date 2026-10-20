@@ -1,5 +1,7 @@
 "use client";
 
+import { LocalizedText, LocalizedElement } from "@/components/i18n/LocaleProvider";
+
 import { Select, options } from "./Select";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -24,7 +26,7 @@ type Key = "ownerName" | "patientName" | "hospital" | "file";
 /** Fields checked before leaving each step. */
 const STEP_FIELDS: Key[][] = [["ownerName"], ["patientName"], ["hospital"], ["file"], []];
 
-function Field({ label, htmlFor, children }: { label: string; htmlFor: string; children: ReactNode }) { return <div className="text-sm font-medium text-ink-2"><label htmlFor={htmlFor}>{label}</label>{children}</div>; }
+function Field({ label, htmlFor, children }: { label: string; htmlFor: string; children: ReactNode }) { return <div className="text-sm font-medium text-ink-2"><label htmlFor={htmlFor}><LocalizedText>{label}</LocalizedText></label><LocalizedText>{children}</LocalizedText></div>; }
 
 export function NewProjectWizard({ initialStep }: { initialStep?: number }) {
   const router = useRouter();
@@ -114,9 +116,9 @@ export function NewProjectWizard({ initialStep }: { initialStep?: number }) {
   const input = (key: "ownerName" | "patientName") => `${INPUT} ${v.invalid(key) ? INVALID : ""}`;
 
   return <EntryFrame title="Start a Care Case" working={[AGENTS[step]]} profile>
-    <Link href="/projects" className="text-sm font-semibold text-serpent-dark hover:underline">Back to dashboard</Link>
-    {restored && <div role="status" className="flex flex-wrap items-center gap-3 rounded-2xl bg-firstlight px-5 py-4 text-sm text-serpent-dark"><p className="min-w-0 flex-1">Draft restored from {new Date(restored.savedAt).toLocaleString()}. You’re back where you left off, on “{STEPS[restored.step]}”.</p><button type="button" onClick={discard} className="font-semibold underline">Start over</button></div>}
-    <ol className="grid grid-cols-5 gap-1.5" aria-label="Progress">{STEPS.map((name, i) => <li key={name} aria-current={i === step ? "step" : undefined}><button type="button" disabled={busy || i > step} onClick={() => setStep(i)} className="block w-full text-left disabled:cursor-default"><span className={`block h-1.5 rounded-full ${i <= step ? "bg-serpent" : "bg-line"}`} /><span className={`mt-2 block text-xs ${i === step ? "font-semibold text-serpent-dark" : "text-ink-2"}`}>{name}</span></button></li>)}</ol>
+    <Link href="/projects" className="text-sm font-semibold text-serpent-dark hover:underline"><LocalizedText>Back to dashboard</LocalizedText></Link>
+    {restored && <div role="status" className="flex flex-wrap items-center gap-3 rounded-2xl bg-firstlight px-5 py-4 text-sm text-serpent-dark"><p className="min-w-0 flex-1"><LocalizedText>Draft restored from </LocalizedText><LocalizedText>{new Date(restored.savedAt).toLocaleString()}</LocalizedText><LocalizedText>. You’re back where you left off, on “</LocalizedText><LocalizedText>{STEPS[restored.step]}</LocalizedText>”.</p><button type="button" onClick={discard} className="font-semibold underline"><LocalizedText>Start over</LocalizedText></button></div>}
+    <LocalizedElement as="ol" className="grid grid-cols-5 gap-1.5" aria-label="Progress">{STEPS.map((name, i) => <li key={name} aria-current={i === step ? "step" : undefined}><button type="button" disabled={busy || i > step} onClick={() => setStep(i)} className="block w-full text-left disabled:cursor-default"><span className={`block h-1.5 rounded-full ${i <= step ? "bg-serpent" : "bg-line"}`} /><span className={`mt-2 block text-xs ${i === step ? "font-semibold text-serpent-dark" : "text-ink-2"}`}><LocalizedText>{name}</LocalizedText></span></button></li>)}</LocalizedElement>
     <Section title={STEPS[step]} agent={AGENTS[step]}>
       <form id="wizard" noValidate onSubmit={e => { e.preventDefault(); void next(); }} className="space-y-4">
         {step === 0 && <>
@@ -128,19 +130,19 @@ export function NewProjectWizard({ initialStep }: { initialStep?: number }) {
           <Field label="Hospital country" htmlFor="wizard-country"><Select id="wizard-country" className="mt-1" value={country} disabled={waiting} onChange={v => { setCountry(v); setHospital(null); }} options={options(COUNTRIES)} /></Field>
           <Field label="Hospital" htmlFor="wizard-hospital">
             <HospitalPicker country={country} mode={mode} value={hospital} pending={pending} onSelect={onSelect} onPending={onPending} invalid={v.invalid("hospital") && !waiting} describedBy={v.visible("hospital") ? "wizard-hospital-error" : undefined} />
-            {!waiting && v.error("hospital")}
+            <LocalizedText>{!waiting && v.error("hospital")}</LocalizedText>
           </Field>
-          <p className="text-sm text-ink-2">The hospital’s payment account must be verified through its official channel before any payment can be made.</p>
+          <p className="text-sm text-ink-2"><LocalizedText>The hospital’s payment account must be verified through its official channel before any payment can be made.</LocalizedText></p>
         </>}
         {step === 3 && <>
-          <Field label="Choose the estimate or bill" htmlFor="wizard-file"><input id="wizard-file" type="file" accept="application/pdf,image/png,image/jpeg" onChange={e => { setFile(e.target.files?.[0] ?? null); setDraftFile(null); }} className={`${INPUT} ${v.invalid("file") ? INVALID : ""}`} {...v.field("file")} />{v.error("file")}</Field>
-          {draftFile && !file && <p className="text-sm text-warn-ink">Your draft had “{draftFile}”. Files aren’t kept in drafts, so choose it again.</p>}
-          <p className="text-sm text-ink-2">PDF, PNG or JPEG up to 10 MB. You can also upload the estimate later.</p>
+          <Field label="Choose the estimate or bill" htmlFor="wizard-file"><input id="wizard-file" type="file" accept="application/pdf,image/png,image/jpeg" onChange={e => { setFile(e.target.files?.[0] ?? null); setDraftFile(null); }} className={`${INPUT} ${v.invalid("file") ? INVALID : ""}`} {...v.field("file")} /><LocalizedText>{v.error("file")}</LocalizedText></Field>
+          {draftFile && !file && <p className="text-sm text-warn-ink"><LocalizedText>Your draft had “</LocalizedText><LocalizedText>{draftFile}</LocalizedText><LocalizedText>”. Files aren’t kept in drafts, so choose it again.</LocalizedText></p>}
+          <p className="text-sm text-ink-2"><LocalizedText>PDF, PNG or JPEG up to 10 MB. You can also upload the estimate later.</LocalizedText></p>
         </>}
-        {step === 4 && <dl className="divide-y divide-line">{[["You", ownerName], ["Patient", patientName], ["Hospital", hospital ? `${hospital.name}, ${country}` : "Not chosen yet"], ["Your currency", currency], ["First bill", file?.name ?? "Upload later"]].map(([k, val]) => <div key={k} className="flex justify-between gap-4 py-3"><dt className="text-ink-2">{k}</dt><dd className="text-right font-semibold text-lead">{val}</dd></div>)}</dl>}
+        {step === 4 && <dl className="divide-y divide-line">{[["You", ownerName], ["Patient", patientName], ["Hospital", hospital ? `${hospital.name}, ${country}` : "Not chosen yet"], ["Your currency", currency], ["First bill", file?.name ?? "Upload later"]].map(([k, val]) => <div key={k} className="flex justify-between gap-4 py-3"><dt className="text-ink-2"><LocalizedText>{k}</LocalizedText></dt><dd className="text-right font-semibold text-lead">{val}</dd></div>)}</dl>}
         {step === 4 && Object.keys(errors).length > 0 && <FieldError id="wizard-summary" message="Some details still need fixing. Press “Start care case” to go to the first one." />}
       </form>
     </Section>
-    <div className="flex justify-between gap-3"><button type="button" onClick={() => setStep(s => Math.max(0, s - 1))} disabled={busy || step === 0} className={SECONDARY}>Back</button><button type="submit" form="wizard" disabled={busy || (step === 2 && waiting)} className={PRIMARY}>{busy ? <><Spinner />Saving your care case…</> : step === 4 ? "Start care case" : step === 2 && waiting ? "Waiting for review" : "Next"}</button></div>
+    <div className="flex justify-between gap-3"><button type="button" onClick={() => setStep(s => Math.max(0, s - 1))} disabled={busy || step === 0} className={SECONDARY}><LocalizedText>Back</LocalizedText></button><button type="submit" form="wizard" disabled={busy || (step === 2 && waiting)} className={PRIMARY}><LocalizedText>{busy ? <><Spinner /><LocalizedText>Saving your care case…</LocalizedText></> : step === 4 ? "Start care case" : step === 2 && waiting ? "Waiting for review" : "Next"}</LocalizedText></button></div>
   </EntryFrame>;
 }

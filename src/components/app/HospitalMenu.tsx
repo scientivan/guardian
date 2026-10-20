@@ -1,5 +1,7 @@
 "use client";
 
+import { LocalizedText } from "@/components/i18n/LocaleProvider";
+
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { Chevron } from "@/components/landing/icons";
@@ -27,20 +29,20 @@ export function HospitalMenu({ name, account, source, directoryHref, busy, onVer
     <div ref={box} className="relative inline-block max-w-full">
       <button type="button" onClick={() => setOpen(o => !o)} aria-expanded={open} aria-haspopup="menu"
         className={`flex max-w-full flex-wrap items-center gap-x-2 gap-y-1 rounded-2xl border bg-white px-4 py-2.5 text-left text-sm transition-colors ${open ? "border-serpent" : "border-line hover:border-cerulean"}`}>
-        {busy ? <Spinner className="h-4 w-4 text-serpent" /> : null}
-        <span className="font-semibold text-lead">{name}</span>
-        {account ? <><span className="text-serpent-dark">{account}</span><Chip tone="ok">{source === "official_registry" ? "Official registry" : source}</Chip></> : <Chip tone="warn">Account not verified</Chip>}
+        <LocalizedText>{busy ? <Spinner className="h-4 w-4 text-serpent" /> : null}</LocalizedText>
+        <span className="font-semibold text-lead"><LocalizedText>{name}</LocalizedText></span>
+        <LocalizedText>{account ? <><span className="text-serpent-dark"><LocalizedText>{account}</LocalizedText></span><Chip tone="ok"><LocalizedText>{source === "official_registry" ? "Official registry" : source}</LocalizedText></Chip></> : <Chip tone="warn"><LocalizedText>Account not verified</LocalizedText></Chip>}</LocalizedText>
         <Chevron className={`h-4 w-4 shrink-0 text-serpent-dark transition-transform ${open ? "rotate-180" : ""}`} />
       </button>
       {open && (
         <div role="menu" className="pop absolute left-0 top-full z-40 mt-2 w-[min(22rem,calc(100vw-2rem))] rounded-2xl border border-line bg-white p-1.5 shadow-[0_22px_34px_-20px_rgba(32,33,33,0.45)]">
           {canVerify && <button role="menuitem" type="button" disabled={busy} onClick={() => { setOpen(false); onVerify(); }} className={item}>
-            <span className="text-sm font-semibold text-lead">Verify hospital account</span>
-            <span className="text-xs text-ink-2">Fetch the hospital’s signed account list again from its official channel.</span>
+            <span className="text-sm font-semibold text-lead"><LocalizedText>Verify hospital account</LocalizedText></span>
+            <span className="text-xs text-ink-2"><LocalizedText>Fetch the hospital’s signed account list again from its official channel.</LocalizedText></span>
           </button>}
           <Link role="menuitem" href={directoryHref} className={item}>
-            <span className="text-sm font-semibold text-lead">View in Hospital Directory</span>
-            <span className="text-xs text-ink-2">Profile, sources and review history of this institution.</span>
+            <span className="text-sm font-semibold text-lead"><LocalizedText>View in Hospital Directory</LocalizedText></span>
+            <span className="text-xs text-ink-2"><LocalizedText>Profile, sources and review history of this institution.</LocalizedText></span>
           </Link>
         </div>
       )}

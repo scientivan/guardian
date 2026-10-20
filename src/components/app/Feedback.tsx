@@ -1,5 +1,7 @@
 "use client";
 
+import { LocalizedText } from "@/components/i18n/LocaleProvider";
+
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import { AGENT_BY_ID, type AgentId } from "@/components/landing/agents";
 import { Minifig } from "@/components/landing/Minifig";
@@ -144,8 +146,8 @@ function WorkingCard({ work }: { work: Work }) {
       <div className="flex items-end gap-3 bg-serpent-dark px-6 pt-5 text-white">
         <Figure id={lead} working className="-mb-1 h-16 w-16" />
         <div className="pb-4">
-          <p className="text-xs font-semibold uppercase tracking-wider text-cerulean">{AGENT_BY_ID[lead].name} is on it</p>
-          <h2 className="font-serif text-2xl">{work.title}</h2>
+          <p className="text-xs font-semibold uppercase tracking-wider text-cerulean"><LocalizedText>{AGENT_BY_ID[lead].name}</LocalizedText><LocalizedText> is on it</LocalizedText></p>
+          <h2 className="font-serif text-2xl"><LocalizedText>{work.title}</LocalizedText></h2>
         </div>
       </div>
       <div className="h-1 w-full overflow-hidden bg-firstlight"><div className="work-bar h-full w-1/3 rounded-full bg-serpent" /></div>
@@ -153,13 +155,13 @@ function WorkingCard({ work }: { work: Work }) {
         {work.steps.map((s, i) => (
           <li key={i} className={`flex items-center gap-3 rounded-xl px-3 py-2 transition-colors ${i === current ? "bg-firstlight" : ""}`}>
             <Figure id={s.agent} className="h-8 w-8 rounded-lg bg-mist" />
-            <span className={`flex-1 text-sm ${i === current ? "font-semibold text-serpent-dark" : "text-ink-2"}`}>{s.text}</span>
+            <span className={`flex-1 text-sm ${i === current ? "font-semibold text-serpent-dark" : "text-ink-2"}`}><LocalizedText>{s.text}</LocalizedText></span>
             {i === current && <Dots />}
           </li>
         ))}
       </ol>
       <p className="border-t border-line px-6 py-4 text-xs leading-relaxed text-ink-2">
-        {seconds < 15 ? "Please keep this page open." : `Still working (${seconds}s). Free AI models can take up to a minute. Please keep this page open.`}
+        <LocalizedText>{seconds < 15 ? "Please keep this page open." : `Still working (${seconds}s). Free AI models can take up to a minute. Please keep this page open.`}</LocalizedText>
       </p>
     </div>
   );
@@ -184,18 +186,18 @@ function ErrorDialog({ shown, onClose }: { shown: Shown; onClose: () => void }) 
       <div className={`pop flex items-end gap-3 px-6 pt-5 text-white ${band}`}>
         <Figure id={x.agent} className="-mb-1 h-16 w-16" />
         <div className="pb-4">
-          <p className="text-xs font-semibold uppercase tracking-wider text-white/80">{AGENT_BY_ID[x.agent].name}</p>
-          <h2 id="feedback-title" className="font-serif text-2xl">{x.title}</h2>
+          <p className="text-xs font-semibold uppercase tracking-wider text-white/80"><LocalizedText>{AGENT_BY_ID[x.agent].name}</LocalizedText></p>
+          <h2 id="feedback-title" className="font-serif text-2xl"><LocalizedText>{x.title}</LocalizedText></h2>
         </div>
       </div>
       <div className="space-y-3 px-6 py-5">
-        <p className="leading-relaxed text-lead">{x.body}</p>
-        <p className={`rounded-xl p-3 text-sm leading-relaxed ${x.tone === "danger" ? "bg-danger-soft text-danger-ink" : "bg-firstlight text-serpent-dark"}`}><b>What to do next: </b>{x.hint}</p>
-        {detail && <details className="text-xs text-ink-2"><summary className="cursor-pointer">Details for support</summary><p className="mt-1 break-words">{detail}</p></details>}
+        <p className="leading-relaxed text-lead"><LocalizedText>{x.body}</LocalizedText></p>
+        <p className={`rounded-xl p-3 text-sm leading-relaxed ${x.tone === "danger" ? "bg-danger-soft text-danger-ink" : "bg-firstlight text-serpent-dark"}`}><b><LocalizedText>What to do next: </LocalizedText></b><LocalizedText>{x.hint}</LocalizedText></p>
+        {detail && <details className="text-xs text-ink-2"><summary className="cursor-pointer"><LocalizedText>Details for support</LocalizedText></summary><p className="mt-1 break-words"><LocalizedText>{detail}</LocalizedText></p></details>}
       </div>
       <form method="dialog" className="flex flex-wrap justify-end gap-3 border-t border-line px-6 py-4">
-        {x.action ? <a href={x.action.href} className={PRIMARY}>{x.action.label}</a> : retry ? <button type="submit" className={PRIMARY} onClick={() => setTimeout(() => retry(), 0)}>Try again</button> : null}
-        <button type="submit" autoFocus className={x.action || retry ? SECONDARY : PRIMARY}>{x.action || retry ? "Close" : "OK, got it"}</button>
+        <LocalizedText>{x.action ? <a href={x.action.href} className={PRIMARY}><LocalizedText>{x.action.label}</LocalizedText></a> : retry ? <button type="submit" className={PRIMARY} onClick={() => setTimeout(() => retry(), 0)}><LocalizedText>Try again</LocalizedText></button> : null}</LocalizedText>
+        <button type="submit" autoFocus className={x.action || retry ? SECONDARY : PRIMARY}><LocalizedText>{x.action || retry ? "Close" : "OK, got it"}</LocalizedText></button>
       </form>
     </dialog>
   );
@@ -214,7 +216,7 @@ export function FeedbackProvider({ children }: { children: ReactNode }) {
   }, []);
   return (
     <Context.Provider value={{ showError, startWork }}>
-      {children}
+      <LocalizedText>{children}</LocalizedText>
       {work && (
         <div role="status" aria-live="polite" aria-busy="true" className="fixed inset-0 z-50 grid place-items-center bg-lead/30 p-4 backdrop-blur-[2px]">
           <div className="pop w-full max-w-md"><WorkingCard key={work.id} work={work.work} /></div>

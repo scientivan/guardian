@@ -1,5 +1,7 @@
 "use client";
 
+import { LocalizedText } from "@/components/i18n/LocaleProvider";
+
 import { useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { Chip, PRIMARY, SECONDARY, Section } from "@/components/app/ui";
@@ -50,37 +52,37 @@ export default function ClosingPage() {
 
   return (
     <div className="space-y-10">
-      {care.closed ? (
-        <p role="status" className="rounded-2xl bg-firstlight p-5 leading-relaxed text-serpent-dark"><b>This care case was closed on {day(care.closed.at)} by {care.closed.by}.</b> Everyone can still read it and keep the documents below. Nothing can be uploaded, requested, pledged or paid any more.
-          {care.closed.packSha256 && <span className="mt-3 block break-all text-xs">Closing pack SHA-256 {care.closed.packSha256} · {care.closed.packTx ? `on FISCO BCOS, tx ${care.closed.packTx}` : "not on the blockchain (anchoring not configured)"}<br />Final case history hash {care.closed.auditHash ?? "—"} · {care.closed.auditTx ? `on FISCO BCOS, tx ${care.closed.auditTx}` : "not on the blockchain"}</span>}</p>
+      <LocalizedText>{care.closed ? (
+        <p role="status" className="rounded-2xl bg-firstlight p-5 leading-relaxed text-serpent-dark"><b><LocalizedText>This care case was closed on </LocalizedText><LocalizedText>{day(care.closed.at)}</LocalizedText><LocalizedText> by </LocalizedText><LocalizedText>{care.closed.by}</LocalizedText>.</b><LocalizedText> Everyone can still read it and keep the documents below. Nothing can be uploaded, requested, pledged or paid any more.
+          </LocalizedText>{care.closed.packSha256 && <span className="mt-3 block break-all text-xs"><LocalizedText>Closing pack SHA-256 </LocalizedText><LocalizedText>{care.closed.packSha256}</LocalizedText> · <LocalizedText>{care.closed.packTx ? `on FISCO BCOS, tx ${care.closed.packTx}` : "not on the blockchain (anchoring not configured)"}</LocalizedText><br /><LocalizedText>Final case history hash </LocalizedText><LocalizedText>{care.closed.auditHash ?? "—"}</LocalizedText> · <LocalizedText>{care.closed.auditTx ? `on FISCO BCOS, tx ${care.closed.auditTx}` : "not on the blockchain"}</LocalizedText></span>}</p>
       ) : role === "owner" ? (
         <Section title="End This Care Case" agent="auditor">
-          <p className="mb-4 leading-relaxed text-ink-2">When treatment and payments are done, close the case. Every member keeps read access and their documents; nobody, including you, can change anything afterwards. This can’t be undone. Closing records the fingerprint of the closing documents and the final case history on the blockchain.</p>
+          <p className="mb-4 leading-relaxed text-ink-2"><LocalizedText>When treatment and payments are done, close the case. Every member keeps read access and their documents; nobody, including you, can change anything afterwards. This can’t be undone. Closing records the fingerprint of the closing documents and the final case history on the blockchain.</LocalizedText></p>
           <ul className="mb-5 space-y-2">{checks.map(c => (
             <li key={c.text} className="flex items-start gap-3 text-sm">
-              <Chip tone={c.ok ? "ok" : c.blocking ? "danger" : "warn"}>{c.ok ? "Done" : c.blocking ? "Required" : "Check"}</Chip>
-              <span className="min-w-0 flex-1 leading-relaxed text-lead">{c.text}{!c.ok && c.href && <> <Link href={`/case/${care.id}/${c.href}`} className="font-semibold text-serpent-dark underline">Open</Link></>}</span>
+              <Chip tone={c.ok ? "ok" : c.blocking ? "danger" : "warn"}><LocalizedText>{c.ok ? "Done" : c.blocking ? "Required" : "Check"}</LocalizedText></Chip>
+              <span className="min-w-0 flex-1 leading-relaxed text-lead"><LocalizedText>{c.text}</LocalizedText>{!c.ok && c.href && <> <Link href={`/case/${care.id}/${c.href}`} className="font-semibold text-serpent-dark underline"><LocalizedText>Open</LocalizedText></Link></>}</span>
             </li>
           ))}</ul>
           {confirm ? <div className="space-y-3 rounded-2xl bg-white p-5">
-            <p className="font-semibold text-lead">Close {care.patient.name}’s care case for everyone?</p>
-            <div className="flex flex-wrap gap-3"><button type="button" disabled={busy} onClick={() => void close()} className={PRIMARY}>{busy ? <><Spinner />Closing…</> : "Close care case"}</button><button type="button" disabled={busy} onClick={() => setConfirm(false)} className={SECONDARY}>Back</button></div>
-          </div> : <button type="button" disabled={checks.some(c => c.blocking && !c.ok)} onClick={() => setConfirm(true)} className={PRIMARY}>Close care case…</button>}
+            <p className="font-semibold text-lead"><LocalizedText>Close </LocalizedText>{care.patient.name}<LocalizedText>’s care case for everyone?</LocalizedText></p>
+            <div className="flex flex-wrap gap-3"><button type="button" disabled={busy} onClick={() => void close()} className={PRIMARY}><LocalizedText>{busy ? <><Spinner /><LocalizedText>Closing…</LocalizedText></> : "Close care case"}</LocalizedText></button><button type="button" disabled={busy} onClick={() => setConfirm(false)} className={SECONDARY}><LocalizedText>Back</LocalizedText></button></div>
+          </div> : <button type="button" disabled={checks.some(c => c.blocking && !c.ok)} onClick={() => setConfirm(true)} className={PRIMARY}><LocalizedText>Close care case…</LocalizedText></button>}
         </Section>
       ) : (
-        <p className="rounded-2xl bg-mist p-5 leading-relaxed text-ink-2">The case owner closes the case when treatment and payments are done. Your documents are below and stay available afterwards.</p>
-      )}
+        <p className="rounded-2xl bg-mist p-5 leading-relaxed text-ink-2"><LocalizedText>The case owner closes the case when treatment and payments are done. Your documents are below and stay available afterwards.</LocalizedText></p>
+      )}</LocalizedText>
 
       <Section title="Closing Documents" agent="auditor">
-        <p className="mb-5 leading-relaxed text-ink-2">The documents to keep for {role === "owner" ? "the owner and each payer" : "yourself"}. Each one can be printed or saved as a PDF{care.closed ? "" : ", now or after closing"}.</p>
-        <div className="space-y-6">{mine.map(d => <Printable key={d.id} doc={d}>{d.id === "summary" ? <Summary /> : d.id === "record" ? <Records /> : d.id === "questions" ? <Questions /> : <Proof />}</Printable>)}</div>
-        {plannedNote(role)}
+        <p className="mb-5 leading-relaxed text-ink-2"><LocalizedText>The documents to keep for </LocalizedText><LocalizedText>{role === "owner" ? "the owner and each payer" : "yourself"}</LocalizedText><LocalizedText>. Each one can be printed or saved as a PDF</LocalizedText><LocalizedText>{care.closed ? "" : ", now or after closing"}</LocalizedText>.</p>
+        <div className="space-y-6">{mine.map(d => <Printable key={d.id} doc={d}><LocalizedText>{d.id === "summary" ? <Summary /> : d.id === "record" ? <Records /> : d.id === "questions" ? <Questions /> : <Proof />}</LocalizedText></Printable>)}</div>
+        <LocalizedText>{plannedNote(role)}</LocalizedText>
       </Section>
     </div>
   );
 }
 
-const plannedNote = (role: string) => role === "payer" ? <p className="mt-5 text-xs leading-relaxed text-ink-2">As a payer you get the bill summary and your own share only. The original medical documents and other payers’ shares stay with the owner.</p> : null;
+const plannedNote = (role: string) => role === "payer" ? <p className="mt-5 text-xs leading-relaxed text-ink-2"><LocalizedText>As a payer you get the bill summary and your own share only. The original medical documents and other payers’ shares stay with the owner.</LocalizedText></p> : null;
 
 /** One document card, printable on its own. */
 function Printable({ doc, children }: { doc: Doc; children: ReactNode }) {
@@ -101,42 +103,42 @@ function Printable({ doc, children }: { doc: Doc; children: ReactNode }) {
     <article ref={ref} className="rounded-2xl bg-white p-5">
       <div className="flex flex-wrap items-start gap-3">
         <div className="min-w-0 flex-1">
-          <h3 className="text-lg font-semibold text-lead">{doc.title}</h3>
-          <p className="text-xs text-ink-2">For: {doc.who}</p>
-          <p className="print-hide mt-1 text-sm leading-relaxed text-ink-2">{doc.why}</p>
+          <h3 className="text-lg font-semibold text-lead"><LocalizedText>{doc.title}</LocalizedText></h3>
+          <p className="text-xs text-ink-2"><LocalizedText>For: </LocalizedText><LocalizedText>{doc.who}</LocalizedText></p>
+          <p className="print-hide mt-1 text-sm leading-relaxed text-ink-2"><LocalizedText>{doc.why}</LocalizedText></p>
         </div>
         <div className="print-hide flex flex-wrap gap-2">
-          <button type="button" onClick={() => setOpen(o => !o)} aria-expanded={open} className={SECONDARY}>{open ? "Hide" : "View"}</button>
-          <button type="button" onClick={print} className={SECONDARY}>Print / Save as PDF</button>
+          <button type="button" onClick={() => setOpen(o => !o)} aria-expanded={open} className={SECONDARY}><LocalizedText>{open ? "Hide" : "View"}</LocalizedText></button>
+          <button type="button" onClick={print} className={SECONDARY}><LocalizedText>Print / Save as PDF</LocalizedText></button>
         </div>
       </div>
       {open && <div className="mt-5 border-t border-line pt-5">
-        <p className="mb-4 text-xs text-ink-2">{care.patient.name} · {care.hospital.name} · case {care.id} · {care.closed ? `closed ${day(care.closed.at)}` : "case still open"} · generated {new Date().toLocaleString()}</p>
-        {children}
+        <p className="mb-4 text-xs text-ink-2">{care.patient.name} · {care.hospital.name}<LocalizedText> · case </LocalizedText><LocalizedText>{care.id}</LocalizedText> · <LocalizedText>{care.closed ? `closed ${day(care.closed.at)}` : "case still open"}</LocalizedText><LocalizedText> · generated </LocalizedText><LocalizedText>{new Date().toLocaleString()}</LocalizedText></p>
+        <LocalizedText>{children}</LocalizedText>
       </div>}
     </article>
   );
 }
 
 const Rows = ({ rows }: { rows: [string, ReactNode][] }) => (
-  <dl className="divide-y divide-line text-sm">{rows.map(([k, v]) => <div key={k} className="flex justify-between gap-4 py-2"><dt className="text-ink-2">{k}</dt><dd className="text-right font-semibold text-lead">{v}</dd></div>)}</dl>
+  <dl className="divide-y divide-line text-sm">{rows.map(([k, v]) => <div key={k} className="flex justify-between gap-4 py-2"><dt className="text-ink-2"><LocalizedText>{k}</LocalizedText></dt><dd className="text-right font-semibold text-lead"><LocalizedText>{v}</LocalizedText></dd></div>)}</dl>
 );
-const H = ({ children }: { children: ReactNode }) => <h4 className="mb-2 mt-6 text-sm font-semibold uppercase tracking-wider text-ink-2 first:mt-0">{children}</h4>;
+const H = ({ children }: { children: ReactNode }) => <h4 className="mb-2 mt-6 text-sm font-semibold uppercase tracking-wider text-ink-2 first:mt-0"><LocalizedText>{children}</LocalizedText></h4>;
 
 function Summary() {
   const { case: care, documents, requests, refunds } = useCaseData();
   const plan = paymentPlan({ documents, requests });
   const c = care.currency;
   return <div>
-    <H>Hospital and account</H>
+    <H><LocalizedText>Hospital and account</LocalizedText></H>
     <Rows rows={[["Hospital", care.hospital.name], ["Intended recipient", care.payees.map(p => `${p.accountMasked} (${p.source === "official_registry" ? "official registry" : p.source})`).join(", ") || "No verified account"]]} />
-    <H>Documents</H>
+    <H><LocalizedText>Documents</LocalizedText></H>
     <Rows rows={documents.filter(d => d.status === "parsed").map(d => [`${d.title} (${d.type})`, d.estimate ? `${money(d.estimate.low, c)} – ${money(d.estimate.high, c)}` : d.total !== null ? money(d.total, c) : "—"] as [string, ReactNode])} />
-    <H>Payment requests</H>
-    <Rows rows={requests.map(r => [`${r.purpose} · ${day(r.createdAt)}`, <>{money(r.amount, c)} · {r.status}{r.status === "paid" ? ` · ${r.approvals.filter(a => a.chargeRef).length} receipt${r.approvals.filter(a => a.chargeRef).length === 1 ? "" : "s"} · invoice ${(r.invoices ?? []).length ? "on file" : "missing"}` : ""}</>] as [string, ReactNode])} />
-    <H>Totals</H>
+    <H><LocalizedText>Payment requests</LocalizedText></H>
+    <Rows rows={requests.map(r => [`${r.purpose} · ${day(r.createdAt)}`, <><LocalizedText>{money(r.amount, c)}</LocalizedText> · <LocalizedText>{r.status}</LocalizedText><LocalizedText>{r.status === "paid" ? ` · ${r.approvals.filter(a => a.chargeRef).length} receipt${r.approvals.filter(a => a.chargeRef).length === 1 ? "" : "s"} · invoice ${(r.invoices ?? []).length ? "on file" : "missing"}` : ""}</LocalizedText></>] as [string, ReactNode])} />
+    <H><LocalizedText>Totals</LocalizedText></H>
     <Rows rows={[["Sandbox/test charges", money(care.totals.paid, c)], ...(plan.bill ? [[`${plan.bill.type === "final" ? "Final" : "Latest"} bill`, money(plan.bill.total, c)] as [string, ReactNode]] : []), ...(refunds ? [["Coming back as refunds", money(refunds.totalRefund, c)] as [string, ReactNode]] : plan.bill && plan.bill.balance > 0 ? [["Still owed to the hospital", money(plan.bill.balance, c)] as [string, ReactNode]] : [])]} />
-    {refunds && <><H>Refunds per person</H><Rows rows={refunds.items.map(r => [r.displayName, `${money(r.amount, refunds.currency)} · ${r.status} · due ${day(r.dueAt)}`] as [string, ReactNode])} /></>}
+    {refunds && <><H><LocalizedText>Refunds per person</LocalizedText></H><Rows rows={refunds.items.map(r => [r.displayName, `${money(r.amount, refunds.currency)} · ${r.status} · due ${day(r.dueAt)}`] as [string, ReactNode])} /></>}
   </div>;
 }
 
@@ -155,23 +157,23 @@ function Questions() {
   const { explanation } = useCaseData();
   const asks = [...(explanation?.questions ?? []).map(q => ({ text: q.text, items: q.itemIds })), ...(explanation?.lines ?? []).filter(l => l.type === "unknown_ask_hospital").map(l => ({ text: l.text, items: l.itemIds }))];
   const unique = asks.filter((q, i) => asks.findIndex(o => o.items.join() === q.items.join()) === i);
-  if (!unique.length) return <p className="text-sm text-ink-2">No open questions for the hospital.</p>;
+  if (!unique.length) return <p className="text-sm text-ink-2"><LocalizedText>No open questions for the hospital.</LocalizedText></p>;
   return <div>
-    <ol className="list-decimal space-y-2 pl-5 text-sm leading-relaxed text-lead">{unique.map(q => <li key={q.text}>{q.text} <span className="text-xs text-ink-2">(bill items {q.items.join(", ")})</span></li>)}</ol>
-    {explanation?.referenceNote && <p className="mt-4 text-xs text-ink-2">{explanation.referenceNote}</p>}
+    <ol className="list-decimal space-y-2 pl-5 text-sm leading-relaxed text-lead">{unique.map(q => <li key={q.text}><LocalizedText>{q.text}</LocalizedText> <span className="text-xs text-ink-2"><LocalizedText>(bill items </LocalizedText><LocalizedText>{q.items.join(", ")}</LocalizedText>)</span></li>)}</ol>
+    {explanation?.referenceNote && <p className="mt-4 text-xs text-ink-2"><LocalizedText>{explanation.referenceNote}</LocalizedText></p>}
   </div>;
 }
 
 function Proof() {
   const { case: care, documents, requests, audit } = useCaseData();
   return <div>
-    <H>Documents</H>
-    <ul className="space-y-1.5 text-xs">{documents.map(d => <li key={d.id} className="break-all text-ink-2"><b className="text-lead">{d.title}</b> · {d.type} · SHA-256 {d.sha256 || "pending"}{d.anchoredTx ? ` · anchored ${d.anchoredTx}` : ""}</li>)}</ul>
-    <H>Hospital invoices</H>
-    {requests.some(r => (r.invoices ?? []).length) ? <ul className="space-y-1.5 text-xs">{requests.flatMap(r => (r.invoices ?? []).map(i => <li key={i.id} className="break-all text-ink-2"><b className="text-lead">{r.purpose}</b> · {i.filename} · SHA-256 {i.sha256}{i.anchoredTx ? ` · anchored ${i.anchoredTx}` : ""}</li>))}</ul> : <p className="text-xs text-ink-2">None attached.</p>}
-    {care.closed?.packSha256 && <><H>Closing record</H><Rows rows={[["Closing pack", <span key="p" className="break-all font-mono text-xs">{care.closed.packSha256}{care.closed.packTx ? ` · tx ${care.closed.packTx}` : " · not anchored"}</span>]]} /></>}
-    <H>Case history</H>
-    <Rows rows={[["Steps recorded", String(audit.rows.length)], ["Hash chain", audit.chainValid ? "Intact" : "Broken"], ["Latest hash", <span key="h" className="break-all font-mono text-xs">{audit.rows.at(-1)?.hash ?? "—"}</span>], ["Anchored hash", <span key="a" className="break-all font-mono text-xs">{audit.anchoredHead.tx ? `${audit.anchoredHead.hash} · tx ${audit.anchoredHead.tx}` : "Not anchored"}</span>]]} />
-    <p className="mt-4 text-xs leading-relaxed text-ink-2">What this proves: the documents and log entries have not changed since they were fingerprinted, and the log’s order was not edited. It does not prove that a hospital’s charges were medically necessary or fairly priced.</p>
+    <H><LocalizedText>Documents</LocalizedText></H>
+    <ul className="space-y-1.5 text-xs">{documents.map(d => <li key={d.id} className="break-all text-ink-2"><b className="text-lead"><LocalizedText>{d.title}</LocalizedText></b> · <LocalizedText>{d.type}</LocalizedText><LocalizedText> · SHA-256 </LocalizedText>{d.sha256 || "pending"}<LocalizedText>{d.anchoredTx ? ` · anchored ${d.anchoredTx}` : ""}</LocalizedText></li>)}</ul>
+    <H><LocalizedText>Hospital invoices</LocalizedText></H>
+    {requests.some(r => (r.invoices ?? []).length) ? <ul className="space-y-1.5 text-xs"><LocalizedText>{requests.flatMap(r => (r.invoices ?? []).map(i => <li key={i.id} className="break-all text-ink-2"><b className="text-lead"><LocalizedText>{r.purpose}</LocalizedText></b> · {i.filename}<LocalizedText> · SHA-256 </LocalizedText>{i.sha256}<LocalizedText>{i.anchoredTx ? ` · anchored ${i.anchoredTx}` : ""}</LocalizedText></li>))}</LocalizedText></ul> : <p className="text-xs text-ink-2"><LocalizedText>None attached.</LocalizedText></p>}
+    {care.closed?.packSha256 && <><H><LocalizedText>Closing record</LocalizedText></H><Rows rows={[["Closing pack", <span key="p" className="break-all font-mono text-xs"><LocalizedText>{care.closed.packSha256}</LocalizedText><LocalizedText>{care.closed.packTx ? ` · tx ${care.closed.packTx}` : " · not anchored"}</LocalizedText></span>]]} /></>}
+    <H><LocalizedText>Case history</LocalizedText></H>
+    <Rows rows={[["Steps recorded", String(audit.rows.length)], ["Hash chain", audit.chainValid ? "Intact" : "Broken"], ["Latest hash", <span key="h" className="break-all font-mono text-xs"><LocalizedText>{audit.rows.at(-1)?.hash ?? "—"}</LocalizedText></span>], ["Anchored hash", <span key="a" className="break-all font-mono text-xs"><LocalizedText>{audit.anchoredHead.tx ? `${audit.anchoredHead.hash} · tx ${audit.anchoredHead.tx}` : "Not anchored"}</LocalizedText></span>]]} />
+    <p className="mt-4 text-xs leading-relaxed text-ink-2"><LocalizedText>What this proves: the documents and log entries have not changed since they were fingerprinted, and the log’s order was not edited. It does not prove that a hospital’s charges were medically necessary or fairly priced.</LocalizedText></p>
   </div>;
 }

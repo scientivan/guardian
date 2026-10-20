@@ -1,5 +1,7 @@
 "use client";
 
+import { LocalizedText } from "@/components/i18n/LocaleProvider";
+
 import Link from "next/link";
 import { useEffect, useRef } from "react";
 import { useCaseData } from "@/components/app/WorkspaceProvider";
@@ -46,8 +48,8 @@ export function NextSteps() {
   return (
     <section aria-labelledby="next-steps-title" className="z-10 min-w-0 shrink-0 border-t border-line bg-firstlight/70 px-3 pb-2 pt-2 sm:px-5 sm:pt-3">
       <div className="mb-2 flex items-center gap-3">
-        <h2 id="next-steps-title" className="text-sm font-semibold text-serpent-dark">What to do next</h2>
-        <span className="text-xs text-ink-2">{next ? `${doneCount} of ${steps.length} done` : "All steps done"}</span>
+        <h2 id="next-steps-title" className="text-sm font-semibold text-serpent-dark"><LocalizedText>What to do next</LocalizedText></h2>
+        <span className="text-xs text-ink-2"><LocalizedText>{next ? `${doneCount} of ${steps.length} done` : "All steps done"}</LocalizedText></span>
         <div className="ml-auto hidden h-1.5 w-40 overflow-hidden rounded-full bg-white sm:block"><div className="h-full rounded-full bg-serpent transition-all" style={{ width: `${(doneCount / steps.length) * 100}%` }} /></div>
       </div>
       <ScrollArea axis="x" label="Steps for this care case" fade="from-[#e8f0f4]">
@@ -56,12 +58,12 @@ export function NextSteps() {
           const current = s === next;
           return (
             <li key={s.title} data-current={current || undefined} className={`flex shrink-0 gap-3 rounded-xl px-3 py-2.5 ${current ? "w-80 bg-white shadow-[0_12px_24px_-18px_rgba(32,33,33,0.5)] ring-2 ring-serpent" : "w-56 bg-white/70"}`}>
-              <span className={`mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full text-xs font-bold ${s.done ? "bg-ok text-white" : current ? "bg-serpent text-white" : "bg-mist text-ink-2"}`}>{s.done ? <Check className="h-3.5 w-3.5" /> : i + 1}</span>
+              <span className={`mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full text-xs font-bold ${s.done ? "bg-ok text-white" : current ? "bg-serpent text-white" : "bg-mist text-ink-2"}`}><LocalizedText>{s.done ? <Check className="h-3.5 w-3.5" /> : i + 1}</LocalizedText></span>
               <span className="min-w-0 flex-1">
-                <span className={`block text-sm leading-snug ${s.done ? "text-ink-2 line-through decoration-ink-2/40" : current ? "font-semibold text-lead" : "text-lead"}`}>{s.title}</span>
-                {current
-                  ? <span className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1.5"><span className="text-xs leading-relaxed text-ink-2 [@media(max-height:600px)]:hidden">{s.detail}</span><Link href={s.href} className="inline-flex min-h-8 items-center rounded-full bg-serpent px-3.5 text-xs font-semibold text-white hover:bg-serpent-dark">{s.action}</Link></span>
-                  : !s.done && <Link href={s.href} className="mt-1 inline-block text-xs font-semibold text-serpent-dark hover:underline">{s.action}</Link>}
+                <span className={`block text-sm leading-snug ${s.done ? "text-ink-2 line-through decoration-ink-2/40" : current ? "font-semibold text-lead" : "text-lead"}`}><LocalizedText>{s.title}</LocalizedText></span>
+                <LocalizedText>{current
+                  ? <span className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1.5"><span className="text-xs leading-relaxed text-ink-2 [@media(max-height:600px)]:hidden"><LocalizedText>{s.detail}</LocalizedText></span><Link href={s.href} className="inline-flex min-h-8 items-center rounded-full bg-serpent px-3.5 text-xs font-semibold text-white hover:bg-serpent-dark"><LocalizedText>{s.action}</LocalizedText></Link></span>
+                  : !s.done && <Link href={s.href} className="mt-1 inline-block text-xs font-semibold text-serpent-dark hover:underline"><LocalizedText>{s.action}</LocalizedText></Link>}</LocalizedText>
               </span>
             </li>
           );

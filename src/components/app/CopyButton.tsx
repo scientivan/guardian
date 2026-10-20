@@ -1,5 +1,7 @@
 "use client";
 
+import { LocalizedText } from "@/components/i18n/LocaleProvider";
+
 import { useState } from "react";
 import { SECONDARY } from "./ui";
 
@@ -19,7 +21,7 @@ export function CopyButton({ text, label = "Copy" }: { text: string; label?: str
         }
       }}
     >
-      {done ? "Copied" : label}
+      <LocalizedText>{done ? "Copied" : label}</LocalizedText>
     </button>
   );
 }

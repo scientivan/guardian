@@ -1,5 +1,7 @@
 "use client";
 
+import { LocalizedText, LocalizedElement } from "@/components/i18n/LocaleProvider";
+
 import { useCaseData } from "@/components/app/WorkspaceProvider";
 
 import Link from "next/link";
@@ -25,34 +27,34 @@ export function AgentDock({ caseId, room, agents, activity = true }: { caseId: s
   const { audit: AUDIT, agents: SAMPLE_STATUS } = useCaseData();
   const [selected, setSelected] = useState<AgentId | null>(null);
   return (
-    <aside className="sticky top-16 hidden h-[calc(100dvh-4rem)] min-h-0 flex-col gap-4 border-l border-line bg-white p-5 xl:flex" aria-label="Agents on this case">
+    <LocalizedElement as="aside" className="sticky top-16 hidden h-[calc(100dvh-4rem)] min-h-0 flex-col gap-4 border-l border-line bg-white p-5 xl:flex" aria-label="Agents on this case">
       <div className="relative shrink-0 overflow-hidden rounded-[1.75rem] [@media(max-height:760px)]:hidden" style={SCENE_BG}>
         <div className="aspect-[16/10]">
           <OfficeScene status={SAMPLE_STATUS} viewBox={roomView(room).join(" ")} highlight={agents} selected={selected} onSelectAgent={setSelected} denLit={room === "den"} />
         </div>
         <div className="absolute inset-x-0 bottom-0 flex items-center justify-between gap-3 bg-white/90 px-4 py-2">
-          <span className="text-sm font-semibold text-lead">{ROOMS[room].name}</span>
-          <Link href={`/case/${caseId}`} className="inline-flex items-center gap-1 text-sm font-semibold text-serpent-dark hover:underline">
-            Agent Office <Arrow className="h-4 w-4" />
+          <span className="text-sm font-semibold text-lead"><LocalizedText>{ROOMS[room].name}</LocalizedText></span>
+          <Link href={`/case/${caseId}`} className="inline-flex items-center gap-1 text-sm font-semibold text-serpent-dark hover:underline"><LocalizedText>
+            Agent Office </LocalizedText><Arrow className="h-4 w-4" />
           </Link>
         </div>
       </div>
       <section aria-labelledby="dock-team" className="flex min-h-0 flex-1 flex-col">
-        <h2 id="dock-team" className={BAND}>The Team</h2>
+        <h2 id="dock-team" className={BAND}><LocalizedText>The Team</LocalizedText></h2>
         <ScrollArea label="Agent team members" className="mt-2 flex-1">
           <div className="pr-1"><TeamList status={SAMPLE_STATUS} highlight={agents} selected={selected} onSelect={setSelected} brief /></div>
         </ScrollArea>
       </section>
       {activity && <section aria-labelledby="dock-activity" className="flex min-h-0 flex-1 flex-col">
         <div className={`${BAND} flex items-center justify-between`}>
-          <h2 id="dock-activity">Recent Activity</h2>
-          <Link href={`/case/${caseId}/log`} className="text-xs font-semibold hover:underline">See all</Link>
+          <h2 id="dock-activity"><LocalizedText>Recent Activity</LocalizedText></h2>
+          <Link href={`/case/${caseId}/log`} className="text-xs font-semibold hover:underline"><LocalizedText>See all</LocalizedText></Link>
         </div>
         <ScrollArea label="Recent case activity" className="mt-1 flex-1">
           <ActivityLog rows={AUDIT.rows} fill caseId={caseId} />
         </ScrollArea>
       </section>}
-    </aside>
+    </LocalizedElement>
   );
 }
 
@@ -68,17 +70,17 @@ export function AgentStrip({ caseId, agents }: { caseId: string; agents: AgentId
           <div key={id} className="flex shrink-0 items-center gap-2 pr-2">
             <Minifig skin={a.skin} hair={a.hair} hijab={a.hijab} shirt={a.color} className="h-9 w-9 rounded-lg bg-mist" />
             <span className="leading-tight">
-              <span className="block text-sm font-semibold text-lead">{a.name}</span>
+              <span className="block text-sm font-semibold text-lead"><LocalizedText>{a.name}</LocalizedText></span>
               <Chip tone={STATE_CHIP[s.state].tone} className="mt-0.5">
-                {STATE_CHIP[s.state].label}
+                <LocalizedText>{STATE_CHIP[s.state].label}</LocalizedText>
               </Chip>
             </span>
           </div>
         );
       })}
-      <Link href={`/case/${caseId}`} className="ml-auto shrink-0 rounded-full border border-line px-3 py-1.5 text-xs font-semibold text-serpent-dark">
+      <Link href={`/case/${caseId}`} className="ml-auto shrink-0 rounded-full border border-line px-3 py-1.5 text-xs font-semibold text-serpent-dark"><LocalizedText>
         Office
-      </Link>
+      </LocalizedText></Link>
     </div>
   );
 }

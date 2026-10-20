@@ -1,5 +1,7 @@
 "use client";
 
+import { LocalizedText, LocalizedElement } from "@/components/i18n/LocaleProvider";
+
 import { useEffect, useRef, useState, type ReactNode, type Ref } from "react";
 import { AGENTS, AGENT_BY_ID, type Agent, type AgentId } from "./agents";
 import { IsoBox, P, floorMatrix, leftFaceMatrix, pts, shade, type Pt } from "./iso";
@@ -69,7 +71,7 @@ export function AgentOffice() {
       className="relative aspect-[3/2] w-full overflow-hidden rounded-[2rem] border border-line"
       style={{ background: "linear-gradient(180deg, #f1f6f8 0%, #dae7ee 100%)" }}
     >
-      <svg
+      <LocalizedElement as="svg"
         viewBox="-240 -48 557 380"
         className="absolute inset-0 h-full w-full"
         role="img"
@@ -145,11 +147,11 @@ export function AgentOffice() {
           );
         })}
         <VaultSign blocked={gateBlocked} />
-      </svg>
+      </LocalizedElement>
 
-      <div className="absolute right-4 top-4 rounded-full border border-line bg-white/90 px-3 py-1.5 text-xs font-semibold text-ink-2 shadow-sm">
+      <div className="absolute right-4 top-4 rounded-full border border-line bg-white/90 px-3 py-1.5 text-xs font-semibold text-ink-2 shadow-sm"><LocalizedText>
         7 agents on case C1
-      </div>
+      </LocalizedText></div>
 
       <FocusCard agent={focus} state={stateOf(focus.id)} />
     </div>
@@ -192,12 +194,12 @@ function Floor() {
       />
 
       <ellipse cx={hx} cy={hy} rx={30} ry={17.3} fill="#ffffff" stroke="#4875a1" strokeWidth={1.2} />
-      <text x={hx} y={hy - 1} textAnchor="middle" fontSize={7} fontWeight={800} fill="#375d84">
+      <text x={hx} y={hy - 1} textAnchor="middle" fontSize={7} fontWeight={800} fill="#375d84"><LocalizedText>
         Case C1
-      </text>
-      <text x={hx} y={hy + 6.5} textAnchor="middle" fontSize={5.4} fontWeight={600} fill="#4e5659">
+      </LocalizedText></text>
+      <text x={hx} y={hy + 6.5} textAnchor="middle" fontSize={5.4} fontWeight={600} fill="#4e5659"><LocalizedText>
         [PASIEN_1]
-      </text>
+      </LocalizedText></text>
 
       <ZoneLabel x={0.7} y={6.95} text="Intake" color="#375d84" />
       <ZoneLabel x={0.7} y={0.75} text="Analysis" color="#375d84" />
@@ -211,7 +213,7 @@ function ZoneLabel({ x, y, text, color }: { x: number; y: number; text: string; 
   return (
     <g transform={floorMatrix(x, y)}>
       <text x={0} y={0} fontSize={6.4} fontWeight={800} fill={color} fillOpacity={0.8}>
-        {text}
+        <LocalizedText>{text}</LocalizedText>
       </text>
     </g>
   );
@@ -233,7 +235,7 @@ export function Desk({ spot, standing = false, children }: { spot: Spot; standin
       <IsoBox x={dx} y={dy} z={top} w={2.2} d={1.2} h={0.1} color="#ffffff" top="#ffffff" left="#e3e9ec" right="#d0d9de" />
       <IsoBox x={dx + 0.92} y={dy + 0.22} z={top + 0.1} w={0.16} d={0.12} h={0.32} color="#3b4144" />
       <IsoBox x={mx} y={my} z={mz} w={mw} d={md} h={mh} color="#2a2f32" top="#3b4144" left="#2a2f32" right="#1f2326" />
-      <g transform={leftFaceMatrix(mx, my + md, mz + mh, mw, mh)}>{children}</g>
+      <g transform={leftFaceMatrix(mx, my + md, mz + mh, mw, mh)}><LocalizedText>{children}</LocalizedText></g>
       <IsoBox x={dx + 0.55} y={dy + 0.6} z={top + 0.1} w={0.9} d={0.3} h={0.035} color="#4a5053" />
     </g>
   );
@@ -246,9 +248,9 @@ export function Glass({ at = [4.1, 7.3] }: { at?: Pt }) {
     <g>
       <IsoBox x={x} y={y} w={w} d={d} h={h} color="#abc1cf" top="#dae7ee" left="#abc1cf" right="#9fb6c5" fillOpacity={0.3} stroke="#4875a1" />
       <g transform={leftFaceMatrix(x, y + d, h, w, h, 100, 100)}>
-        <text x={50} y={12} textAnchor="middle" fontSize={7.5} fontWeight={800} fill="#375d84">
+        <text x={50} y={12} textAnchor="middle" fontSize={7.5} fontWeight={800} fill="#375d84"><LocalizedText>
           No tools
-        </text>
+        </LocalizedText></text>
       </g>
     </g>
   );
@@ -277,7 +279,7 @@ export function VaultSign({ blocked, at = [14.3, 1.4] }: { blocked: boolean; at?
     <g transform={`translate(${x.toFixed(1)} ${y.toFixed(1)})`}>
       <rect x={-w / 2} y={-16} width={w} height={16} rx={8} fill={blocked ? "#b4443c" : "#ffffff"} stroke={blocked ? "none" : "#dfe6ea"} strokeWidth={0.8} />
       <text x={0} y={-5.2} textAnchor="middle" fontSize={7.4} fontWeight={800} fill={blocked ? "#ffffff" : "#375d84"}>
-        {blocked ? "Not in registry" : "Official accounts only"}
+        <LocalizedText>{blocked ? "Not in registry" : "Official accounts only"}</LocalizedText>
       </text>
     </g>
   );
@@ -466,11 +468,11 @@ export function Tag({
         <path d="M-4.5 -6.4 L0 -1.4 L4.5 -6.4 Z" fill={fill} />
       </g>
       <text x={-w / 2 + 9} y={top + 11.6} fontSize={8.2} fontWeight={inline && focused ? 700 : 800} fill={strong ? "#ffffff" : "#202121"}>
-        {label}
+        <LocalizedText>{label}</LocalizedText>
       </text>
       {expanded && (
         <text x={-w / 2 + 9} y={top + 24.5} fontSize={8} fontWeight={600} fill="rgba(255,255,255,0.9)">
-          {text}
+          <LocalizedText>{text}</LocalizedText>
         </text>
       )}
     </g>
@@ -487,9 +489,9 @@ function FocusCard({ agent, state }: { agent: Agent; state: number }) {
     >
       <Minifig skin={agent.skin} hair={agent.hair} hijab={agent.hijab} shirt={agent.color} className="h-12 w-12 shrink-0 rounded-xl bg-mist" />
       <div className="min-w-0">
-        <p className={`text-xs font-medium ${blocked ? "text-danger" : "text-ink-2"}`}>{blocked ? "Payment blocked in case C1" : "Working on case C1"}</p>
-        <p className="mt-0.5 font-semibold text-lead">{agent.name}</p>
-        <p className={`text-sm leading-snug ${blocked ? "text-danger" : "text-ink-2"}`}>{agent.detail[state]}</p>
+        <p className={`text-xs font-medium ${blocked ? "text-danger" : "text-ink-2"}`}><LocalizedText>{blocked ? "Payment blocked in case C1" : "Working on case C1"}</LocalizedText></p>
+        <p className="mt-0.5 font-semibold text-lead"><LocalizedText>{agent.name}</LocalizedText></p>
+        <p className={`text-sm leading-snug ${blocked ? "text-danger" : "text-ink-2"}`}><LocalizedText>{agent.detail[state]}</LocalizedText></p>
       </div>
     </div>
   );
@@ -515,9 +517,9 @@ export function Screen({ id, state }: { id: AgentId; state: number }) {
             </g>
           ))}
           <rect x={10} y={51} width={46} height={9} rx={4.5} fill="#4875a1" />
-          <text x={14} y={58} fontSize={6.5} fontWeight={700} fill="#ffffff">
+          <text x={14} y={58} fontSize={6.5} fontWeight={700} fill="#ffffff"><LocalizedText>
             [PASIEN_1]
-          </text>
+          </LocalizedText></text>
         </>
       );
       break;
@@ -551,20 +553,20 @@ export function Screen({ id, state }: { id: AgentId; state: number }) {
     case "second":
       body = (
         <>
-          <text x={16} y={24} fontSize={10} fontWeight={800} fill="#4e5659">
+          <text x={16} y={24} fontSize={10} fontWeight={800} fill="#4e5659"><LocalizedText>
             A
-          </text>
-          <text x={60} y={24} fontSize={10} fontWeight={800} fill="#4e5659">
+          </LocalizedText></text>
+          <text x={60} y={24} fontSize={10} fontWeight={800} fill="#4e5659"><LocalizedText>
             B
-          </text>
+          </LocalizedText></text>
           <Check x={12} y={42} />
-          {state === 2 ? (
+          <LocalizedText>{state === 2 ? (
             <text x={58} y={52} fontSize={22} fontWeight={800} fill="#9a6212">
               ≠
             </text>
           ) : (
             <Check x={56} y={42} />
-          )}
+          )}</LocalizedText>
         </>
       );
       break;
@@ -582,13 +584,13 @@ export function Screen({ id, state }: { id: AgentId; state: number }) {
       body = (
         <>
           <path d="M50 9 L68 16 V30 C68 42 60 51 50 55 C40 51 32 42 32 30 V16 Z" fill={c} />
-          {state === 2 ? (
+          <LocalizedText>{state === 2 ? (
             <path d="M43 25 L57 39 M57 25 L43 39" stroke="#ffffff" strokeWidth={4} strokeLinecap="round" />
           ) : (
             <path d="M42 32 l6 6 l11 -12" stroke="#ffffff" strokeWidth={4} fill="none" strokeLinecap="round" strokeLinejoin="round" />
-          )}
+          )}</LocalizedText>
           <text x={50} y={64} fontSize={7} fontWeight={700} textAnchor="middle" fill="#4e5659">
-            {state === 2 ? "•••• 9071" : "•••• 2222"}
+            <LocalizedText>{state === 2 ? "•••• 9071" : "•••• 2222"}</LocalizedText>
           </text>
         </>
       );
@@ -604,7 +606,7 @@ export function Screen({ id, state }: { id: AgentId; state: number }) {
             </g>
           ))}
           <text x={8} y={55} fontSize={9} fontWeight={800} fill="#6e5e52">
-            {state === 2 ? "FISCO ✓" : `#4${state + 1}`}
+            <LocalizedText>{state === 2 ? "FISCO ✓" : `#4${state + 1}`}</LocalizedText>
           </text>
         </>
       );
@@ -613,7 +615,7 @@ export function Screen({ id, state }: { id: AgentId; state: number }) {
   return (
     <>
       <rect x={4} y={4} width={92} height={62} rx={2} fill="#fbfdfe" />
-      {body}
+      <LocalizedText>{body}</LocalizedText>
       <rect x={84} y={58} width={6} height={2.4} fill="#4875a1" className="blink" />
     </>
   );

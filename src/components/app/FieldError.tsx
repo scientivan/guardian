@@ -1,5 +1,7 @@
 "use client";
 
+import { LocalizedText } from "@/components/i18n/LocaleProvider";
+
 import { useCallback, useState } from "react";
 
 // Inline field errors (shared by every form). An error shows once the field was left or the form
@@ -7,7 +9,7 @@ import { useCallback, useState } from "react";
 
 export function FieldError({ id, message }: { id: string; message?: string | null }) {
   if (!message) return null;
-  return <p id={id} role="alert" className="mt-1.5 flex items-start gap-1.5 text-sm font-medium text-danger-ink"><span aria-hidden="true" className="mt-0.5 grid h-4 w-4 shrink-0 place-items-center rounded-full bg-danger text-[10px] font-bold text-white">!</span>{message}</p>;
+  return <p id={id} role="alert" className="mt-1.5 flex items-start gap-1.5 text-sm font-medium text-danger-ink"><span aria-hidden="true" className="mt-0.5 grid h-4 w-4 shrink-0 place-items-center rounded-full bg-danger text-[10px] font-bold text-white">!</span><LocalizedText>{message}</LocalizedText></p>;
 }
 
 /** Red border for an invalid field; append to the field's className. */

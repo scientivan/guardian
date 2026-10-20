@@ -1,5 +1,7 @@
 "use client";
 
+import { LocalizedText } from "@/components/i18n/LocaleProvider";
+
 import { useEffect, useRef, useState } from "react";
 import { DEMO_RATES_E4, fromCaseCurrency } from "@/lib/fx-rates";
 import { Select } from "./Select";
@@ -57,19 +59,19 @@ export function InvitationDialog({ invitation, busy, onAccept, onClose, closeLab
       <div className="pop flex items-end gap-3 rounded-t-[1.75rem] bg-serpent-dark px-6 pt-5 text-white">
         <Minifig skin={a.skin} hair={a.hair} hijab={a.hijab} shirt={a.color} className="-mb-1 h-16 w-16" />
         <div className="pb-4">
-          <p className="text-xs font-semibold uppercase tracking-wider text-cerulean">Care case invitation</p>
-          <h2 id="invite-title" className="font-serif text-2xl">Help with {invitation.patientName}’s treatment</h2>
+          <p className="text-xs font-semibold uppercase tracking-wider text-cerulean"><LocalizedText>Care case invitation</LocalizedText></p>
+          <h2 id="invite-title" className="font-serif text-2xl"><LocalizedText>Help with </LocalizedText>{invitation.patientName}<LocalizedText>’s treatment</LocalizedText></h2>
         </div>
       </div>
       <div className="space-y-4 px-6 py-5">
-        <dl className="divide-y divide-line text-sm">{rows.map(([k, v]) => <div key={k} className="flex justify-between gap-4 py-2.5"><dt className="text-ink-2">{k}</dt><dd className="text-right font-semibold text-lead">{v}</dd></div>)}</dl>
-        {invitation.role === "payer" && !invitation.accepted && <div className="text-sm text-ink-2"><span>Currency you’ll pay in</span><Select up label="Currency you’ll pay in" className="mt-1" value={pays} onChange={setPays} options={choices.map(c => ({ value: c, label: c, hint: c === invitation.caseCurrency ? "The hospital’s currency, no conversion" : `Converted from ${invitation.caseCurrency} at the reference rate` }))} /></div>}
-        <p className="rounded-xl bg-firstlight p-3 text-sm leading-relaxed text-serpent-dark"><b>As {role.label.toLowerCase()}: </b>{role.can} {role.cannot}{invitation.role === "payer" ? " Nothing is paid until you approve your own share." : ""}</p>
+        <dl className="divide-y divide-line text-sm">{rows.map(([k, v]) => <div key={k} className="flex justify-between gap-4 py-2.5"><dt className="text-ink-2"><LocalizedText>{k}</LocalizedText></dt><dd className="text-right font-semibold text-lead"><LocalizedText>{v}</LocalizedText></dd></div>)}</dl>
+        {invitation.role === "payer" && !invitation.accepted && <div className="text-sm text-ink-2"><span><LocalizedText>Currency you’ll pay in</LocalizedText></span><Select up label="Currency you’ll pay in" className="mt-1" value={pays} onChange={setPays} options={choices.map(c => ({ value: c, label: c, hint: c === invitation.caseCurrency ? "The hospital’s currency, no conversion" : `Converted from ${invitation.caseCurrency} at the reference rate` }))} /></div>}
+        <p className="rounded-xl bg-firstlight p-3 text-sm leading-relaxed text-serpent-dark"><b><LocalizedText>As </LocalizedText><LocalizedText>{role.label.toLowerCase()}</LocalizedText>: </b><LocalizedText>{role.can}</LocalizedText> <LocalizedText>{role.cannot}</LocalizedText><LocalizedText>{invitation.role === "payer" ? " Nothing is paid until you approve your own share." : ""}</LocalizedText></p>
       </div>
       <div className="flex flex-wrap items-center justify-end gap-3 border-t border-line px-6 py-4">
-        {onDecline && <button type="button" disabled={busy} onClick={onDecline} className="mr-auto text-sm font-semibold text-danger-ink hover:underline">Decline</button>}
-        <button type="button" disabled={busy} onClick={() => ref.current?.close()} className={SECONDARY}>{closeLabel}</button>
-        <button ref={accept} type="button" disabled={busy} onClick={() => onAccept(pays)} className={PRIMARY}>{busy ? <><Spinner />Joining…</> : invitation.accepted ? "Open care case" : "Accept invitation"}</button>
+        {onDecline && <button type="button" disabled={busy} onClick={onDecline} className="mr-auto text-sm font-semibold text-danger-ink hover:underline"><LocalizedText>Decline</LocalizedText></button>}
+        <button type="button" disabled={busy} onClick={() => ref.current?.close()} className={SECONDARY}><LocalizedText>{closeLabel}</LocalizedText></button>
+        <button ref={accept} type="button" disabled={busy} onClick={() => onAccept(pays)} className={PRIMARY}><LocalizedText>{busy ? <><Spinner /><LocalizedText>Joining…</LocalizedText></> : invitation.accepted ? "Open care case" : "Accept invitation"}</LocalizedText></button>
       </div>
     </dialog>
   );

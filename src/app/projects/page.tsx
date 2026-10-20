@@ -1,5 +1,7 @@
 "use client";
 
+import { LocalizedText } from "@/components/i18n/LocaleProvider";
+
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
@@ -56,60 +58,60 @@ export default function DashboardPage() {
         className="min-w-0"
         title="Care Cases"
         agent="planner"
-        action={<Link href="/projects/new" className={PRIMARY}><Plus className="h-4 w-4" /> Start a care case</Link>}
+        action={<Link href="/projects/new" className={PRIMARY}><Plus className="h-4 w-4" /><LocalizedText> Start a care case</LocalizedText></Link>}
       >
         {draft && (
           <div className="mb-3 flex flex-wrap items-center gap-4 rounded-2xl border-2 border-dashed border-cerulean bg-white/70 p-4">
             <div className="min-w-0 flex-1">
-              <p className="text-lg font-bold text-lead">Draft: {draft.patientName.trim() ? `${draft.patientName.trim()}’s care case` : "new care case"}</p>
-              <p className="text-sm text-ink-2">Stopped at “{STEPS[draft.step]}” · saved {new Date(draft.savedAt).toLocaleString()}</p>
-              {draft.pending && <p className="mt-1 text-sm font-semibold text-warn-ink">{draft.pending.name} is waiting for the verification team. You can continue once it’s approved.</p>}
+              <p className="text-lg font-bold text-lead"><LocalizedText>Draft: </LocalizedText>{draft.patientName.trim() ? `${draft.patientName.trim()}’s care case` : "new care case"}</p>
+              <p className="text-sm text-ink-2"><LocalizedText>Stopped at “</LocalizedText><LocalizedText>{STEPS[draft.step]}</LocalizedText><LocalizedText>” · saved </LocalizedText><LocalizedText>{new Date(draft.savedAt).toLocaleString()}</LocalizedText></p>
+              {draft.pending && <p className="mt-1 text-sm font-semibold text-warn-ink"><LocalizedText>{draft.pending.name}</LocalizedText><LocalizedText> is waiting for the verification team. You can continue once it’s approved.</LocalizedText></p>}
             </div>
-            <button type="button" className="text-sm font-semibold text-ink-2 hover:underline" onClick={() => { if (session?.user.id) clearDraft(session.user.id); setDraft(null); }}>Discard</button>
-            <Link href="/projects/new" className={SECONDARY}>Continue draft</Link>
+            <button type="button" className="text-sm font-semibold text-ink-2 hover:underline" onClick={() => { if (session?.user.id) clearDraft(session.user.id); setDraft(null); }}><LocalizedText>Discard</LocalizedText></button>
+            <Link href="/projects/new" className={SECONDARY}><LocalizedText>Continue draft</LocalizedText></Link>
           </div>
         )}
         <ScrollArea label="Your care cases" fade="from-firstlight" boxClassName="max-h-[max(16rem,calc(100dvh-22rem))] pr-1">
-        {cases.length === 0 && !draft ? (
-          <div className="py-3"><h2 className="text-xl font-semibold text-lead">Your first care case starts here</h2><p className="mt-2 max-w-lg leading-relaxed text-ink-2">Keep a patient’s hospital bills, contributions and refunds together. Start a care case when you’re ready.</p></div>
+        <LocalizedText>{cases.length === 0 && !draft ? (
+          <div className="py-3"><h2 className="text-xl font-semibold text-lead"><LocalizedText>Your first care case starts here</LocalizedText></h2><p className="mt-2 max-w-lg leading-relaxed text-ink-2"><LocalizedText>Keep a patient’s hospital bills, contributions and refunds together. Start a care case when you’re ready.</LocalizedText></p></div>
         ) : cases.map(({ case: c, country, requests: payments }) => {
           const g = payments.find(r => r.status === "pending");
           return <Link key={c.id} href={`/case/${c.id}`} className="group mb-3 flex flex-wrap items-center gap-4 rounded-2xl bg-white p-4 transition-colors hover:bg-white/70">
             <MemberAvatar id="PATIENT" className="h-14 w-14 rounded-2xl" />
             <div className="min-w-0 flex-1">
-              <p className="text-lg font-bold text-lead">{c.patient.name}’s treatment in {country}</p>
-              <p className="text-sm text-ink-2">{c.hospital.name}. You are the {c.me.role}.</p>
+              <p className="text-lg font-bold text-lead">{c.patient.name}<LocalizedText>’s treatment in </LocalizedText><LocalizedText>{country}</LocalizedText></p>
+              <p className="text-sm text-ink-2">{c.hospital.name}<LocalizedText>. You are the </LocalizedText><LocalizedText>{c.me.role}</LocalizedText>.</p>
               {g && <div className="mt-2 h-2 max-w-sm rounded-full bg-firstlight"><div className="h-2 rounded-full bg-serpent" style={{ width: `${share(g.approved, g.amount)}%` }} /></div>}
             </div>
-            {g && <Chip tone="warn">{money(g.remaining, g.currency)} still missing</Chip>}
+            {g && <Chip tone="warn"><LocalizedText>{money(g.remaining, g.currency)}</LocalizedText><LocalizedText> still missing</LocalizedText></Chip>}
             <Arrow className="h-5 w-5 text-serpent-dark" />
           </Link>;
-        })}
+        })}</LocalizedText>
         </ScrollArea>
       </Section>
 
       <div className="min-w-0 space-y-8">
-      <Section title="Invitation Requests" agent="clerk" action={requests && requests.length > 0 ? <Chip tone="info">{requests.length} waiting</Chip> : undefined}>
-        {requests === null ? <p role="status" className="flex items-center gap-3 text-ink-2"><Spinner className="h-5 w-5 text-serpent" />Checking for invitations…</p>
-          : requests.length === 0 ? <p className="leading-relaxed text-ink-2">No invitations right now. When someone invites your Google email to their care case, it appears here. If someone sent you a link, just open it.</p>
+      <Section title="Invitation Requests" agent="clerk" action={requests && requests.length > 0 ? <Chip tone="info"><LocalizedText>{requests.length}</LocalizedText><LocalizedText> waiting</LocalizedText></Chip> : undefined}>
+        <LocalizedText>{requests === null ? <p role="status" className="flex items-center gap-3 text-ink-2"><Spinner className="h-5 w-5 text-serpent" /><LocalizedText>Checking for invitations…</LocalizedText></p>
+          : requests.length === 0 ? <p className="leading-relaxed text-ink-2"><LocalizedText>No invitations right now. When someone invites your Google email to their care case, it appears here. If someone sent you a link, just open it.</LocalizedText></p>
           : <ul className="space-y-3">{requests.map(r => (
             <li key={r.id}>
               <button type="button" onClick={() => setOpened(r)} className="flex w-full flex-wrap items-center gap-4 rounded-2xl bg-white p-4 text-left transition-colors hover:bg-white/70">
                 <MemberAvatar id="PATIENT" className="h-12 w-12 rounded-xl" />
                 <span className="min-w-0 flex-1">
-                  <span className="block font-bold text-lead">{r.inviter} invited you to help with {r.patientName}’s treatment</span>
-                  <span className="block text-sm text-ink-2">{r.hospitalName}, {r.country} · as {r.role === "payer" ? "payer" : "companion"} · expires {new Date(r.expiresAt).toLocaleDateString()}</span>
+                  <span className="block font-bold text-lead"><LocalizedText>{r.inviter}</LocalizedText><LocalizedText> invited you to help with </LocalizedText>{r.patientName}<LocalizedText>’s treatment</LocalizedText></span>
+                  <span className="block text-sm text-ink-2"><LocalizedText>{r.hospitalName}</LocalizedText>, <LocalizedText>{r.country}</LocalizedText><LocalizedText> · as </LocalizedText><LocalizedText>{r.role === "payer" ? "payer" : "companion"}</LocalizedText><LocalizedText> · expires </LocalizedText><LocalizedText>{new Date(r.expiresAt).toLocaleDateString()}</LocalizedText></span>
                 </span>
-                <span className="text-sm font-semibold text-serpent-dark">View</span>
+                <span className="text-sm font-semibold text-serpent-dark"><LocalizedText>View</LocalizedText></span>
                 <Arrow className="h-5 w-5 text-serpent-dark" />
               </button>
             </li>
-          ))}</ul>}
+          ))}</ul>}</LocalizedText>
       </Section>
 
       <Section title="Hospital Directory" agent="gate">
-        <p className="leading-relaxed text-ink-2">Hospitals whose identity and payment account were checked by a person. Guardian only pays accounts that passed this check.</p>
-        <Link href="/hospitals" className={`${SECONDARY} mt-4`}><Hospital className="h-4 w-4" /> Open directory</Link>
+        <p className="leading-relaxed text-ink-2"><LocalizedText>Hospitals whose identity and payment account were checked by a person. Guardian only pays accounts that passed this check.</LocalizedText></p>
+        <Link href="/hospitals" className={`${SECONDARY} mt-4`}><Hospital className="h-4 w-4" /><LocalizedText> Open directory</LocalizedText></Link>
       </Section>
       </div>
 

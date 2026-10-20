@@ -1,5 +1,7 @@
 "use client";
 
+import { LocalizedText, LocalizedElement } from "@/components/i18n/LocaleProvider";
+
 import { explainError, useFeedback, WORK } from "@/components/app/Feedback";
 import { useState, type FormEvent } from "react";
 import type { HospitalProfile, HospitalSource, HospitalReview } from "@/lib/hospitals";
@@ -32,15 +34,15 @@ export function ProfileSubmission({initial,initialSources=[],hospitalId,reviewId
     }catch(e){const x=explainError(e);setError(`${x.title}. ${x.body} ${x.hint}`);}finally{setBusy("");}
   }
   return <div className="space-y-7">
-    <form onSubmit={search} noValidate className="space-y-3"><Field label="Find a hospital with AI" hint="Search by exact name, branch and country. Search results remain unverified drafts." error={qv.error("query")}><input id="search-query" className={`${FIELD} ${qv.invalid("query")?INVALID:""}`} type="search" value={query} onChange={e=>setQuery(e.target.value)} maxLength={300} placeholder="Hospital name, branch, city and country" {...qv.field("query")}/></Field><button disabled={!!busy} className={SECONDARY} type="submit">{busy.startsWith("Searching")?busy:"Find hospital details"}</button></form>
+    <form onSubmit={search} noValidate className="space-y-3"><Field label="Find a hospital with AI" hint="Search by exact name, branch and country. Search results remain unverified drafts." error={qv.error("query")}><LocalizedElement as="input" id="search-query" className={`${FIELD} ${qv.invalid("query")?INVALID:""}`} type="search" value={query} onChange={e=>setQuery(e.target.value)} maxLength={300} placeholder="Hospital name, branch, city and country" {...qv.field("query")}/></Field><button disabled={!!busy} className={SECONDARY} type="submit"><LocalizedText>{busy.startsWith("Searching")?busy:"Find hospital details"}</LocalizedText></button></form>
     <form onSubmit={submit} noValidate className="space-y-5" aria-busy={!!busy}>
       <div className="border-t border-line pt-6"><h3 className="mb-4 text-lg font-bold">{hospitalId?"Propose a profile revision":"Profile draft"}</h3><ProfileFields value={profile} onChange={setProfile} v={v}/></div>
-      {uncertain.length>0&&<Notice>{uncertain.join(" ")}</Notice>}
-      <Field label="Evidence source URLs *" hint="One HTTPS URL per line. Include an independent institutional source for initial verification." error={sv.error("sources")}><textarea id="evidence-sources" className={`${FIELD} min-h-28 ${sv.invalid("sources")?INVALID:""}`} {...sv.field("sources")} value={sourceUrls} onChange={e=>setSourceUrls(e.target.value)} placeholder="https://hospital.example/contact"/></Field>
-      {sources.length>0&&<details><summary className="min-h-10 cursor-pointer font-semibold text-serpent-dark">View search citations</summary><SourceList sources={sources}/></details>}
-      {error&&<Notice error>{error}</Notice>}
-      <p className="text-sm leading-relaxed text-ink-2">Submitting this profile does not activate a payment account. A human administrator checks the institution and verifies payment authority separately.</p>
-      <button className={PRIMARY} disabled={!!busy} type="submit">{busy&&!busy.startsWith("Searching")?busy:"Submit for review"}</button>
+      {uncertain.length>0&&<Notice><LocalizedText>{uncertain.join(" ")}</LocalizedText></Notice>}
+      <Field label="Evidence source URLs *" hint="One HTTPS URL per line. Include an independent institutional source for initial verification." error={sv.error("sources")}><LocalizedElement as="textarea" id="evidence-sources" className={`${FIELD} min-h-28 ${sv.invalid("sources")?INVALID:""}`} {...sv.field("sources")} value={sourceUrls} onChange={e=>setSourceUrls(e.target.value)} placeholder="https://hospital.example/contact"/></Field>
+      {sources.length>0&&<details><summary className="min-h-10 cursor-pointer font-semibold text-serpent-dark"><LocalizedText>View search citations</LocalizedText></summary><SourceList sources={sources}/></details>}
+      {error&&<Notice error><LocalizedText>{error}</LocalizedText></Notice>}
+      <p className="text-sm leading-relaxed text-ink-2"><LocalizedText>Submitting this profile does not activate a payment account. A human administrator checks the institution and verifies payment authority separately.</LocalizedText></p>
+      <button className={PRIMARY} disabled={!!busy} type="submit"><LocalizedText>{busy&&!busy.startsWith("Searching")?busy:"Submit for review"}</LocalizedText></button>
     </form>
   </div>;
 }

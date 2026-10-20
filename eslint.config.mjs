@@ -14,6 +14,8 @@ const eslintConfig = [
   {
     ignores: [
       "node_modules/**",
+      ".cache/**",
+      ".vercel/**",
       "video/**",
       ".next/**",
       "out/**",

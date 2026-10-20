@@ -1,5 +1,7 @@
 "use client";
 
+import { LocalizedText } from "@/components/i18n/LocaleProvider";
+
 import { useState } from "react";
 import { signIn } from "next-auth/react";
 
@@ -21,9 +23,9 @@ export function GoogleSignIn({ callbackUrl }: { callbackUrl: string }) {
           <path fill="#FBBC05" d="M10.53 28.59A14.4 14.4 0 0 1 9.75 24c0-1.59.27-3.13.76-4.59l-7.98-6.19A23.9 23.9 0 0 0 0 24c0 3.87.93 7.53 2.56 10.78l7.97-6.19Z" />
           <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.91-5.8l-7.73-6c-2.15 1.45-4.92 2.3-8.18 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48Z" />
         </svg>
-        {pending ? "Connecting to Google…" : "Continue with Google"}
+        <LocalizedText>{pending ? "Connecting to Google…" : "Continue with Google"}</LocalizedText>
       </button>
-      {failed && <p role="alert" className="mt-3 text-sm text-danger-ink">Couldn’t connect. Please try again.</p>}
+      {failed && <p role="alert" className="mt-3 text-sm text-danger-ink"><LocalizedText>Couldn’t connect. Please try again.</LocalizedText></p>}
     </div>
   );
 }

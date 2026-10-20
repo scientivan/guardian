@@ -1,5 +1,7 @@
 "use client";
 
+import { LocalizedText, LocalizedElement } from "@/components/i18n/LocaleProvider";
+
 import Link from "next/link";
 import { useCallback, useEffect, useId, useMemo, useRef, useState, type KeyboardEvent } from "react";
 import type { HospitalReview, PublicHospital } from "@/lib/hospitals";
@@ -85,15 +87,15 @@ export function HospitalPicker({ country, mode, value, pending, onSelect, onPend
     const status = review?.status ?? "pending";
     return (
       <div className={`rounded-2xl p-5 ${status === "rejected" ? "bg-danger-soft" : "bg-white"}`} role="status">
-        <p className="text-xs font-semibold uppercase tracking-wider text-ink-2">{status === "rejected" ? "Not approved" : status === "needs_information" ? "More information needed" : "Waiting for review"}</p>
+        <p className="text-xs font-semibold uppercase tracking-wider text-ink-2"><LocalizedText>{status === "rejected" ? "Not approved" : status === "needs_information" ? "More information needed" : "Waiting for review"}</LocalizedText></p>
         <p className="mt-1 text-lg font-bold text-lead">{pending.name}</p>
-        <p className="text-sm text-ink-2">{pending.city}, {pending.country}</p>
-        {status === "pending" && <p className="mt-3 flex items-start gap-2 text-sm leading-relaxed text-serpent-dark"><Spinner className="mt-1 h-3.5 w-3.5" />The verification team is checking this hospital’s identity and contacts. You can leave this page: your draft is saved, and this step unlocks by itself once it’s approved.</p>}
-        {status === "needs_information" && <p className="mt-3 text-sm leading-relaxed text-warn-ink">{review?.decisionNotes} Add the missing evidence in the <Link href="/hospitals" className="font-semibold underline">Hospital Directory</Link>.</p>}
-        {status === "rejected" && <p className="mt-3 text-sm leading-relaxed text-danger-ink">{review?.decisionNotes} Choose another hospital or add it again with the correct name and city.</p>}
+        <p className="text-sm text-ink-2"><LocalizedText>{pending.city}</LocalizedText>, <LocalizedText>{pending.country}</LocalizedText></p>
+        {status === "pending" && <p className="mt-3 flex items-start gap-2 text-sm leading-relaxed text-serpent-dark"><Spinner className="mt-1 h-3.5 w-3.5" /><LocalizedText>The verification team is checking this hospital’s identity and contacts. You can leave this page: your draft is saved, and this step unlocks by itself once it’s approved.</LocalizedText></p>}
+        {status === "needs_information" && <p className="mt-3 text-sm leading-relaxed text-warn-ink"><LocalizedText>{review?.decisionNotes}</LocalizedText><LocalizedText> Add the missing evidence in the </LocalizedText><Link href="/hospitals" className="font-semibold underline"><LocalizedText>Hospital Directory</LocalizedText></Link>.</p>}
+        {status === "rejected" && <p className="mt-3 text-sm leading-relaxed text-danger-ink"><LocalizedText>{review?.decisionNotes}</LocalizedText><LocalizedText> Choose another hospital or add it again with the correct name and city.</LocalizedText></p>}
         <div className="mt-4 flex flex-wrap gap-3">
-          <button type="button" className={SECONDARY} onClick={() => void load()}>Check again</button>
-          <button type="button" className="text-sm font-semibold text-ink-2 hover:underline" onClick={() => onPending(null)}>Choose a different hospital</button>
+          <button type="button" className={SECONDARY} onClick={() => void load()}><LocalizedText>Check again</LocalizedText></button>
+          <button type="button" className="text-sm font-semibold text-ink-2 hover:underline" onClick={() => onPending(null)}><LocalizedText>Choose a different hospital</LocalizedText></button>
         </div>
       </div>
     );
@@ -103,7 +105,7 @@ export function HospitalPicker({ country, mode, value, pending, onSelect, onPend
 
   return (
     <div ref={box} className="relative" onBlur={e => { if (!box.current?.contains(e.relatedTarget as Node)) setOpen(false); }}>
-      <input
+      <LocalizedElement as="input"
         id="wizard-hospital" role="combobox" aria-expanded={open} aria-controls={list} aria-autocomplete="list" autoComplete="off"
         aria-activedescendant={open ? `${list}-${active}` : undefined} aria-invalid={invalid || undefined} aria-describedby={describedBy}
         value={query} placeholder={data ? "Type to search hospitals in the directory" : "Loading hospitals…"}
@@ -111,23 +113,23 @@ export function HospitalPicker({ country, mode, value, pending, onSelect, onPend
         onFocus={() => setOpen(true)} onKeyDown={keys}
         className={`${INPUT} ${invalid ? INVALID : ""}`}
       />
-      {value && <p className="mt-1.5 text-sm text-ok-ink">Selected from the directory{value.status === "listed" ? " · listed from public sources, identity review pending" : value.status === "verified" ? " · verified" : ""}.</p>}
+      {value && <p className="mt-1.5 text-sm text-ok-ink"><LocalizedText>Selected from the directory</LocalizedText><LocalizedText>{value.status === "listed" ? " · listed from public sources, identity review pending" : value.status === "verified" ? " · verified" : ""}</LocalizedText>.</p>}
       {loadError && <FieldError id="hospital-load-error" message={loadError} />}
       {open && (
         <ul id={list} role="listbox" className="absolute left-0 right-0 z-30 mt-2 max-h-72 overflow-auto rounded-2xl border border-line bg-white p-1.5 shadow-[0_22px_34px_-20px_rgba(32,33,33,0.45)]">
-          {!data && !loadError && <li className="flex items-center gap-2 px-3 py-2.5 text-sm text-ink-2"><Spinner className="h-3.5 w-3.5" />Loading hospitals…</li>}
-          {data && options.length === 0 && <li className="px-3 py-2.5 text-sm text-ink-2">No hospital in {country} matches “{query.trim()}”.</li>}
+          {!data && !loadError && <li className="flex items-center gap-2 px-3 py-2.5 text-sm text-ink-2"><Spinner className="h-3.5 w-3.5" /><LocalizedText>Loading hospitals…</LocalizedText></li>}
+          {data && options.length === 0 && <li className="px-3 py-2.5 text-sm text-ink-2"><LocalizedText>No hospital in </LocalizedText><LocalizedText>{country}</LocalizedText><LocalizedText> matches “</LocalizedText><LocalizedText>{query.trim()}</LocalizedText>”.</li>}
           {options.map((o, i) => (
             <li key={o.id} id={`${list}-${i}`} role="option" aria-selected={value?.id === o.id} tabIndex={-1}
               onMouseDown={e => e.preventDefault()} onClick={() => pick(o)} onMouseEnter={() => setActive(i)}
               className={`cursor-pointer rounded-xl px-3 py-2.5 ${i === active ? "bg-firstlight" : ""}`}>
               <span className="block font-semibold text-lead">{o.name}</span>
-              <span className="block text-xs text-ink-2">{o.city}{o.status === "listed" ? " · listed, review pending" : o.status === "verified" ? " · verified" : o.status === "demo" ? " · demo hospital" : ""}</span>
+              <span className="block text-xs text-ink-2"><LocalizedText>{o.city}</LocalizedText><LocalizedText>{o.status === "listed" ? " · listed, review pending" : o.status === "verified" ? " · verified" : o.status === "demo" ? " · demo hospital" : ""}</LocalizedText></span>
             </li>
           ))}
           <li id={`${list}-${options.length}`} role="option" aria-selected={false} tabIndex={-1} onMouseDown={e => e.preventDefault()} onClick={startAdd} onMouseEnter={() => setActive(options.length)}
-            className={`cursor-pointer rounded-xl border-t border-line px-3 py-2.5 font-semibold text-serpent-dark ${active === options.length ? "bg-firstlight" : ""}`}>
-            + Can’t find it? Add {query.trim() && !value ? `“${query.trim()}”` : "a hospital"}
+            className={`cursor-pointer rounded-xl border-t border-line px-3 py-2.5 font-semibold text-serpent-dark ${active === options.length ? "bg-firstlight" : ""}`}><LocalizedText>
+            + Can’t find it? Add </LocalizedText><LocalizedText>{query.trim() && !value ? `“${query.trim()}”` : "a hospital"}</LocalizedText>
           </li>
         </ul>
       )}
@@ -149,25 +151,25 @@ function AddHospital({ country, mode, initialName, onCancel, onAdded }: { countr
   }
   if (mode !== "google") return (
     <div className="rounded-2xl bg-white p-5">
-      <p className="font-semibold text-lead">Adding a hospital needs a Google account</p>
-      <p className="mt-1 text-sm leading-relaxed text-ink-2">The demo account can use the demo hospital or a hospital already in the directory. Sign in with Google to add a new one for review.</p>
-      <button type="button" className={`${SECONDARY} mt-4`} onClick={onCancel}>Back to the list</button>
+      <p className="font-semibold text-lead"><LocalizedText>Adding a hospital needs a Google account</LocalizedText></p>
+      <p className="mt-1 text-sm leading-relaxed text-ink-2"><LocalizedText>The demo account can use the demo hospital or a hospital already in the directory. Sign in with Google to add a new one for review.</LocalizedText></p>
+      <button type="button" className={`${SECONDARY} mt-4`} onClick={onCancel}><LocalizedText>Back to the list</LocalizedText></button>
     </div>
   );
   return (
     <div className="space-y-4 rounded-2xl bg-white p-5">
       <div>
-        <p className="font-semibold text-lead">Add a hospital</p>
-        <p className="mt-1 text-sm leading-relaxed text-ink-2">Give its name and where it is. Our AI finds the address, phone and official website from public sources, then the verification team reviews it. You can continue once it’s approved.</p>
+        <p className="font-semibold text-lead"><LocalizedText>Add a hospital</LocalizedText></p>
+        <p className="mt-1 text-sm leading-relaxed text-ink-2"><LocalizedText>Give its name and where it is. Our AI finds the address, phone and official website from public sources, then the verification team reviews it. You can continue once it’s approved.</LocalizedText></p>
       </div>
-      <div className="text-sm font-medium text-ink-2"><label htmlFor="add-hospital-name">Hospital name</label><input id="add-hospital-name" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} className={`${INPUT} ${v.invalid("name") ? INVALID : ""}`} {...v.field("name")} />{v.error("name")}</div>
+      <div className="text-sm font-medium text-ink-2"><label htmlFor="add-hospital-name"><LocalizedText>Hospital name</LocalizedText></label><input id="add-hospital-name" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} className={`${INPUT} ${v.invalid("name") ? INVALID : ""}`} {...v.field("name")} /><LocalizedText>{v.error("name")}</LocalizedText></div>
       <div className="grid gap-4 sm:grid-cols-2">
-        <div className="text-sm font-medium text-ink-2"><span>Country</span><p className={`${INPUT} bg-mist`}>{country}</p></div>
-        <div className="text-sm font-medium text-ink-2"><label htmlFor="add-hospital-city">City or regency</label><input id="add-hospital-city" value={form.city} onChange={e => setForm(f => ({ ...f, city: e.target.value }))} className={`${INPUT} ${v.invalid("city") ? INVALID : ""}`} {...v.field("city")} />{v.error("city")}</div>
+        <div className="text-sm font-medium text-ink-2"><span><LocalizedText>Country</LocalizedText></span><p className={`${INPUT} bg-mist`}><LocalizedText>{country}</LocalizedText></p></div>
+        <div className="text-sm font-medium text-ink-2"><label htmlFor="add-hospital-city"><LocalizedText>City or regency</LocalizedText></label><input id="add-hospital-city" value={form.city} onChange={e => setForm(f => ({ ...f, city: e.target.value }))} className={`${INPUT} ${v.invalid("city") ? INVALID : ""}`} {...v.field("city")} /><LocalizedText>{v.error("city")}</LocalizedText></div>
       </div>
       <div className="flex flex-wrap gap-3">
-        <button type="button" className={PRIMARY} disabled={busy} onClick={() => void submit()}>{busy ? <><Spinner />Adding…</> : "Add for review"}</button>
-        <button type="button" className={SECONDARY} disabled={busy} onClick={onCancel}>Back to the list</button>
+        <button type="button" className={PRIMARY} disabled={busy} onClick={() => void submit()}><LocalizedText>{busy ? <><Spinner /><LocalizedText>Adding…</LocalizedText></> : "Add for review"}</LocalizedText></button>
+        <button type="button" className={SECONDARY} disabled={busy} onClick={onCancel}><LocalizedText>Back to the list</LocalizedText></button>
       </div>
     </div>
   );
