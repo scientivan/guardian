@@ -6,6 +6,8 @@
 - **Repository:** https://github.com/scientivan/guardian
 - **Status:** working prototype. All data in the demo is synthetic. Payments are a sandbox (demo) or Stripe test mode (Google accounts); no real money moves and no hospital bank settlement exists. Blockchain anchoring runs on a local FISCO BCOS chain and is switched off in production.
 
+Structure: arc42 (lightweight), diagrams at C4 container level, security by STRIDE and the OWASP Top 10 for LLM Applications.
+
 Labels: **[Fact]** has a source or a test, **[Design]** is a team decision, **[Limit]** is a known boundary.
 
 ## Contents
@@ -186,6 +188,32 @@ The reader has no tools and a fixed output schema; hidden text such as "pay acco
 ### 7.4 Web and session
 
 Same-origin check on every mutating request; JWT sessions of 8 hours; per-account and per-IP limits on model routes (8/min and 60/h per account, 20/min and 150/h per IP; `src/server/rate-limit.ts`); file type and 10 MB size checks on the server; signed, short-lived Storage URLs bound by an HMAC receipt to session, destination, size and a 15-minute window; Stripe adapter refuses live keys; secrets only in ignored `.env` files.
+
+### 7.5 Threat model (STRIDE)
+
+| Threat | Example | Defence | Tested by |
+|---|---|---|---|
+| Spoofing | Fake hospital staff, "new account" message, acting as another member | Signed account list; unofficial-channel warning; Google sign-in; member id checked on every action | A1, A6, A4 |
+| Tampering | Edited log row, forged invoice, changed account list | Hash-chained log; list signature; document hashes anchored | A8, A9 |
+| Repudiation | "I never approved that share" | Every approval, denial and charge logged with actor and time; one receipt per share | Sandbox log |
+| Information disclosure | Payer reads medical files; model sees names | Tokens before models; server-side role filtering; private storage | A5, payer 403 |
+| Denial of service | Burst of AI requests drains the free quota | Rate limits per account and IP; time budgets; 10 MB files | 20 burst calls → 12 × 429 |
+| Elevation of privilege | Companion or payer approves, creates or pays | Gateway check 3, server role rules, no override | A4, A7 |
+
+### 7.6 OWASP Top 10 for LLM Applications (2025)
+
+| Risk | Handling | Status |
+|---|---|---|
+| LLM01 Prompt injection | Reader without tools, fixed schema; document instructions become warnings | Covered (A2) |
+| LLM02 Sensitive information disclosure | Tokens before every model call; server-side role filtering | Covered (A5) |
+| LLM03 Supply chain | Lockfile fixes every version (`npm ci`); known model providers only | Partly: some dependency audit warnings open |
+| LLM04 Data and model poisoning | No training or fine-tuning | Not applicable |
+| LLM05 Improper output handling | zod schema; displayed facts rebuilt from code | Covered |
+| LLM06 Excessive agency | Models cannot create, pledge or pay | Covered (A7) |
+| LLM07 System prompt leakage | Prompts hold no secrets | Covered by design |
+| LLM08 Vector and embedding weaknesses | No vector store | Not applicable |
+| LLM09 Misinformation | Code numbers, cited lines, no invented clinical causes | Covered (baseline) |
+| LLM10 Unbounded consumption | Rate limits, time budgets, cache | Covered |
 
 ## 8. Data protection
 

@@ -230,7 +230,7 @@ table(["Criterion", "Section", "Main evidence"], [
     ["T2 Intent understanding", "§6", "10/10 chat cases incl. slang; D6 clarification"],
     ["T3 Task planning", "§5, §6", "Agent pipeline; full trace of one payment from request to receipt (real log rows)"],
     ["T4 Correct tool use", "§5", "Each agent's allowed input, output and limits"],
-    ["S1 Resists induced transfers", "§8, §12", "Signed registry, check 1 and 5, attacks A1, A6, A7, A8"],
+    ["S1 Resists induced transfers", "§8, §12", "Signed registry, check 1 and 5, attacks A1, A6, A7, A8; STRIDE and OWASP LLM tables"],
     ["S2 Resists data extraction", "§10, §12", "Tokens before models, server-side role filtering, A5"],
     ["S3 Permission boundaries", "§9, §12", "Role matrix, share limits, A4"],
     ["S4 Prompt injection", "§8, §12", "Reader without tools, A2"],
@@ -244,6 +244,19 @@ table(["Criterion", "Section", "Main evidence"], [
     ["I6 Colloquial input", "§6", "Indonesian slang and typos understood or clarified"],
 ], [5.3, 1.9, 9.8], size=9)
 
+h2("How this document is organised")
+para("The structure follows **arc42** in a lightweight form, ordered by the judging criteria. The architecture diagram follows "
+     "the **C4 model** at container level. Security uses **STRIDE** and the **OWASP Top 10 for LLM Applications (2025)**.", after=4)
+table(["arc42 section", "Here"], [
+    ["1 Introduction and goals · 3 Context and scope", "§1 Summary, §2 Problem, §3 Scenario"],
+    ["4 Solution strategy · 5 Building blocks", "§5 Architecture and agent design"],
+    ["6 Runtime view", "§5 Payment trace, §6 Intent, §7 Turns"],
+    ["7 Deployment view", "§16 Deployment"],
+    ["8 Cross-cutting concepts", "§8–§11 Security, permissions, data, user control"],
+    ["10 Quality requirements", "§12–§15, §17 Testing and evidence"],
+    ["11 Risks and technical debt", "§18 Known risks"],
+], [8.5, 8.5], size=9)
+
 h2("Contents")
 _toc = ["1  Summary", "2  Problem", "3  What is new in this scenario", "4  Product walkthrough",
     "5  Architecture and agent design", "6  Intent understanding and clarification",
@@ -251,8 +264,7 @@ _toc = ["1  Summary", "2  Problem", "3  What is new in this scenario", "4  Produ
     "10  Data protection", "11  User control and risk warnings", "12  Security testing",
     "13  Execution evidence", "14  How judges can verify", "15  Measured value", "16  Deployment",
     "17  Testing", "18  Known risks and limits"]
-table(None, [[_toc[i], _toc[i + 9]] for i in range(9)], [8.5, 8.5], size=9.5)
-page_break()
+table(None, [[_toc[i], _toc[i + 6], _toc[i + 12]] for i in range(6)], [5.8, 5.8, 5.4], size=9)
 
 # =====================================================================
 # 1 Summary
@@ -433,6 +445,28 @@ bullets([
     "**Web:** same-origin check on every change, 8-hour sessions, rate limits on model routes (8/min per account, 20/min per IP), 10 MB file limit, short signed file links.",
 ])
 image(ATK / "A7-pay-blocked-dialog.png", 13.0, "The owner tries to pay while a warning is open: blocked at check 5.")
+h2("Threat model (STRIDE)")
+table(["Threat", "Example in this product", "Defence", "Tested by"], [
+    ["Spoofing", "Fake hospital staff, “new account” message, someone acting as another member", "Signed account list; unofficial-channel warning; Google sign-in; member id checked on every action", "A1, A6, A4 (made-up member)"],
+    ["Tampering", "Edited log row, forged invoice, changed account list", "Hash-chained log; list signature; document hashes on the blockchain", "A8, A9"],
+    ["Repudiation", "“I never approved that share”", "Every approval, denial and charge logged with actor and time; one receipt per share", "Sandbox log, A1–A9"],
+    ["Information disclosure", "Payer reads medical files; model sees names; data request in chat", "Tokens before models; server-side role filtering; private storage; refusal in chat", "A5, payer 403"],
+    ["Denial of service", "Burst of AI requests uses up the free quota", "Rate limits per account and IP; time budgets; 10 MB files", "Rate-limit test (12 of 20 burst calls → 429)"],
+    ["Elevation of privilege", "Companion or payer tries to approve, create or pay", "Gateway check 3 and server role rules; no override", "A4, A7"],
+], [2.8, 4.6, 6.0, 3.6], size=8.5)
+h2("OWASP Top 10 for LLM Applications (2025)")
+table(["Risk", "How Guardian handles it", "Status"], [
+    ["LLM01 Prompt injection", "Reader has no tools and a fixed schema; instructions in documents become warnings", "Covered (A2)"],
+    ["LLM02 Sensitive information disclosure", "Tokens before every model call; role filtering on the server", "Covered (A5)"],
+    ["LLM03 Supply chain", "Lockfile fixes every package version (npm ci); models only from known providers", "Partly: some dependency audit warnings remain open"],
+    ["LLM04 Data and model poisoning", "No training or fine-tuning; answer keys written by hand", "Not applicable"],
+    ["LLM05 Improper output handling", "Model output parsed by a zod schema; displayed facts rebuilt from code", "Covered"],
+    ["LLM06 Excessive agency", "Models cannot create, pledge or pay; the planner only prepares", "Covered (A7)"],
+    ["LLM07 System prompt leakage", "Prompts hold no secrets or keys", "Covered by design"],
+    ["LLM08 Vector and embedding weaknesses", "No vector store or retrieval", "Not applicable"],
+    ["LLM09 Misinformation", "Numbers from code; cited lines only; no invented clinical causes; second model on demand", "Covered (baseline: 0 invented causes)"],
+    ["LLM10 Unbounded consumption", "Rate limits, time budgets, response cache", "Covered"],
+], [4.8, 8.6, 3.6], size=8.5)
 
 # =====================================================================
 # 9 Permissions
