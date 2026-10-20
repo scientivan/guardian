@@ -6,6 +6,8 @@ Owners: **Dien** (backend, agent, API, services) and **Aurel** (UI/FE). FE ↔ B
 
 ## Current state (read this first, updated 20 Oct evening)
 
+**Draft perluasan video demo, 20 Oct (Codex)**. [Fact] MP4 saat ini 154,752 detik, 1080p/30 fps. [Proposal] Storyboard 17 scene dengan target 4:58 dan 568 kata pengucapan, mencakup seluruh subkriteria pada gambar Dien. Rancangan di video/SCENES-5MIN.md, naskah di video/narration.5min.json. Ini belum direkam/dirender. Validasi struktur dan 125 unit tests lulus. Pemeriksaan lint/TypeScript/build menemukan masalah setup/source Remotion yang sudah ada, dicatat di akhir storyboard untuk tahap produksi. Composition dan MP4 lama tetap sama.
+
 **Supabase migration and public deployment, 20 Oct (Codex)**. [Fact] Nine SQLite databases and ten files (4,397,584 bytes) imported to private Supabase Postgres schemas and Storage with row/hash/audit verification, idempotent rerun and intact local backups. Cloud invoice, 5 MiB signed uploads, wrong-session/route denial, private object/RLS checks, WASM OCR, concurrent seeding/audit, payment/refund and hospital listing probes passed. Public browser run at https://guardian.scientivan.dev passed demo login, sandbox payment, 5 MiB private file round trips, payer original denial and audit filtering with zero JavaScript errors. A complete pg_dump 17 backup with verified referenced objects was also tested. [Decision Dien] Vercel hosting, manual Cloudflare CNAME, Google callback updated, production FISCO anchoring remains disabled until a reachable node exists. NextAuth retained. See docs/SUPABASE-MIGRATION.md and evidence/supabase-deployment-2026-10-20. Actual Google consent was not automated. Final source commit 2c98f9a was deployed and verified. Two simultaneous cold workspace requests returned HTTP 200 in 1.54 and 1.74 seconds from the colocated Mumbai function. Unauthenticated API returned 401 and the generated Google redirect URI matched the production callback.
 
 **Live services verified, 20 Oct (Codex)**. [Fact] One real product notification sent and found in Gmail INBOX by its unique token. Nine anchors verified on local FISCO with status-1 receipts, matching events and stored hashes. Fresh uncached reader rerun matched 40 items and five causes. Background second-provider reading checked 11 items with zero disagreements. [Limit] The second check timed out at the web 15-second budget, and the first reader attempt had a cause mismatch. No blanket live pass is claimed. Local ignored .env routing now prioritises proven Groq/OpenRouter paths. Evidence in `evidence/live-services-2026-10-20/`.
@@ -201,14 +203,16 @@ Requirements (`demo-video-guide-en.docx`): at most 5 minutes, 16:9, preferably 1
 
 | # | Task | Owner | Pri | Done when | Status |
 |---|---|---|---|---|---|
-| 9.1 | Script with timestamps (outline below) | Dien | P0 | Narration ≤ 650 words, fits 4:45 | todo |
+| 9.1 | Script with timestamps and criterion coverage | Dien | P0 | Draft English narration and 4:58 scene budget ready for review | done (draft, video/SCENES-5MIN.md and narration.5min.json) |
 | 9.2 | Recording preparation: reset data (6.4), browser 1920×1080, zoom 110–125% so text is readable, notifications off, bookmarks hidden, model answers warmed in cache so the demo does not wait 70 seconds | Aurel | P0 | Test take with no visible waiting > 5 seconds | todo |
 | 9.3 | Screen recording per segment (not one long take), from the production URL if 8.6 passed, otherwise localhost | Aurel | P0 | All segments recorded | todo |
 | 9.4 | Narration or English subtitles, cut waiting time, simple labels on screen | Aurel | P0 | Final duration ≤ 5:00 | todo |
 | 9.5 | Honesty check: "demo / synthetic / Stripe test mode" label appears once, no claim of features that do not exist | Dien | P0 | Each claim in the video maps to a test or log | todo |
 | 9.6 | Export MP4 1080p, file name per guide, upload to its destination | Aurel | P0 | File plays on another device | todo |
 
-Video outline (4:45):
+**Rancangan terbaru, 20 Oct**. Storyboard rinci dan pemetaan seluruh T1–T4, S1–S6, I1–I6 ada di [video/SCENES-5MIN.md](../video/SCENES-5MIN.md). Naskah Inggris draft ada di [video/narration.5min.json](../video/narration.5min.json). Target 4:58 atau 8.940 frame pada 30 fps. Tambahan mencakup workflow, bahasa informal dan klarifikasi, penggantian file gagal, second-check unavailable, withdrawal pledge, server role boundaries, prompt injection PDF, dan arsitektur pembatasan aksi. Draft ini belum direkam atau dirender. Video yang ada masih 154,752 detik.
+
+Outline lama (4:45), dipertahankan sebagai riwayat dan digantikan storyboard rinci di atas untuk produksi berikutnya.
 
 | Time | Segment | What is shown |
 |---|---|---|
@@ -296,3 +300,5 @@ Video outline (4:45):
 
 - 20 Oct, Claude, seventeenth round. Demo video in `video/` (Remotion): 2:35, 1920×1080, Kokoro TTS per sentence, one-line subtitles, callouts above the recording, two empty 16:9 presenter frames on the right (props `speaker1Src`, `speaker2Src`). Product scenes are recorded from the real app (production build, demo account) by `video/scripts/record.cjs`; problem facts cite Hospital Management Asia 2026, Malaysia PAC June 2026 and JAMA Network Open 2021. 'Family' as the actor replaced by payers / people who help pay across UI, emails and chat. Render: `npx remotion render src/index.ts GuardianDemo out/AI-I_Couldve_Done_It_Father-DemoVideo.mp4`.
 
+
+- 20 Oct, Codex, video expansion design. [Fact] Inspected the 154.752-second MP4 through metadata and sampled frames, current narration/timeline/recorder, and product/evidence sources. [Proposal] Designed 17 scenes targeting 298 seconds with complete mapping to Dien’s rubric screenshot. Added separate English draft narration while preserving the existing active composition, TTS, recordings and MP4. Corrected planned claims about sandbox settlement, manually entered guarantee, refund tracking, shared receipt privacy, archived baseline/local FISCO and unavailable second checks. Production/render remains the next stage after review.

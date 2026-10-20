@@ -1,0 +1,343 @@
+[
+  {
+    "id": "v2-disclaimer-01",
+    "scene": "disclaimer",
+    "text": "Synthetic data. Sandbox payments. No real money or hospital bank settlement."
+  },
+  {
+    "id": "v2-problem-01",
+    "scene": "problem",
+    "text": "Budi is treated in Shenzhen. His payers are in other countries."
+  },
+  {
+    "id": "v2-problem-02",
+    "scene": "problem",
+    "text": "They must understand changing bills, agree on shares, and verify whom to pay."
+  },
+  {
+    "id": "v2-problem-03",
+    "scene": "problem",
+    "text": "Today, those records are scattered."
+  },
+  {
+    "id": "v2-intro-01",
+    "scene": "intro",
+    "text": "We are Dien and Aurel, the team behind Guardian."
+  },
+  {
+    "id": "v2-intro-02",
+    "scene": "intro",
+    "text": "One care case connects bill explanation, payer approvals, and refund records."
+  },
+  {
+    "id": "v2-setup-01",
+    "scene": "setup",
+    "text": "Rina invites payers and a companion, with different permissions.",
+    "role": "Owner"
+  },
+  {
+    "id": "v2-setup-02",
+    "scene": "setup",
+    "text": "A hospital listing alone does not authorize payments.",
+    "role": "Owner"
+  },
+  {
+    "id": "v2-setup-03",
+    "scene": "setup",
+    "text": "Recipients need a signed registry entry. Real hospital enrollment still requires human verification.",
+    "role": "Owner"
+  },
+  {
+    "id": "v2-plan-01",
+    "scene": "plan",
+    "text": "The case follows an ordered workflow, from reading bills to approvals and refunds.",
+    "role": "Owner"
+  },
+  {
+    "id": "v2-plan-02",
+    "scene": "plan",
+    "text": "The next step reflects the case state.",
+    "role": "Owner"
+  },
+  {
+    "id": "v2-plan-03",
+    "scene": "plan",
+    "text": "Suggested actions still pass code-enforced checks.",
+    "role": "Owner"
+  },
+  {
+    "id": "v2-bill-01",
+    "scene": "bill",
+    "text": "Guardian compares the 40-line bill with the estimate and cites the source lines.",
+    "role": "Owner"
+  },
+  {
+    "id": "v2-bill-02",
+    "scene": "bill",
+    "text": "Two extra days add 3,000 yuan in room costs.",
+    "role": "Owner",
+    "say": "Two extra days add three thousand yuan in room costs."
+  },
+  {
+    "id": "v2-bill-03",
+    "scene": "bill",
+    "text": "A duplicated blood test becomes a question, not an accusation.",
+    "role": "Owner"
+  },
+  {
+    "id": "v2-bill-04",
+    "scene": "bill",
+    "text": "Calculations are separated from document statements.",
+    "role": "Owner"
+  },
+  {
+    "id": "v2-bill-05",
+    "scene": "bill",
+    "text": "Guardian does not invent a medical cause.",
+    "role": "Owner"
+  },
+  {
+    "id": "v2-clarify-01",
+    "scene": "clarify",
+    "text": "Rina informally asks in Indonesian to pay yesterday’s bill.",
+    "role": "Owner"
+  },
+  {
+    "id": "v2-clarify-02",
+    "scene": "clarify",
+    "text": "Guardian asks which bill, instead of guessing.",
+    "role": "Owner"
+  },
+  {
+    "id": "v2-clarify-03",
+    "scene": "clarify",
+    "text": "She clarifies that she wants the interim bill explained first.",
+    "role": "Owner"
+  },
+  {
+    "id": "v2-clarify-04",
+    "scene": "clarify",
+    "text": "The assistant links to that explanation. Nothing is paid.",
+    "role": "Owner"
+  },
+  {
+    "id": "v2-recovery-01",
+    "scene": "recovery",
+    "text": "An unreadable file gets a request for a clearer copy.",
+    "role": "Owner"
+  },
+  {
+    "id": "v2-recovery-02",
+    "scene": "recovery",
+    "text": "The user replaces the failed upload.",
+    "role": "Owner"
+  },
+  {
+    "id": "v2-recovery-03",
+    "scene": "recovery",
+    "text": "If a second-model check is unavailable, Guardian says so and preserves the calculation.",
+    "role": "Owner"
+  },
+  {
+    "id": "v2-pay-01",
+    "scene": "pay",
+    "text": "Rina manually enters a 50,000-yuan emergency guarantee from a hospital letter.",
+    "role": "Owner",
+    "say": "Rina manually enters a fifty thousand yuan emergency guarantee from a hospital letter."
+  },
+  {
+    "id": "v2-pay-02",
+    "scene": "pay",
+    "text": "At 45,000 pledged, it cannot be paid.",
+    "role": "Owner",
+    "say": "At forty five thousand pledged, it cannot be paid."
+  },
+  {
+    "id": "v2-pay-03",
+    "scene": "pay",
+    "text": "The Jakarta payer sees rupiah, with the rate and fee.",
+    "role": "Payer"
+  },
+  {
+    "id": "v2-pay-04",
+    "scene": "pay",
+    "text": "A pledge authorizes their share. Nothing is charged yet.",
+    "role": "Payer"
+  },
+  {
+    "id": "v2-pay-05",
+    "scene": "pay",
+    "text": "They can withdraw while pending, then pledge again.",
+    "role": "Payer"
+  },
+  {
+    "id": "v2-pay-06",
+    "scene": "pay",
+    "text": "At full coverage, Rina reviews and confirms.",
+    "role": "Owner"
+  },
+  {
+    "id": "v2-pay-07",
+    "scene": "pay",
+    "text": "Five checks run again. The sandbox records a separate test receipt for each payer.",
+    "role": "Owner"
+  },
+  {
+    "id": "v2-permissions-01",
+    "scene": "permissions",
+    "text": "Payers see the summary and their own financial details.",
+    "role": "Payer"
+  },
+  {
+    "id": "v2-permissions-02",
+    "scene": "permissions",
+    "text": "Companions help with documents but cannot execute payments.",
+    "role": "Companion"
+  },
+  {
+    "id": "v2-permissions-03",
+    "scene": "permissions",
+    "text": "Recorded tests show these boundaries are enforced on the server.",
+    "role": "Companion"
+  },
+  {
+    "id": "v2-refund-01",
+    "scene": "refund",
+    "text": "Deposits total 80,000 yuan. The final bill is 71,000.",
+    "role": "Owner",
+    "say": "Deposits total eighty thousand yuan. The final bill is seventy one thousand."
+  },
+  {
+    "id": "v2-refund-02",
+    "scene": "refund",
+    "text": "Guardian splits the 9,000-yuan refund by what each person paid.",
+    "role": "Owner",
+    "say": "Guardian splits the nine thousand yuan refund by what each person paid."
+  },
+  {
+    "id": "v2-refund-03",
+    "scene": "refund",
+    "text": "It tracks refunds. The hospital must return the money.",
+    "role": "Owner"
+  },
+  {
+    "id": "v2-refund-04",
+    "scene": "refund",
+    "text": "Uploaded payment receipts are shared with every member.",
+    "role": "Owner"
+  },
+  {
+    "id": "v2-security-01",
+    "scene": "security",
+    "text": "In a separate test, a message asks for payment to a different account.",
+    "role": "Companion"
+  },
+  {
+    "id": "v2-security-02",
+    "scene": "security",
+    "text": "Guardian warns the user and pauses payments.",
+    "role": "Companion"
+  },
+  {
+    "id": "v2-security-03",
+    "scene": "security",
+    "text": "Even the owner cannot override the hold.",
+    "role": "Owner"
+  },
+  {
+    "id": "v2-security-04",
+    "scene": "security",
+    "text": "Verification must use the hospital’s official channel, not the suspicious message.",
+    "role": "Owner"
+  },
+  {
+    "id": "v2-injection-01",
+    "scene": "injection",
+    "text": "Another test hides malicious instructions inside a hospital PDF."
+  },
+  {
+    "id": "v2-injection-02",
+    "scene": "injection",
+    "text": "The document reader has no payment tools."
+  },
+  {
+    "id": "v2-injection-03",
+    "scene": "injection",
+    "text": "An account from the PDF cannot become an approved recipient."
+  },
+  {
+    "id": "v2-injection-04",
+    "scene": "injection",
+    "text": "The test rejects it. Private-record requests are refused too."
+  },
+  {
+    "id": "v2-architecture-01",
+    "scene": "architecture",
+    "text": "Here is why those controls hold."
+  },
+  {
+    "id": "v2-architecture-02",
+    "scene": "architecture",
+    "text": "Supported identifiers are tokenised before case model calls."
+  },
+  {
+    "id": "v2-architecture-03",
+    "scene": "architecture",
+    "text": "AI reads and classifies. Code calculates amounts and enforces permissions."
+  },
+  {
+    "id": "v2-architecture-04",
+    "scene": "architecture",
+    "text": "Payers approve their shares. The owner confirms execution."
+  },
+  {
+    "id": "v2-close-01",
+    "scene": "close",
+    "text": "Back in the completed case, the final bill and both receipts are saved.",
+    "role": "Owner"
+  },
+  {
+    "id": "v2-close-02",
+    "scene": "close",
+    "text": "Rina confirms closing. Records become read-only.",
+    "role": "Owner"
+  },
+  {
+    "id": "v2-close-03",
+    "scene": "close",
+    "text": "The hash chain detects edits. It does not authenticate hospital bills.",
+    "role": "Owner"
+  },
+  {
+    "id": "v2-results-01",
+    "scene": "results",
+    "text": "All 125 automated tests pass.",
+    "say": "All one hundred twenty five automated tests pass."
+  },
+  {
+    "id": "v2-results-02",
+    "scene": "results",
+    "text": "An archived run passed sixteen tasks and attacks with test payments and a local chain."
+  },
+  {
+    "id": "v2-results-03",
+    "scene": "results",
+    "text": "In three trials on one synthetic bill, Guardian found all five causes."
+  },
+  {
+    "id": "v2-results-04",
+    "scene": "results",
+    "text": "The generic chatbot found two to four. These are fixture results, not a general accuracy guarantee."
+  },
+  {
+    "id": "v2-end-01",
+    "scene": "end",
+    "text": "Try the demo at guardian.scientivan.dev.",
+    "say": "Try the demo at guardian dot scientivan dot dev."
+  },
+  {
+    "id": "v2-end-02",
+    "scene": "end",
+    "text": "Understand the bill. Pay together. Verify the recipient first."
+  }
+]
