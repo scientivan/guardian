@@ -57,5 +57,26 @@ describe("payment request for an uploaded bill", () => {
     const helper = caseAccess(demo, "C1", "M_KL");
     try { expect(() => new Integration(helper).setShareLimit("M_JKT", { shareLimit: 1 })).toThrow(); } finally { helper.close(); }
   });
-});
 
+  it("keeps the hospital's invoice on a paid request and closes the case read-only", async () => {
+    const c = caseAccess(demo, "C1", "M_OWNER");
+    try {
+      const api = new Integration(c);
+      const pdf = () => new File([new Uint8Array([37, 80, 68, 70])], "invoice.pdf", { type: "application/pdf" });
+      const paid = api.view().requests.find(r => r.status === "paid")!, pending = api.view().requests.find(r => r.status === "pending")!;
+      await expect(api.addInvoice(pending.id, pdf())).rejects.toThrow("after the request is paid");
+      const inv = await api.addInvoice(paid.id, pdf());
+      expect(api.view().requests.find(r => r.id === paid.id)?.invoices?.[0].sha256).toBe(inv.sha256);
+      expect(() => api.closeCase()).toThrow("before closing");
+      api.cancel(pending.id);
+      expect(api.closeCase().case.closed?.at).toBeTruthy();
+      expect(api.closed()).toBe(true);
+      expect(api.view().audit.rows.at(-1)?.action).toBe("case.closed");
+    } finally { c.close(); }
+    const helper = caseAccess(demo, "C1", "M_JKT");
+    try {
+      const paid = new Integration(helper).view().requests.find(r => r.status === "paid")!;
+      expect(() => new Integration(helper).invoiceFile(paid.id, paid.invoices![0].id)).toThrow();
+    } finally { helper.close(); }
+  });
+});

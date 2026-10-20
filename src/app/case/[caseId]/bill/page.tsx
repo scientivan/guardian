@@ -38,12 +38,12 @@ export default function BillPage() {
   useEffect(()=>{if(query.get("documentId"))setSelected(query.get("documentId")!);},[query]);
   const target=query.get("documentId");
   useEffect(()=>{
-    if(!target||target===e?.documentId)return;
+    if(!target||target===e?.documentId||care.closed)return;
     let active=true;setAuto(true);
     const stop=startWork(WORK.explain);
     call(`/cases/${care.id}/explanation?documentId=${encodeURIComponent(target)}`,"POST",{},care.id).catch(error=>{if(active)showError(error);}).finally(()=>{stop();if(active)setAuto(false);});
     return()=>{active=false;stop();};
-  },[target,e?.documentId,care.id,call,showError,startWork]);
+  },[target,e?.documentId,care.id,care.closed,call,showError,startWork]);
   const working=busy||auto;
   const bills=documents.filter(d=>d.type!=="estimate");
   const controls=<div className="space-y-3"><div className="block text-sm font-semibold text-ink-2">Bill to review<Select label="Bill to review" className="mt-2" value={selected} onChange={setSelected} disabled={!bills.length} placeholder="No bills uploaded yet" options={bills.map(d=>({value:d.id,label:d.title,hint:`${d.type==="final"?"Final bill":"Interim bill"} · ${d.status==="needs_reupload"?"needs a clearer copy":d.status==="parsed"?"read":d.status}`}))}/></div><button type="button" disabled={!selected||working} onClick={refreshExplanation} className={SECONDARY}>{working?<><Spinner />Reading and checking…</>:"Explain selected bill"}</button></div>;
@@ -87,7 +87,7 @@ export default function BillPage() {
       </Section>
 
       <Section title="Cost Breakdown" agent="reader" action={<AskButton question="What is the bill made of?" context={{ kind: "breakdown" }} label="Explain the breakdown" />}>
-        <MoneyBreakdown byCategory={e.byCategory} total={e.total} currency={e.currency} items={Object.values(ITEMS)} checked={e.secondModelChecked} busy={checking} onQuestion={helper ? undefined : questionItem} />
+        <MoneyBreakdown byCategory={e.byCategory} total={e.total} currency={e.currency} items={Object.values(ITEMS)} checked={e.secondModelChecked} busy={checking} onQuestion={helper||care.closed ? undefined : questionItem} />
         {!helper && <p className="mt-3 text-xs leading-relaxed text-ink-2">Open a group to see its lines. “Double-check” asks a second AI from a different provider to re-read a line you’re unsure about; if it reads it differently, it becomes a question for the hospital.</p>}
       </Section>
 

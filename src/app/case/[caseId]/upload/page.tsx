@@ -55,7 +55,7 @@ export default function UploadPage() {
         </div>
       )}
 
-      {care.me.role === "payer" ? <p className="rounded-2xl bg-firstlight p-5 leading-relaxed text-serpent-dark">Estimates and bills are uploaded by the case owner or the companion at the hospital. As a helper you see the bill summary in Bill Review.</p> : <>
+      {care.closed ? <p className="rounded-2xl bg-firstlight p-5 leading-relaxed text-serpent-dark">This care case is closed, so no new documents can be added. Everything already uploaded stays readable.</p> : care.me.role === "payer" ? <p className="rounded-2xl bg-firstlight p-5 leading-relaxed text-serpent-dark">Estimates and bills are uploaded by the case owner or the companion at the hospital. As a helper you see the bill summary in Bill Review.</p> : <>
       <Section title="New Upload" agent="clerk">
         <label className="flex cursor-pointer flex-col items-center gap-3 rounded-[1.75rem] border-2 border-dashed border-cerulean px-6 py-12 text-center transition-colors hover:bg-white/60">
           <span className="grid h-14 w-14 place-items-center rounded-2xl bg-white text-serpent">

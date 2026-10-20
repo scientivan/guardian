@@ -24,6 +24,8 @@ const ACTIONS: Record<string, string> = {
   "member.invite": "Invited a helper",
   "member.join": "A helper joined the case",
   "member.limit": "Changed a helper’s share limit",
+  "request.invoice": "Attached the hospital’s invoice to a paid request",
+  "case.closed": "Closed the care case; it is read-only now",
   "permission.denied": "Tried something their role does not allow",
 };
 export function describeAction(action: string, check?: number) {

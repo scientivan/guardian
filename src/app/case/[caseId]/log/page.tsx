@@ -37,7 +37,7 @@ export default function LogPage() {
         <ActivityLog rows={AUDIT.rows} caseId={care.id} limit={8} />
         <p className="mt-3 text-xs text-ink-2">Select an entry to see it in the full record below.</p>
       </Section>
-      {care.me.role==="owner"&&<button type="button" disabled={busy} onClick={anchor} className="inline-flex items-center gap-2 rounded-full border border-line px-5 py-3 font-semibold text-serpent-dark">{busy?<><Spinner/>Anchoring…</>:"Anchor audit hash"}</button>}
+      {care.me.role==="owner"&&!care.closed&&<button type="button" disabled={busy} onClick={anchor} className="inline-flex items-center gap-2 rounded-full border border-line px-5 py-3 font-semibold text-serpent-dark">{busy?<><Spinner/>Anchoring…</>:"Anchor audit hash"}</button>}
       <Section
         title="Full Record"
         agent="auditor"

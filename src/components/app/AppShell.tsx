@@ -8,7 +8,7 @@ import { AccountMenu } from "@/components/auth/AccountMenu";
 import { useCaseData, useWorkspace } from "./WorkspaceProvider";
 import type { ReactNode } from "react";
 import type { AgentId } from "@/components/landing/agents";
-import { Building, Chain, Coins, Doc, Lock, People, ShieldMark, Upload } from "@/components/landing/icons";
+import { Building, Chain, Coins, Doc, Door, Lock, People, ShieldMark, Upload } from "@/components/landing/icons";
 import { AssistantLauncher, AssistantProvider } from "./Assistant";
 import type { RoomId } from "@/components/office/model";
 import { money, share } from "@/lib/format";
@@ -18,7 +18,7 @@ import { TabBand } from "./TabBand";
 // Frame for every case screen: case header, "Upload a bill" as the first action, the tab list
 // (sidebar on desktop, bottom bar on phones), the profile menu and the agents panel.
 
-export type NavId = "office" | "bill" | "pledges" | "upload" | "refunds" | "log" | "members" | "guide";
+export type NavId = "office" | "bill" | "pledges" | "upload" | "refunds" | "log" | "members" | "closing" | "guide";
 
 const NAV: { id: NavId; path: string; label: string; short?: string; icon: ReactNode; phone?: boolean }[] = [
   { id: "office", path: "", label: "Agent Office", icon: <Building className="h-5 w-5" />, phone: true },
@@ -26,6 +26,7 @@ const NAV: { id: NavId; path: string; label: string; short?: string; icon: React
   { id: "pledges", path: "/pledges", label: "Pledges", icon: <Coins className="h-5 w-5" />, phone: true },
   { id: "log", path: "/log", label: "Case History", short: "History", icon: <Chain className="h-5 w-5" />, phone: true },
   { id: "members", path: "/members", label: "Case Members", icon: <People className="h-5 w-5" /> },
+  { id: "closing", path: "/closing", label: "Close and Records", short: "Close", icon: <Door className="h-5 w-5" /> },
   { id: "guide", path: "/guide", label: "How It Works", short: "Guide", icon: <Lock className="h-5 w-5" />, phone: true },
 ];
 
@@ -37,6 +38,7 @@ const FOCUS: Record<Exclude<NavId, "office">, { room: RoomId; agents: AgentId[] 
   refunds: { room: "records", agents: ["auditor"] },
   log: { room: "records", agents: ["auditor"] },
   members: { room: "intake", agents: ["clerk"] },
+  closing: { room: "records", agents: ["auditor"] },
   guide: { room: "vault", agents: ["gate", "auditor"] },
 };
 
@@ -56,6 +58,7 @@ const TITLE: Record<NavId, string> = {
   refunds: "Refund Tracking",
   log: "Case History",
   members: "Case Members",
+  closing: "Close and Records",
   guide: "How It Works",
 };
 
@@ -91,7 +94,15 @@ export function AppShell({ caseId, children }: { caseId: string; children: React
         </div>
       </header>
 
-      {warnings.length > 0 && (
+      {CASE.closed && (
+        <div role="status" className="z-20 shrink-0 border-b border-line bg-firstlight px-4 py-3 text-sm text-serpent-dark sm:px-6">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+            <p className="min-w-0 flex-1"><b>This care case is closed.</b> {CASE.closed.by} closed it on {new Date(CASE.closed.at).toLocaleDateString()}. Everyone can still read it; nothing can be changed.</p>
+            {!pathname.startsWith(`${base}/closing`) && <Link href={`${base}/closing`} className="shrink-0 rounded-full bg-serpent px-4 py-2 text-xs font-semibold text-white hover:bg-serpent-dark">Closing documents</Link>}
+          </div>
+        </div>
+      )}
+      {warnings.length > 0 && !CASE.closed && (
         <div role="alert" className="z-20 shrink-0 border-b border-danger/30 bg-danger-soft px-4 py-3 text-sm text-danger-ink sm:px-6">
           <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
             <p className="min-w-0 flex-1"><b>Payments are paused.</b> {[...new Set(warnings.map(w => WARNING[w.kind] ?? w.detail))].join(" ")} {CASE.me.role === "owner" ? "Confirm the hospital’s account through its official channel, then verify it again in Pledges." : "The case owner needs to confirm the account with the hospital."}</p>
@@ -101,7 +112,7 @@ export function AppShell({ caseId, children }: { caseId: string; children: React
       )}
       <div className={office ? "flex min-h-0 flex-1 overflow-hidden" : "flex"}>
         <nav className={`${office ? "h-full min-h-0 overflow-y-auto" : "sticky top-16 h-[calc(100dvh-4rem)]"} hidden w-60 shrink-0 flex-col border-r border-line bg-white p-3 lg:flex`} aria-label="Case sections">
-          {CASE.me.role !== "payer" && <Link
+          {CASE.me.role !== "payer" && !CASE.closed && <Link
             href={`${base}/upload`}
             aria-current={active === "upload" ? "page" : undefined}
             className={`mb-4 flex items-center justify-center gap-2 rounded-2xl px-4 py-3 text-sm font-semibold transition-colors ${
@@ -131,7 +142,7 @@ export function AppShell({ caseId, children }: { caseId: string; children: React
             })}
           </ul>
           <div className="mt-auto pt-4"><AssistantLauncher /></div>
-          {guarantee && <Link href={`${base}/pledges`} className="mt-3 block rounded-2xl bg-mist p-4 text-sm transition-colors hover:bg-firstlight/60">
+          {guarantee && guarantee.status === "pending" && <Link href={`${base}/pledges`} className="mt-3 block rounded-2xl bg-mist p-4 text-sm transition-colors hover:bg-firstlight/60">
             <p className="text-xs text-ink-2">{guarantee.purpose}</p>
             <p className="mt-0.5 tabular-nums text-ink-2">
               <b className="font-num text-lg font-extrabold text-serpent-dark">{money(guarantee.approved, guarantee.currency)}</b> of {money(guarantee.amount, "").trim()}

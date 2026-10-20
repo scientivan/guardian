@@ -145,6 +145,41 @@ export class Integration {
   }
   withdraw(requestId:string) {this.request(requestId);return gate(withdrawApproval(this.c.db,requestId,this.c.member.id,now(this.c.db)));}
   cancel(requestId:string) {requireOwner(this.c);this.request(requestId);return gate(cancelRequest(this.c.db,requestId,this.c.member.id,now(this.c.db)));}
+  /** The hospital's invoice or receipt for a paid request (owner or companion). */
+  async addInvoice(requestId:string,file:File) {
+    if(this.c.member.role==="payer")denyAccess(this.c,"Only the owner or companion can attach the hospital’s invoice.");
+    const r=this.request(requestId);
+    if(r.status!=="paid")throw new ApiError("Attach the hospital’s invoice after the request is paid.",409);
+    if(file.size===0 || file.size>10*1024*1024)throw new ApiError("Choose a photo or PDF up to 10 MB.");
+    if(!["application/pdf","image/png","image/jpeg"].includes(file.type))throw new ApiError("Choose a PDF, PNG or JPEG document.");
+    const bytes=Buffer.from(await file.arrayBuffer());
+    const id=`INV_${randomUUID().slice(0,8)}`,sha256=createHash("sha256").update(bytes).digest("hex"),ts=now(this.c.db).toISOString();
+    this.c.db.prepare("INSERT INTO request_invoices (id,request_id,case_id,filename,mime,bytes,sha256,uploaded_by,ts) VALUES (?,?,?,?,?,?,?,?,?)").run(id,requestId,this.c.caseId,file.name.slice(0,200),file.type,bytes,sha256,this.c.member.id,ts);
+    appendAudit(this.c.db,{caseId:this.c.caseId,actor:this.c.member.id,action:"request.invoice",inputSources:["hospital_doc"],decision:"info",result:{requestId,invoiceId:id,sha256}});
+    return {id,sha256};
+  }
+  invoiceFile(requestId:string,invoiceId:string) {
+    if(this.c.member.role==="payer")denyAccess(this.c,"Your role can see that an invoice is on file, not the document itself.");
+    this.request(requestId);
+    const f=this.c.db.prepare("SELECT filename,mime,bytes FROM request_invoices WHERE id=? AND request_id=?").get(invoiceId,requestId) as {filename:string;mime:string;bytes:Buffer}|undefined;
+    if(!f)throw new ApiError("Invoice not found.",404);
+    return f;
+  }
+  closed() {return Boolean(this.c.db.prepare("SELECT 1 FROM case_closure WHERE case_id=?").get(this.c.caseId));}
+  /** Owner ends the case. Every member keeps read access; nothing can be written afterwards. */
+  closeCase() {
+    requireOwner(this.c);
+    if(this.closed())throw new ApiError("This care case is already closed.",409);
+    const open=this.view().requests.filter(r=>r.status==="pending"||r.status==="executing");
+    if(open.length)throw new ApiError(`Finish or cancel the open payment request${open.length>1?"s":""} (${open.map(r=>r.purpose).join(", ")}) before closing the case.`,409);
+    const at=now(this.c.db).toISOString();
+    this.c.db.transaction(()=>{
+      this.c.db.prepare("INSERT INTO case_closure (case_id,closed_at,closed_by) VALUES (?,?,?)").run(this.c.caseId,at,this.c.member.id);
+      this.c.db.prepare("UPDATE cases SET status='closed' WHERE id=?").run(this.c.caseId);
+      appendAudit(this.c.db,{caseId:this.c.caseId,actor:this.c.member.id,action:"case.closed",inputSources:["user"],decision:"info",result:{closedAt:at}});
+    })();
+    return this.view();
+  }
   async execute(requestId:string) {
     requireOwner(this.c);this.request(requestId);
     const sandbox:Charger=async input=>({ok:true,ref:`sandbox_${createHash("sha256").update(input.idempotencyKey).digest("hex").slice(0,24)}`});

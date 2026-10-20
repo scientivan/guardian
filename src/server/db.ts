@@ -135,6 +135,24 @@ CREATE TABLE IF NOT EXISTS audit_log (
   prev_hash TEXT NOT NULL,
   hash TEXT NOT NULL
 );
+-- A closed case is read-only for every member (owner included).
+CREATE TABLE IF NOT EXISTS case_closure (
+  case_id TEXT PRIMARY KEY REFERENCES cases(id),
+  closed_at TEXT NOT NULL,
+  closed_by TEXT NOT NULL
+);
+-- The hospital's invoice or receipt for a paid request, kept as evidence next to the payment.
+CREATE TABLE IF NOT EXISTS request_invoices (
+  id TEXT PRIMARY KEY,
+  request_id TEXT NOT NULL REFERENCES payment_requests(id),
+  case_id TEXT NOT NULL,
+  filename TEXT NOT NULL,
+  mime TEXT NOT NULL,
+  bytes BLOB NOT NULL,
+  sha256 TEXT NOT NULL,
+  uploaded_by TEXT NOT NULL,
+  ts TEXT NOT NULL
+);
 CREATE TABLE IF NOT EXISTS settings (
   key TEXT PRIMARY KEY,
   value TEXT NOT NULL

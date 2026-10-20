@@ -19,7 +19,7 @@ const STAGES = [
 export function RequestStages({ status, approved, amount }: { status: string; approved: number; amount: number }) {
   const at = status === "paid" ? 3 : status === "executing" || (status === "pending" && approved >= amount) ? 2 : approved > 0 ? 1 : 0;
   const stopped = ["expired", "cancelled", "failed"].includes(status);
-  const money = status === "paid" ? { tone: "bg-ok-soft text-ok-ink", text: "Money moved: each share was charged to its helper and paid straight to the hospital." }
+  const money = status === "paid" ? null
     : status === "failed" ? { tone: "bg-danger-soft text-danger-ink", text: "Some shares could not be charged. See each receipt below." }
     : stopped ? { tone: "bg-mist text-ink-2", text: `This request ${status === "expired" ? "expired" : "was cancelled"}. Nothing was charged.` }
     : status === "executing" ? { tone: "bg-warn-soft text-warn-ink", text: "Paying now: shares are being charged one by one." }
@@ -38,7 +38,7 @@ export function RequestStages({ status, approved, amount }: { status: string; ap
           );
         })}
       </ol>
-      <p role="status" className={`rounded-xl px-3 py-2 text-sm ${money.tone}`}>{money.text}</p>
+      {money && <p role="status" className={`rounded-xl px-3 py-2 text-sm ${money.tone}`}>{money.text}</p>}
     </div>
   );
 }

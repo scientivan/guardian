@@ -242,3 +242,11 @@ body {
     animation-duration: 2.4s;
   }
 }
+
+/* Closing documents: "Print / Save as PDF" prints only the chosen document. */
+@media print {
+  body.printing-doc * { visibility: hidden; }
+  body.printing-doc .print-target, body.printing-doc .print-target * { visibility: visible; }
+  body.printing-doc .print-target { position: absolute; inset: 0 auto auto 0; width: 100%; box-shadow: none; }
+  body.printing-doc .print-hide { display: none !important; }
+}

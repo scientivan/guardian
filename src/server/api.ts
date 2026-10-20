@@ -82,6 +82,7 @@ export async function dispatch(request:NextRequest,path:string[]) {
     scope.current=c;
     try {
       const api=new Integration(c);
+      if(mutate&&path[2]!=="chat"&&api.closed())throw new ApiError("This care case is closed. Everyone can still read it, but nothing can be changed.",409);
       if(sectionIsHospital(path) && request.method==="POST") {
         requireOwner(c);
         if(session.user.mode!=="google")throw new ApiError("Hospital directory linking requires a Google account.",403);
@@ -107,6 +108,15 @@ export async function dispatch(request:NextRequest,path:string[]) {
         if(path[2]==="approvals" && path[3]==="me" && request.method==="DELETE")return reply(api.withdraw(id));
         if(path[2]==="execute" && request.method==="POST")return reply(await api.execute(id));
         if(path[2]==="cancel" && request.method==="POST")return reply(api.cancel(id));
+        if(path[2]==="invoices" && !path[3] && request.method==="POST") {
+          const form=await request.formData();const file=form.get("file");
+          if(!(file instanceof File))throw new ApiError("Choose a photo or PDF.");
+          return reply(await api.addInvoice(id,file));
+        }
+        if(path[2]==="invoices" && path[3] && request.method==="GET") {
+          const f=api.invoiceFile(id,path[3]);
+          return new NextResponse(new Uint8Array(f.bytes),{headers:{"Content-Type":f.mime,"Content-Disposition":`attachment; filename*=UTF-8''${encodeURIComponent(f.filename)}`,"Cache-Control":"no-store"}});
+        }
       }
       const section=path[2];
       if(path[0]==="cases" && !section && request.method==="GET")return reply(api.view());
@@ -120,6 +130,7 @@ export async function dispatch(request:NextRequest,path:string[]) {
         if(!doc)throw new ApiError("Upload an estimate and a bill first.",409);
         return reply(await api.explanation(doc,request.method==="POST"));
       }
+      if(section==="close" && request.method==="POST")return reply(api.closeCase());
       if(section==="members" && path[3] && request.method==="POST")return reply(api.setShareLimit(path[3],await body()));
       if(section==="second-check" && request.method==="POST"){const b=z.object({documentId:z.string(),itemIds:z.array(z.string())}).parse(await body());return reply(await api.questionItems(b.documentId,b.itemIds));}
       if(section==="payment-requests" && request.method==="GET")return reply(api.view().requests);

@@ -215,3 +215,9 @@ Plus a member picker (sets `x-member-id`) to switch roles during the demo. The 1
 - `POST /cases/:id/second-check` `{documentId, itemIds}`: second model on lines a family member questions (F6). Owner/companion only; uses model quota. Returns `{checked, disagreements, unavailable, reason}`; audited as `document.second_check`.
 - `POST /cases/:id/members/:memberId` `{shareLimit, limitCurrency}`: owner changes a helper's share limit, converted to the case currency; audited as `member.limit`.
 - `POST /cases/:id/requests` with `documentId`: amount is checked against `paymentPlan` (`src/lib/payment-plan.ts`). A deposit must equal the estimate's lower or upper end; a bill request must use the latest bill (a final bill replaces interim bills) and stay within its balance (total − live requests). Only the emergency guarantee is typed.
+
+## v1.5 additions (20 Oct 2026)
+
+- `POST /payment-requests/:id/invoices` (multipart `file`, PDF/PNG/JPEG ≤ 10 MB): owner or companion attaches the hospital's invoice to a **paid** request; stored with its SHA-256, audited as `request.invoice`. `GET /payment-requests/:id/invoices/:invoiceId` downloads it (not for helpers, who see the filename and fingerprint only).
+- `POST /cases/:id/close`: owner closes the case. Refused while a request is pending or executing. Afterwards every non-GET case route except chat returns 409; `case.closed` is `{at, by}` in the case view. Audited as `case.closed`.
+- Closing documents (Close and Records tab), printable per document: Case Closing Summary (owner), Payment Record (each helper; the owner for anyone), Questions for Hospital Billing (owner, companion), Document and Audit Proof (owner, companion).

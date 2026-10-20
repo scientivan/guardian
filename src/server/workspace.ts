@@ -100,7 +100,7 @@ export class WorkspaceStore {
         hospital: { id: hospitalId, name: v.hospitalName, officialChannel: "" },
         me: { id: memberId, role: "owner" },
         members: [{ id: memberId, displayName: v.ownerName, role: "owner", shareLimit: 0, currency: v.currency }],
-        payees: [], anomalies: [], totals: { paid: 0, billedSoFar: 0, currency },
+        payees: [], anomalies: [], totals: { paid: 0, billedSoFar: 0, currency }, closed: null,
       },
       country: v.country, documents: [], explanation: null, items: {}, requests: [], refunds: null,
       audit: { chainValid: true, anchoredHead: { hash: "", tx: "" }, rows: [] },

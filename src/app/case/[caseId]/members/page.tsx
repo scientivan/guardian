@@ -66,7 +66,7 @@ export default function MembersPage() {
 
   return (
     <div className="space-y-12">
-      {open && (
+      {open && !CASE.closed && (
         <Section title="Invite a Helper" agent="clerk">
           {sent ? (
             <div className="space-y-3">
@@ -130,7 +130,7 @@ export default function MembersPage() {
       <Section
         title="People"
         agent="clerk"
-        action={CASE.me.role === "owner" ?
+        action={CASE.me.role === "owner" && !CASE.closed ?
           <button type="button" className={PRIMARY} onClick={() => setOpen(true)}>
             Invite a helper
           </button> : undefined
@@ -154,7 +154,7 @@ export default function MembersPage() {
                   </form>}
                 </div>
 
-                {CASE.me.role === "owner" && m.role === "payer" && editing !== m.id && <button type="button" className="text-xs font-semibold text-serpent-dark hover:underline" onClick={() => { setEditing(m.id); setNewLimit(""); lv.reset(); }}>Change limit</button>}
+                {CASE.me.role === "owner" && !CASE.closed && m.role === "payer" && editing !== m.id && <button type="button" className="text-xs font-semibold text-serpent-dark hover:underline" onClick={() => { setEditing(m.id); setNewLimit(""); lv.reset(); }}>Change limit</button>}
                 <Chip tone={r.tone}>{r.label}</Chip>
               </li>
             );
