@@ -119,8 +119,10 @@ export class Integration {
       this.document(v.documentId);
       const plan=paymentPlan(this.view());
       if(plan.deposit?.documentId===v.documentId) {
+        if(plan.deposit.requestedId)throw new ApiError("A deposit from this estimate was already requested. Open that request instead of making another one.",409,4);
         if(![plan.deposit.low,plan.deposit.high].includes(v.amount))throw new ApiError("A deposit from the estimate is its lower or upper end.",409,4);
       } else if(plan.bill?.documentId===v.documentId) {
+        if(plan.bill.openId)throw new ApiError("A request for this bill is still open. Finish or cancel it before asking again.",409,4);
         if(plan.bill.balance<=0)throw new ApiError("Deposits already cover this bill. Any difference comes back as a refund.",409,4);
         if(v.amount>plan.bill.balance)throw new ApiError(`This bill has ${(plan.bill.balance/100).toLocaleString("en",{minimumFractionDigits:2})} left to pay. Ask for that amount or less.`,409,4);
       } else throw new ApiError(plan.superseded.some(b=>b.documentId===v.documentId)?"A newer bill replaces this one. Pay from the latest bill.":"Choose the estimate or the latest bill that has been read.",409);

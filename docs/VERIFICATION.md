@@ -48,7 +48,7 @@ Status: **✅** in the product · **✅ new** gap found in this check and fixed 
 | F13 | Own share within limit; never above 100% | check 4 | ✅ |
 | F14 | State machine; each share charged separately with its own receipt | `payments.ts`; receipt per share on the request card and in the payment record | ✅ new (receipts were not shown) |
 | F15 | Withdraw while pending | Pledges | ✅ |
-| F16 | FX quote with fee and expiry, labelled demo | Pledges quote line | ⚠️ reference rates exist only from CNY, so FX quotes work for China cases only |
+| F16 | FX quote with fee and expiry, labelled demo | Pledges quote line: "IDR 78,030,000 (CNY 34,000)" with the rate "1 CNY = 2,295 IDR" | ✅ new: cross rates through CNY cover MYR, SGD, THB, AED, USD and IDR hospitals |
 | F17 | Agent only prepares | chat "Prepare payment request" | ✅ |
 | F18 | Refund split by share paid, statuses, due date, reminder | Refund Tracking | ✅ |
 | F19 | Recap per payer with receipts and hashes | Your Payment Record | ✅ new (in-app view) |
@@ -95,6 +95,5 @@ All described flows are present: suggestions, AI search with sources, separate p
 | Item | Why |
 |---|---|
 | Emergency guarantee amount is typed by the owner | The hospital asks for it in a letter, and there is no "hospital payment request" document type for the reader yet. Adding one would let this amount come from a document too. |
-| FX only from CNY | The demo rate table has CNY rows only. MYR, SGD and THB hospitals need rows before helpers can get quotes. |
 | A2 through the UI, live models | Needs LLM keys in the environment (covered by the live evidence run of 18 Oct). |
 | Real hospital confirmation, public deployment, video, two real Google accounts | — operational (TASKS 6.8, 7–10) |

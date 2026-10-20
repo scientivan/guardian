@@ -6,8 +6,8 @@ import { MemberAvatar } from "@/components/app/people";
 import { Chip, PRIMARY, SECONDARY, Section, type Tone } from "@/components/app/ui";
 import { Spinner, useTask } from "@/components/app/Feedback";
 import { Select } from "@/components/app/Select";
-import { toCaseCurrency } from "@/lib/fx-rates";
-import { money } from "@/lib/format";
+import { DEMO_RATES_E4, fromCaseCurrency, toCaseCurrency } from "@/lib/fx-rates";
+import { converted, rateLine } from "@/lib/format";
 import { INVALID, useFieldErrors } from "@/components/app/FieldError";
 import { amount, check, email, memberName } from "@/lib/validate";
 import { useCaseData, useWorkspace } from "@/components/app/WorkspaceProvider";
@@ -101,7 +101,7 @@ export default function MembersPage() {
               </div>
               {delivery === "email" && <label className="text-sm text-ink-2">Google email<input id="invite-email" type="email" autoComplete="off" value={form.email} onChange={set("email")} className={`${FIELD} mt-1 ${v.invalid("email") ? INVALID : ""}`} placeholder="name@gmail.com" {...v.field("email")} />{v.error("email")}</label>}
               {form.role === "payer" && <label className="text-sm text-ink-2 sm:col-span-2">Maximum share in {limitCurrency}<input id="invite-shareLimit" inputMode="decimal" value={form.shareLimit} onChange={set("shareLimit")} placeholder={limitCurrency === "IDR" ? "e.g. 10000000" : "e.g. 5000"} className={`${FIELD} mt-1 ${v.invalid("shareLimit") ? INVALID : ""}`} {...v.field("shareLimit")} />{v.error("shareLimit")}
-                <span className="mt-1 block text-xs leading-relaxed">{caseLimit !== null && limitCurrency !== CASE.currency ? <>About <b>{money(caseLimit, CASE.currency)}</b> in the hospital’s currency at the reference rate. </> : null}The most this person can pledge to one payment request. Nothing is charged when you invite, and pledges stop at 100% of each request. They choose the currency they pay in when they accept.</span></label>}
+                <span className="mt-1 block text-xs leading-relaxed">{caseLimit !== null && limitCurrency !== CASE.currency ? <>That is <b>{converted(typedLimit!, limitCurrency, caseLimit, CASE.currency)}</b> at the demo reference rate {rateLine(DEMO_RATES_E4[CASE.currency][limitCurrency] / 10_000, CASE.currency, limitCurrency)}. </> : null}The most this person can pledge to one payment request. Nothing is charged when you invite, and pledges stop at 100% of each request. They choose the currency they pay in when they accept.</span></label>}
               <div className="flex gap-2 sm:col-span-2">
                 <button type="submit" className={PRIMARY} disabled={busy}>
                   {busy ? <><Spinner />Creating…</> : delivery === "email" ? "Send invitation" : "Create invite link"}
@@ -145,7 +145,7 @@ export default function MembersPage() {
                 <div className="min-w-0 flex-1">
                   <p className="font-semibold text-lead">{m.displayName}</p>
                   <p className="text-xs text-ink-2">
-                    {r.can}. Pays in {m.currency}.{CASE.me.role === "owner" && m.role === "payer" && <> Limit {money(m.shareLimit, CASE.currency)} per request.</>}
+                    {r.can}. Pays in {m.currency}.{CASE.me.role === "owner" && m.role === "payer" && <> Limit {converted(fromCaseCurrency(m.shareLimit, CASE.currency, m.currency) ?? m.shareLimit, fromCaseCurrency(m.shareLimit, CASE.currency, m.currency) === null ? CASE.currency : m.currency, m.shareLimit, CASE.currency)} per request.</>}
                   </p>
                   {editing === m.id && <form noValidate onSubmit={e => { e.preventDefault(); void saveLimit(m.id); }} className="mt-2 flex flex-wrap items-start gap-2">
                     <div><input id="limit-value" inputMode="decimal" aria-label={`New limit in ${limitCurrency}`} value={newLimit} onChange={e => setNewLimit(e.target.value)} placeholder={`Limit in ${limitCurrency}`} className={`${FIELD} w-44 ${lv.invalid("value") ? INVALID : ""}`} {...lv.field("value")} />{lv.error("value")}</div>

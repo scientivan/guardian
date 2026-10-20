@@ -13,6 +13,11 @@ beforeEach(() => { dir = mkdtempSync(join(tmpdir(), "guardian-billreq-")); vi.st
 afterEach(() => { vi.unstubAllEnvs(); rmSync(dir, { recursive: true, force: true }); });
 
 describe("payment request for an uploaded bill", () => {
+  it("has cross rates for hospitals outside China", async () => {
+    const { convert } = await import("./fx");
+    expect(convert(100_00, "MYR", "IDR").payAmount).toBe(Math.round(100_00 * 22_950_000 / 5_900));
+  });
+
   it("pays the latest bill's balance after deposits, and deposits come from the estimate range", () => {
     const c = caseAccess(demo, "C1", "M_OWNER");
     try {
@@ -26,6 +31,8 @@ describe("payment request for an uploaded bill", () => {
       expect(() => api.createRequest({ payeeId, amount: 3_100_000, purpose: "Deposit", documentId: estimate.id })).toThrow("lower or upper end");
       const deposit = api.createRequest({ payeeId, amount: estimate.estimate!.high, purpose: "Initial deposit", documentId: estimate.id }) as { id: string };
       expect(api.view().requests.find(r => r.id === deposit.id)?.documentId).toBe(estimate.id);
+      // One request per document: a second deposit from the same estimate is refused.
+      expect(() => api.createRequest({ payeeId, amount: estimate.estimate!.high, purpose: "Initial deposit", documentId: estimate.id })).toThrow("already requested");
     } finally { c.close(); }
   });
 

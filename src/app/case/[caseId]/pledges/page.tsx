@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Chip, MoneyFigure, PRIMARY, SECONDARY, Section } from "@/components/app/ui";
 import { useCaseData, useWorkspace } from "@/components/app/WorkspaceProvider";
-import { money, share } from "@/lib/format";
+import { converted, money, rateLine, share } from "@/lib/format";
 import { Arrow, Refund } from "@/components/landing/icons";
 import { AskButton } from "@/components/app/Assistant";
 import type { Quote } from "@/server/fx";
@@ -26,13 +26,14 @@ export default function PledgesPage() {
   // Amounts come from the documents (src/lib/payment-plan.ts). Only an emergency guarantee, which
   // the hospital asks for in a letter Guardian doesn't read yet, is typed in.
   const plan=paymentPlan({documents,requests});
-  const [kind,setKind]=useState<"deposit"|"bill"|"guarantee">(plan.bill&&plan.bill.balance>0?"bill":plan.deposit&&!requests.length?"deposit":"guarantee");
+  const [kind,setKind]=useState<"deposit"|"bill"|"guarantee">(plan.bill&&plan.bill.balance>0&&!plan.bill.openId?"bill":plan.deposit&&!plan.deposit.requestedId?"deposit":"guarantee");
   const [end,setEnd]=useState<"low"|"high">("low");
   const [amount,setAmount]=useState("");
   const [purpose,setPurpose]=useState("Emergency guarantee");
   const {busy,run}=useTask();
   const rv=useFieldErrors(check({purpose,amount},{purpose:text("what the hospital asked for",3,120),amount:amountRule("the amount the hospital asked for")}),"request");
-  const fixed=kind==="deposit"&&plan.deposit?{amount:plan.deposit[end],purpose:"Initial deposit",documentId:plan.deposit.documentId}:kind==="bill"&&plan.bill&&plan.bill.balance>0?{amount:plan.bill.balance,purpose:`${plan.bill.type==="final"?"Final bill":"Interim bill"} balance`,documentId:plan.bill.documentId}:null;
+  const taken=kind==="deposit"?plan.deposit?.requestedId:kind==="bill"?plan.bill?.openId:null;
+  const fixed=taken?null:kind==="deposit"&&plan.deposit?{amount:plan.deposit[end],purpose:"Initial deposit",documentId:plan.deposit.documentId}:kind==="bill"&&plan.bill&&plan.bill.balance>0?{amount:plan.bill.balance,purpose:`${plan.bill.type==="final"?"Final bill":"Interim bill"} balance`,documentId:plan.bill.documentId}:null;
   async function create() {
     if(kind==="guarantee"&&!rv.submit())return;
     if(kind!=="guarantee"&&!fixed)return;
@@ -69,6 +70,7 @@ export default function PledgesPage() {
           <div className="text-sm text-ink-2"><label htmlFor="request-purpose">What the hospital asked for</label><input id="request-purpose" value={purpose} onChange={e=>setPurpose(e.target.value)} className={`mt-1 w-full rounded-xl border border-line bg-white p-3 text-lead ${rv.invalid("purpose")?INVALID:""}`} {...rv.field("purpose")} />{rv.error("purpose")}</div>
           <div className="text-sm text-ink-2"><label htmlFor="request-amount">Amount in {care.currency}</label><input id="request-amount" inputMode="decimal" value={amount} onChange={e=>setAmount(e.target.value)} className={`mt-1 w-full rounded-xl border border-line bg-white p-3 text-lead ${rv.invalid("amount")?INVALID:""}`} {...rv.field("amount")} />{rv.error("amount")}</div>
         </div>}
+        {taken&&<p className="rounded-xl bg-warn-soft p-3 text-sm text-warn-ink">{kind==="deposit"?"The deposit from this estimate was already requested.":"A request for this bill is still open."} <button type="button" onClick={()=>setSelected(taken)} className="font-semibold underline">Open that request</button>. Each document is paid through one request.</p>}
         <p className="text-xs leading-relaxed text-ink-2">The money goes only to the hospital’s verified account, never to an account printed on a document.</p>
         <button type="submit" disabled={busy||(kind!=="guarantee"&&!fixed)} className={PRIMARY}>{fixed?`Ask for ${money(fixed.amount,care.currency)}`:"Create request"}</button>
       </form>}
@@ -97,6 +99,8 @@ function PaymentForm({requestId}:{requestId:string}) {
   const {busy,run}=useTask();
   const {showError}=useFeedback();
   const [confirm,setConfirm]=useState(false);
+  // The owner asks and pays; helpers pledge. An owner who also puts in their own money opts in here.
+  const [ownShare,setOwnShare]=useState(false);
   useEffect(()=>{
     let active=true;setQuote(null);
     if(hasMine || request.status!=="pending" || amount<=0 || amount>request.remaining || care.me.role==="companion")return;
@@ -117,13 +121,13 @@ function PaymentForm({requestId}:{requestId:string}) {
       <MoneyFigure minor={request.approved} currency={request.currency} /><span className="ml-2 text-ink-2">of {money(request.amount,request.currency)}</span>
       <div className="mt-5 h-5 overflow-hidden rounded-full bg-white"><div className="h-full bg-serpent transition-all" style={{width:`${share(request.approved,request.amount)}%`}} /></div>
       <p className="mt-3 text-xs text-ink-2">{request.status==="pending"?<>Expires in <Countdown to={request.expiresAt}/> · {new Date(request.expiresAt).toLocaleString()}. Nothing is charged if it isn’t covered by then.</>:`Expiry ${new Date(request.expiresAt).toLocaleString()}`}</p>
-      <ul className="mt-5 divide-y divide-line">{request.approvals.map(p=><li key={p.memberId} className="flex flex-wrap justify-between gap-2 py-3"><span className="font-semibold text-lead">{p.displayName}</span><span className="text-sm text-ink-2">{money(p.amount,request.currency)} · {money(p.payAmount,p.payCurrency)} + {money(p.fee,p.payCurrency)} fee · {p.status==="charged"?"paid":p.status==="charge_failed"?"charge failed":p.status}</span>{p.chargeRef&&<span className="w-full text-xs text-ok-ink">Receipt {p.chargeRef} · paid straight to {request.payeeName} {request.accountMasked}</span>}</li>)}</ul>
+      <ul className="mt-5 divide-y divide-line">{request.approvals.map(p=><li key={p.memberId} className="flex flex-wrap justify-between gap-2 py-3"><span className="font-semibold text-lead">{p.displayName}</span><span className="text-sm text-ink-2">{converted(p.payAmount,p.payCurrency,p.amount,request.currency)}{p.payCurrency!==request.currency&&<> at {rateLine(p.fxRate,request.currency,p.payCurrency)}</>} + {money(p.fee,p.payCurrency)} fee · {p.status==="charged"?"paid":p.status==="charge_failed"?"charge failed":p.status}</span>{p.chargeRef&&<span className="w-full text-xs text-ok-ink">Receipt {p.chargeRef} · paid straight to {request.payeeName} {request.accountMasked}</span>}</li>)}</ul>
       {care.me.role==="payer" ? <p className="mt-4 text-xs text-ink-2">Other helpers’ pledges are private. The bar shows how much of the request is covered.</p> : care.me.role==="owner" && <Link href="members" className="mt-4 inline-block text-sm font-semibold text-serpent-dark underline">Invite more helpers</Link>}
     </Section>
-    {request.status==="pending" && <Section title="Your Pledge" agent="gate">
-      {care.me.role==="companion" ? <p>Your companion role can upload documents and ask questions. It cannot approve payments.</p> : mine ? <div className="flex flex-wrap items-center gap-4"><p>You approved {money(mine.amount,request.currency)}.</p><button type="button" disabled={busy} onClick={()=>action(`/payment-requests/${request.id}/approvals/me`,{},"DELETE")} className={SECONDARY}>Withdraw</button></div> : <>
+    {request.status==="pending" && <Section title={care.me.role==="owner"?"Your Own Share":"Your Pledge"} agent="gate">
+      {care.me.role==="owner"&&!mine&&!ownShare ? <div className="space-y-3"><p className="leading-relaxed text-ink-2">Your helpers pledge their shares of this request. You don’t have to pledge: when it is covered, you review and pay it below.</p><button type="button" onClick={()=>setOwnShare(true)} className={SECONDARY}>I’m also paying part of this myself</button></div> : care.me.role==="companion" ? <p>Your companion role can upload documents and ask questions. It cannot approve payments.</p> : mine ? <div className="flex flex-wrap items-center gap-4"><p>You approved {money(mine.amount,request.currency)}.</p><button type="button" disabled={busy} onClick={()=>action(`/payment-requests/${request.id}/approvals/me`,{},"DELETE")} className={SECONDARY}>Withdraw</button></div> : <>
         <label className="block text-sm font-semibold text-ink-2">Your share in {request.currency}<input id="pledge-amount" aria-label="Your pledge amount" inputMode="decimal" value={typed} onChange={e=>{setTyped(e.target.value);const ok=!pledgeError(e.target.value);setAmount(ok?Math.round(Number(e.target.value)*100):0);}} className={`mt-2 block w-full rounded-xl border border-line bg-white p-3 ${pv.invalid("amount")?INVALID:""}`} {...pv.field("amount")} /></label>{pv.error("amount")}
-        {quote ? <p className="mt-4 text-lead">You pay <b>{money(quote.payAmount,quote.payCurrency)}</b> plus {money(quote.fee,quote.payCurrency)} fee. Rate {quote.fxRate}. Quote expires {new Date(quote.expiresAt).toLocaleTimeString()}.</p> : <p role="status" className="mt-4 text-sm text-ink-2">{amount>0 && amount<=request.remaining ? "Getting your exchange-rate quote…" : "Choose an amount within the remaining balance."}</p>}
+        {quote ? <div className="mt-4 space-y-1 text-lead"><p>You pay <b>{converted(quote.payAmount,quote.payCurrency,quote.amount,quote.currency)}</b> plus a {money(quote.fee,quote.payCurrency)} fee, so <b>{money(quote.payAmount+quote.fee,quote.payCurrency)}</b> in total.</p>{quote.payCurrency!==quote.currency&&<p className="text-sm text-ink-2">Demo reference rate {rateLine(quote.fxRate,quote.currency,quote.payCurrency)}. The hospital receives {money(quote.amount,quote.currency)}. Quote expires {new Date(quote.expiresAt).toLocaleTimeString()}.</p>}</div> : <p role="status" className="mt-4 text-sm text-ink-2">{amount>0 && amount<=request.remaining ? "Getting your exchange-rate quote…" : "Choose an amount within the remaining balance."}</p>}
         <button type="button" disabled={busy||!quote||new Date(quote.expiresAt).getTime()<=Date.now()} onClick={()=>action(`/payment-requests/${request.id}/approvals`,{amount,quoteId:quote?.quoteId})} className={`${PRIMARY} mt-5`}>Pledge {money(amount,request.currency)}</button>
       </>}
     </Section>}

@@ -7,7 +7,7 @@ import { AskButton } from "@/components/app/Assistant";
 import { MemberAvatar } from "@/components/app/people";
 import { Chip, MoneyFigure, PRIMARY, SECONDARY, Section } from "@/components/app/ui";
 import { useCaseData, useWorkspace } from "@/components/app/WorkspaceProvider";
-import { day,money } from "@/lib/format";
+import { converted,day,money } from "@/lib/format";
 import { Spinner, useTask, WORK } from "@/components/app/Feedback";
 
 export default function RefundsPage() {
@@ -55,7 +55,7 @@ function PaymentRecord({ caseId }: { caseId: string }) {
       {record.payments.length ? <ul className="divide-y divide-line rounded-2xl bg-white px-4">{record.payments.map(p => (
         <li key={`${p.requestId}-${p.ts}`} className="flex flex-wrap items-center gap-x-4 gap-y-1 py-3 text-sm">
           <span className="min-w-0 flex-1"><span className="block font-semibold text-lead">{p.purpose}</span><span className="block text-xs text-ink-2">{day(p.ts)} · {p.chargeRef ? `Receipt ${p.chargeRef}` : "No receipt"}</span></span>
-          <span className="text-right"><b className="block font-num text-serpent-dark">{money(p.amount, p.currency)}</b>{p.payCurrency && p.payAmount !== null && <span className="text-xs text-ink-2">{money(p.payAmount, p.payCurrency)} + {money(p.fee ?? 0, p.payCurrency)} fee</span>}</span>
+          <span className="text-right"><b className="block font-num text-serpent-dark">{p.payCurrency && p.payAmount !== null ? converted(p.payAmount, p.payCurrency, p.amount, p.currency) : money(p.amount, p.currency)}</b>{p.payCurrency && p.payAmount !== null && <span className="text-xs text-ink-2">+ {money(p.fee ?? 0, p.payCurrency)} fee</span>}</span>
           <Chip tone={p.status === "charged" ? "ok" : "danger"}>{p.status === "charged" ? "Paid" : "Failed"}</Chip>
         </li>
       ))}</ul> : <p className="text-sm text-ink-2">No payments from you yet. A share is charged only when a request you pledged to is paid.</p>}

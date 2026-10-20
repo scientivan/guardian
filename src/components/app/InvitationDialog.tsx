@@ -1,11 +1,11 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { fromCaseCurrency } from "@/lib/fx-rates";
+import { DEMO_RATES_E4, fromCaseCurrency } from "@/lib/fx-rates";
 import { Select } from "./Select";
 import { AGENT_BY_ID } from "@/components/landing/agents";
 import { Minifig } from "@/components/landing/Minifig";
-import { money } from "@/lib/format";
+import { converted, money, rateLine } from "@/lib/format";
 import { Spinner } from "./Feedback";
 import { PRIMARY, SECONDARY } from "./ui";
 
@@ -49,7 +49,7 @@ export function InvitationDialog({ invitation, busy, onAccept, onClose, closeLab
     ["Hospital", `${invitation.hospitalName}, ${invitation.country}`],
     ["Invited by", invitation.inviter],
     ["Your role", role.label],
-    ...(invitation.role === "payer" ? [["Your share limit", `${money(invitation.shareLimit, invitation.caseCurrency)}${inPays !== null && pays !== invitation.caseCurrency ? ` (about ${money(inPays, pays)})` : ""} per request`] as [string, string]] : []),
+    ...(invitation.role === "payer" ? [["Your share limit", `${inPays !== null ? converted(inPays, pays, invitation.shareLimit, invitation.caseCurrency) : money(invitation.shareLimit, invitation.caseCurrency)} per request${inPays !== null && pays !== invitation.caseCurrency ? `, at ${rateLine(DEMO_RATES_E4[invitation.caseCurrency][pays] / 10_000, invitation.caseCurrency, pays)}` : ""}`] as [string, string]] : []),
     ["Invitation expires", new Date(invitation.expiresAt).toLocaleString()],
   ];
   return (
