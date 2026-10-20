@@ -10,6 +10,7 @@ import type { CareCase } from "@/lib/workspace";
 import { hospitalDispatch } from "./hospital-api";
 import { linkDirectoryHospital } from "./hospital-directory";
 import { requireOwner, denyAccess } from "./access";
+import { clientIp, LLM_LIMITS, spendsModelQuota, take } from "./rate-limit";
 
 export async function accountWorkspace(session:Session,selectedMember?:string|null) {
   const db=ownerDatabase(session.user.id);
@@ -46,6 +47,10 @@ export async function dispatch(request:NextRequest,path:string[]) {
     if(!session?.user.id)throw new ApiError("Sign in to continue.",401);
     const mutate=request.method!=="GET";
     if(mutate && request.headers.get("origin")!==new URL(request.url).origin)throw new ApiError("Invalid request origin.",403);
+    if(spendsModelQuota(request.method,path)) {
+      const wait=take([{key:`account:${session.user.id}`,windows:LLM_LIMITS.account},{key:`ip:${clientIp(request.headers)}`,windows:LLM_LIMITS.ip}]);
+      if(wait)return NextResponse.json({error:`Too many AI requests in a short time. Try again in ${wait} seconds.`,code:"RATE_LIMITED",retryAfter:wait},{status:429,headers:{"Retry-After":String(wait)}});
+    }
     if(path[0]==="admin" || path[0]==="hospitals")return await hospitalDispatch(request,path,session);
     const selected=request.headers.get("x-member-id");
     const body=async()=>request.json();

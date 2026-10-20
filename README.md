@@ -72,7 +72,11 @@ Environment variables (`.env`, never committed; template in `.env.example`):
 | `STRIPE_SECRET_KEY` | payments (must start with `sk_test_`) | Stripe dashboard, test mode |
 | `FISCO_BCOS_RPC_URL`, `FISCO_BCOS_CHAIN_ID` | anchoring | local chain, see §4.3 |
 | `FISCO_BCOS_PRIVATE_KEY`, `FISCO_BCOS_CONTRACT_ADDRESS` | anchoring | printed by `npm run fisco:deploy` |
-| `GUARDIAN_DB` | SQLite file (default `guardian.db`) | |
+| `GUARDIAN_DB` | SQLite file for the evidence scripts (default `guardian.db`) | |
+| `GUARDIAN_ACCOUNTS_DIR` | per-account databases and the shared hospital directory (default `.cache/accounts`) | |
+| `LLM_CACHE_DIR` | optional: cache model answers on disk (the eval scripts set `.cache/llm`) | |
+| `GUARDIAN_ADMIN_EMAILS` | Google emails allowed into `/admin`; empty denies all | |
+| `HOSPITAL_SEARCH_MODEL` | optional: Gemini model for hospital search | |
 | `NEXTAUTH_URL`, `NEXTAUTH_SECRET` | app URL and session signing | `.env.local`, see [Google sign-in setup](docs/GOOGLE-OAUTH.md) |
 | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | Google sign-in | Google Console, Web application OAuth client |
 
@@ -86,7 +90,7 @@ The router uses whichever LLM keys are present and skips a model that is rate-li
 git clone https://github.com/scientivan/guardian.git
 cd guardian
 npm ci
-npm test            # 88 tests covering the core, authentication, isolation and hospital verification
+npm test            # 95 tests covering the core, authentication, isolation, hospital verification and rate limits
 npm run fixtures    # regenerates the demo PDFs in fixtures/pdf/
 ```
 
@@ -139,10 +143,11 @@ Hospital profiles are available at `/hospitals`. Human administrators enter `/ad
 
 | Command | Covers | Last result |
 |---|---|---|
-| `npm test` | Unit and scenario tests with fakes | 88 passing |
+| `npm test` | Unit and scenario tests with fakes | 95 passing |
 | `npm run evidence` | D1–D6, D4b, A1–A9 live | 16/16 from a fresh clone (`evidence/run-2026-10-18-clean-clone/summary.md`) |
 | `npm run eval:reader` | 40-item bill reading vs answer key | 40/40 items, total and causes match |
 | `npm run eval:chat` | Clarification, colloquial input, chat attacks | 10/10 |
+| Attacks through the web UI | A1, A4, A5, A7, A9 on a fresh demo account | all rejected (`evidence/e2e-2026-10-20/attacks/ATTACKS.md`) |
 | `npm run baseline` | Generic LLM vs guardian | `evidence/baseline-2026-10-18/` |
 
 Scripted tasks (D) and attacks (A) are defined in `docs/TEST-PLAN.md`. Answer keys were written by hand before any LLM run (`src/server/fixtures/answer-keys.ts`).
@@ -160,7 +165,8 @@ Known limitations:
 
 - **Repository:** https://github.com/scientivan/guardian
 - **Live demo:** not deployed yet.
-- **Deployment:** local only (SQLite file, local chain). No real accounts or money.
+- **Deployment:** local by default (SQLite files, local chain). VPS steps with HTTPS, backups and AI rate limits are in [`docs/DEPLOY.md`](docs/DEPLOY.md). No real accounts or money.
+- **Demo reset:** `npm run demo:reset` removes demo workspaces so the next demo sign-in starts from the seeded case.
 
 ## 7. Security notes
 

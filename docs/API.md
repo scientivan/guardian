@@ -125,9 +125,6 @@ Request `status`: `pending`, `executing`, `paid`, `expired`, `cancelled`, `faile
 
 The helper is charged `payAmount + fee` in `payCurrency`. Quotes expire after 15 minutes; an approval must use the member's own unexpired quote for the same amount (else error with `check: 4`). Rates and the 1% fee are demo values.
 
-```json
-```
-
 `POST /api/payment-requests/:requestId/approvals` body `{ "amount": 2000000, "quoteId": "Q9" }`
 
 Success `{ "ok": true, "approved": 2000000, "remaining": 3000000, "auditSeq": 20 }`. Rejection uses the error shape with `check` (3 = role, 4 = amount or share limit).
@@ -194,7 +191,7 @@ Fetches the signed payee list from the hospital's official channel and enrolls v
 6. **Refunds:** per-member share, status, overdue reminder.
 7. **Audit log:** rows, chain status, anchor tx (for judges).
 
-Plus a member picker (sets `x-member-id`) to switch roles during the demo, and a visible "Demo data" badge. Until endpoints exist, mock the JSON above.
+Plus a member picker (sets `x-member-id`) to switch roles during the demo. The 1.1 "Demo data" badge and JSON mocks were replaced in 1.2: there is no global badge, and the UI calls the live endpoints.
 
 ## Additional web operations in version 1.2
 
@@ -206,4 +203,5 @@ Plus a member picker (sets `x-member-id`) to switch roles during the demo, and a
 - `POST /api/cases/:id/refunds/reconcile` accepts documentId. Demo-only `/refunds/status` accepts memberId and status. `/follow-up` records an audit event, without sending external messages.
 - `POST /api/cases/:id/clock` accepts advanceDays for demo owners only.
 - FX quotes use the configured reference table, not a live-market rate feed. Quotes expire after 15 minutes.
+- Routes that call a model (document upload, explanation POST, chat POST, `/hospitals/discover`, `/admin/reviews/:id/ai`) are rate-limited per account and per client IP (`src/server/rate-limit.ts`). Over the limit: `429`, `Retry-After`, body `{ error, code: "RATE_LIMITED", retryAfter }`.
 - Web document reading has a 70-second model budget. Independent checking and explanation have separate bounded budgets and preserve deterministic arithmetic when AI is unavailable. Blockchain RPC is bounded and its provider is closed after every attempt.

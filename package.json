@@ -12,6 +12,7 @@
     "fixtures": "tsx scripts/make-fixtures.ts",
     "hospitals:seed": "node --import tsx scripts/seed-hospitals.ts",
     "demo:reset": "node --import tsx scripts/demo-reset.ts",
+    "data:backup": "node --import tsx scripts/backup-data.ts",
     "testing:fixtures": "tsx scripts/make-testing.ts",
     "eval:reader": "LLM_CACHE_DIR=.cache/llm tsx --env-file=.env scripts/eval-reader.ts",
     "eval:explain": "LLM_CACHE_DIR=.cache/llm tsx --env-file=.env scripts/eval-explain.ts",

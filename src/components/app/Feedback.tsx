@@ -52,7 +52,7 @@ export function explainError(error: unknown): Explained {
   if (e.check === 3) return { title: "Your role can’t do this", body: said, hint: "Ask the case owner if this needs to be done.", agent: "gate", tone: "warn" };
   if (e.check === 4) return { title: "Check the amount", body: said, hint: "Each person can approve only their own share, within their limit.", agent: "gate", tone: "warn" };
   if (e.status === 413) return { title: "This file is too large", body: said.includes("large") ? "Choose a PDF or photo up to 10 MB." : said, hint: "Try a PDF exported from the hospital, or a smaller photo.", agent: "reader", tone: "warn" };
-  if (e.status === 429) return { title: "Our AI helpers are busy", body: "Too many requests arrived in a short time. Nothing was lost.", hint: "Wait about a minute, then try again.", agent: "reader", tone: "warn" };
+  if (e.status === 429) return { title: "Our AI helpers are busy", body: e.code === "RATE_LIMITED" ? `${said} Nothing was lost.` : "Too many requests arrived in a short time. Nothing was lost.", hint: "Wait about a minute, then try again.", agent: "reader", tone: "warn" };
   if (e.status === 408 || e.status === 504) return { title: "This is taking longer than usual", body: "The AI reader did not finish in time. Your case is saved.", hint: "Try again in a minute. A clear, text-based PDF reads fastest.", agent: "reader", tone: "warn" };
   if (e.status >= 500) return { title: "A service is taking a break", body: said, hint: "Your case is saved. Try again in a minute.", agent: "planner", tone: "warn" };
   if (e.status === 404) return { title: "We couldn’t find that", body: said, hint: "Refresh the page. It may have been changed or removed.", agent: "auditor", tone: "warn" };

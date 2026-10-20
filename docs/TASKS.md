@@ -91,7 +91,7 @@ Written 20 Oct 10:58 WIB. Official deadline 22:59 WIB (about 12 hours left). The
 Rules for today:
 
 - Freeze features at 14:00. After that only bug fixes, deployment and submission material.
-- Do not migrate SQLite to Postgres today. The code is written for synchronous `better-sqlite3` (`src/server/db.ts`, per-account files in `src/server/workspace.ts`). A migration touches every engine and all 89 tests. SQLite on a persistent VPS volume meets the need.
+- Do not migrate SQLite to Postgres today. The code is written for synchronous `better-sqlite3` (`src/server/db.ts`, per-account files in `src/server/workspace.ts`). A migration touches every engine and the whole test suite. SQLite on a persistent VPS volume meets the need.
 - Judges must be able to use the app without Google consent. The demo account is the main path, Google sign-in is a secondary path.
 
 ### 5.1 Open decisions (Dien, before 11:30)
@@ -110,16 +110,30 @@ Integration is already in place (tasks 1.17, 2.10, `evidence/integration-2026-10
 
 | # | Task | Owner | Pri | Done when | Status |
 |---|---|---|---|---|---|
-| 6.1 | Inventory of UI elements still showing static or demo data (search `src/lib/demo.ts`, hard-coded numbers, buttons without handlers) | Aurel | P0 | List in this file, each item with a file path | todo |
-| 6.2 | Fix every element from 6.1 that appears in the video. Remove or hide the ones that do not | Aurel + Dien | P0 | Nothing on screen claims a feature that is not running | todo |
-| 6.3 | Error, loading and empty states on upload, explanation, payment and chat (model timeout, OCR failure, quota exhausted) | Aurel | P0 | Each failure shows a readable message plus a next action, never a blank screen | todo |
-| 6.4 | Reset script for the demo account and local data (`npm run demo:reset` or a written guide) | Dien | P0 | One command returns the app to the start of the video scenario | todo |
+| 6.1 | Inventory of UI elements still showing static or demo data (search `src/lib/demo.ts`, hard-coded numbers, buttons without handlers) | Aurel | P0 | List in this file, each item with a file path | done (list below) |
+| 6.2 | Fix every element from 6.1 that appears in the video. Remove or hide the ones that do not | Aurel + Dien | P0 | Nothing on screen claims a feature that is not running | doing (fixed items marked below; video items still to check with Aurel) |
+| 6.3 | Error, loading and empty states on upload, explanation, payment and chat (model timeout, OCR failure, quota exhausted) | Aurel | P0 | Each failure shows a readable message plus a next action, never a blank screen | done (`Feedback.tsx`: error dialog + agent loading states on every case screen) |
+| 6.4 | Reset script for the demo account and local data (`npm run demo:reset` or a written guide) | Dien | P0 | One command returns the app to the start of the video scenario | done (`npm run demo:reset`, `--dry-run`) |
 | 6.5 | Manual E2E run on a clean database, D1 → D6 in UI order: create case, upload estimate, initial deposit, upload 40-line interim bill, explanation, hospital questions, D4 guarantee with 4 helpers and FX, withdraw then reapprove, execution, final bill, refunds, recap, audit + anchor | Dien | P0 | Every step passes, with screenshots in `evidence/e2e-2026-10-20/` | todo |
-| 6.6 | Run the attacks through the UI (not only scripts): A1 changed account in chat, A2 PDF with hidden instruction, A5 data extraction request, A7 owner forcing a transfer | Dien | P0 | Each attack is rejected on screen with a clear reason, and appears in the audit log | todo |
+| 6.6 | Run the attacks through the UI (not only scripts): A1 changed account in chat, A2 PDF with hidden instruction, A5 data extraction request, A7 owner forcing a transfer | Dien | P0 | Each attack is rejected on screen with a clear reason, and appears in the audit log | done for A1, A4, A5, A7, A9 (`evidence/e2e-2026-10-20/attacks/ATTACKS.md`); A2 in the UI needs LLM keys |
 | 6.7 | Dialogue counts for 3.3: user and agent turns for D1–D6 through the UI | Dien | P1 | Numbers recorded in `docs/TEST-PLAN.md` §3 | todo |
 | 6.8 | Second account via Google invitation (owner invites helper, helper approves own share) | Dien | P1 | Passes with two real Google accounts, not only signed synthetic sessions | todo |
-| 6.9 | Final checks: `npm test`, `npm run lint`, `npx tsc --noEmit`, `npm run build` | Dien | P0 | All green, results in the progress notes | todo |
+| 6.9 | Final checks: `npm test`, `npm run lint`, `npx tsc --noEmit`, `npm run build` | Dien | P0 | All green, results in the progress notes | done 20 Oct: 95 tests, lint, `tsc --noEmit`, build all pass |
 | 6.10 | Commit and push the E2E result to `main` | Dien | P0 | Tagged commit `v-submission-rc1` | todo |
+
+### 6.1 Inventory: UI showing static, demo or misleading data (20 Oct)
+
+| # | Where | What | Action |
+|---|---|---|---|
+| 1 | `src/app/mockup/titles/page.tsx` (`/mockup/titles`) | Aurel's temporary section-title comparison. It uses fixture `EXPLANATION` and is reachable by URL, though nothing links to it. `MAIN_LOOK` already picks "folder". | Aurel: delete the page or keep it out of the video |
+| 2 | `src/server/workspace.ts`, `src/lib/demo.ts` | The demo case C1 starts from fixtures: explanation, 40 items, requests R1/R2, refunds and 19 story rows in the audit log (#6, #14, #16 are scripted denials, not live gateway decisions). The hashes are real and the data is synthetic. | Keep as the demo seed. In the video, show live denials made on screen (A1/A7). |
+| 3 | `src/server/workspace.ts` seed | The story claimed "Anchored the log head on FISCO BCOS" without a transaction. | Fixed: row removed. "Anchor audit hash" makes a real anchor. |
+| 4 | `src/app/case/[caseId]/log/page.tsx` | Live rows showed raw codes (`gateway.check`, actor `gateway`). | Fixed: plain-language actions and actors |
+| 5 | `src/app/case/[caseId]/chat/page.tsx` | An account warning appeared twice (reply and warning box). | Fixed: shown once, in red |
+| 6 | `src/app/case/[caseId]/upload/page.tsx` | The re-upload banner always said "too blurry", even for a totals mismatch. | Fixed: shows the backend reason |
+| 7 | `src/app/case/[caseId]/refunds/page.tsx` | "Mark processing / received" and "Advance 30 days" simulate the hospital and the clock. | Demo-only by code (`mode==="demo"`). Say so if shown. |
+| 8 | `src/app/case/[caseId]/log/page.tsx` | `CHECKS` legend is static text. | Correct: it documents the five gateway checks |
+| 9 | FX quotes (`src/server/fx.ts`) | Reference rate table, not market rates. | Labelled in README and the payment confirmation |
 
 ## 7. Database and storage on the VPS (Dien, P0, 13:00–15:00)
 
@@ -128,11 +142,11 @@ Target: same SQLite files as local, on a persistent folder outside the build dir
 | # | Task | Pri | Done when | Status |
 |---|---|---|---|---|
 | 7.1 | Server setup: non-root user, SSH key only, firewall (`ufw` open 22, 80, 443 only), timezone, swap 2–4 GB | P0 | `ufw status` shows only those three ports | todo |
-| 7.2 | Install Node 20 LTS, build tools for `better-sqlite3` (`build-essential`, `python3`), `tesseract-ocr` + language data used by `src/server/extract.ts`, Docker | P0 | `node -v`, `tesseract --version`, `docker ps` succeed | todo |
+| 7.2 | Install Node 22 LTS (README §3 requires 22+), build tools for `better-sqlite3` (`build-essential`, `python3`), `tesseract-ocr` + language data used by `src/server/extract.ts`, Docker | P0 | `node -v`, `tesseract --version`, `docker ps` succeed | todo |
 | 7.3 | Data folder `/var/lib/guardian/` with `guardian.db`, `accounts/` and uploaded files. Set `GUARDIAN_DB` and `GUARDIAN_ACCOUNTS_DIR` to it; check every other path still pointing at `process.cwd()` or `.cache` | P0 | No app data is written inside the release folder | todo |
 | 7.4 | Seed the shared registry: `npm run hospitals:seed`, plus the demo hospital (H1) and its signed payee list | P0 | Hospital directory lists 4 hospitals + the demo hospital, no duplicates on rerun | todo |
-| 7.5 | Automatic backup: daily `sqlite3 .backup` (not a raw file copy while the app is running) to a separate folder, keep 7 days | P1 | Backup file can be opened and contains the tables | todo |
-| 7.6 | Upload limits (file size, PDF/image type) checked on the server and in the reverse proxy | P1 | 20 MB+ file rejected with a clear message | todo |
+| 7.5 | Automatic backup: daily `sqlite3 .backup` (not a raw file copy while the app is running) to a separate folder, keep 7 days | P1 | Backup file can be opened and contains the tables | done in code (`npm run data:backup`, cron in `DEPLOY.md`); install on VPS |
+| 7.6 | Upload limits (file size, PDF/image type) checked on the server and in the reverse proxy | P1 | 20 MB+ file rejected with a clear message | app limit 10 MB exists; proxy limit in `DEPLOY.md` §4; check on VPS |
 | 7.7 | Clean demo data before the judging period (22–23 Oct): remove test accounts, keep the seed | P1 | Database contains only seed data and the demo template | todo |
 
 ## 8. Website deployment (Dien, P0, 14:00–16:00)
@@ -145,9 +159,9 @@ Target: same SQLite files as local, on a persistent folder outside the build dir
 | 8.4 | FISCO BCOS 4 nodes on the VPS in Docker, deploy `Anchor` (`npm run fisco:deploy`), RPC port 8545 **not** open to the internet | P0 if 5.1.3 = yes | Audit anchor from production returns a tx with status 1 | todo |
 | 8.5 | Google OAuth: add origin `https://<domain>` and redirect `https://<domain>/api/auth/callback/google` in Google Console. While the consent screen is in Testing mode, only listed test users can sign in | P1 | Google sign-in succeeds on the domain | todo |
 | 8.6 | Production smoke test: demo account D1 → D4 → D5 from a phone and a laptop, plus attack A1 | P0 | Passes, screenshots in `evidence/deploy-2026-10-20/` | todo |
-| 8.7 | Rate limits and AI quota: make sure free-tier quotas are not used up by visitors before judging (limit per account / IP on reader and chat routes, LLM cache on) | P1 | 20 fast requests do not drain the quota and get a 429 message | todo |
+| 8.7 | Rate limits and AI quota: make sure free-tier quotas are not used up by visitors before judging (limit per account / IP on reader and chat routes, LLM cache on) | P1 | 20 fast requests do not drain the quota and get a 429 message | done (`src/server/rate-limit.ts`; 20 fast calls → 8 × 200, 12 × 429) |
 | 8.8 | Simple monitoring: uptime check (UptimeRobot or similar) on the URL + logs from the process manager | P2 | Notification arrives when the app is down | todo |
-| 8.9 | Deployment steps written in `docs/DEPLOY.md` and the README "Deployment" section, URL included in the submission | P0 | Another person can follow it without asking | todo |
+| 8.9 | Deployment steps written in `docs/DEPLOY.md` and the README "Deployment" section, URL included in the submission | P0 | Another person can follow it without asking | doing (`docs/DEPLOY.md` written; add URL after deployment) |
 
 ## 9. Demo video (Aurel + Dien, P0, 16:00–18:00)
 
@@ -207,3 +221,6 @@ Video outline (4:45):
 - 20 Oct, Codex. Authenticated frontend integration now uses the existing document reader, comparator, second reader, payment gateway/state machine, server FX quotes, refunds, recap and audit services. Private Google and isolated demo workspaces remain separate. Email-bound invitations grant the invited role after acceptance. Web PDF reading and model fallback have bounded time budgets. Tests 66/66, lint and isolated production build pass. Payment execution stays in sandbox or Stripe test mode, with official hospital enrollment required for personal cases.
 
 - 20 Oct, Codex. Added shared Hospital Directory and human Verification Desk at `/admin`, server Google-email allowlist, family proposals/resubmission, grounded discovery with provider fallback, independent advisory review, separate human profile/account decisions, signature and key-rotation checks, incident holds, version-bound approvals and optional verification-hash anchoring. Browser verifies onboarding through revocation and mobile layouts. See `docs/HOSPITAL-DIRECTORY.md` and `evidence/admin-2026-10-20/`. Scheduled monitoring and real hospital confirmation remain operational boundaries.
+
+- 20 Oct, Claude (session with Dien). TASKS 6.1, 6.3, 6.4, 6.6 (A1, A4, A5, A7, A9 through the UI), 6.9, 8.7 and the code side of 7.5. New: `src/components/app/Feedback.tsx` gives a plain-language error dialog (title, server message, next step, support details) and "agents at work" loading dialogs, matching the existing palette, fonts and agent figures. `npm run demo:reset`, `npm run data:backup`, per-account and per-IP limits on model routes, and `docs/DEPLOY.md` are added. Fixes from the UI attack run: model-free refusal of private-data requests, audited payer denials, readable Security Log, no fake anchor in the seed. Doc consistency: test counts, Node 22, TEST-PLAN log paths, D2 longer-stay amount (CNY 3,000), answer-key location, and the API 1.1 badge note. Tests 95/95, lint, `tsc` and build pass. Not done here, because it needs keys, a VPS or people: A2 in the UI, 6.5 with live models, 6.7, 6.8 and sections 7–10.
+
